@@ -1,0 +1,201 @@
+#!/bin/bash
+
+###Script to check for and install most of the required software for dDocent
+
+if [[ -z "$1" ]]; then
+echo "Correct usage is sh install_dDocent_requirements [directory in your computer or user PATH]"
+echo "if installing for all users, best to run this script as root"
+exit 1
+fi
+
+INSTALL_PATH=$1
+
+
+
+if type -p java; then
+    _java=java
+elif [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
+    _java="$JAVA_HOME/bin/java"
+else
+    echo "no java"
+fi
+
+if [[ "$_java" ]]; then
+    version=$("$_java" -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    echo version "$version"
+    if [[ "$version" > "1.7" ]]; then
+        echo version is greater than 1.7
+    else         
+        echo version is less than 1.7 please upgrade version
+        exit 1
+    fi
+fi
+
+echo "Checking for required software"
+
+
+if [ -f $INSTALL_PATH/GenomeAnalysisTK.jar ]; then
+    echo "GATK is already installed"
+else
+	echo "Please install GATK.  Follow this link to download and install. http://www.broadinstitute.org/gatk/auth?package=GATK"
+fi
+
+echo "Checking for STACKS"
+if which clone_filter >/dev/null; then
+    echo "STACKS is already installed"
+else
+	echo "Downloading and installing STACKS components clone_filter and process_radtags"
+	wget http://creskolab.uoregon.edu/stacks/source/stacks-1.08.tar.gz
+	tar xvzf stacks-1.08.tar.gz
+	cd stacks-1.08
+	./configure
+	make
+	cp clone_filter process_radtags $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for cutadapt"
+if which cutadapt >/dev/null; then
+    echo "cutadapt is already installed"
+else
+	"Downloading and installing cutadapt"
+	wget http://cutadapt.googlecode.com/files/cutadapt-1.2.1.tar.gz
+	tar xvzf cutadapt-1.2.1.tar.gz
+	cd cutadapt-1.2.1
+	python setup.py build
+	python setup.py build_ext -i
+	python setup.py install
+	cd ..
+fi
+
+echo "Checking for fastqc"
+if which cutadapt >/dev/null; then
+    echo "fastqc is already installed"
+else
+	"Downloading and installing fastqc"
+	wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.10.1.zip
+	unzip fastqc_v0.10.1.zip
+	cd FastQC
+	cp fastqc $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for trim_galore"
+if which trim_galore >/dev/null; then
+    echo "trim_galore is already installed"
+else
+	"Downloading and installing trim_galore"
+	wget http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/trim_galore_v0.3.3.zip
+	unzip trim_galore_v0.3.3.zip
+	cp trim_galore $INSTALL_PATH
+fi
+
+echo "Checking for mawk"
+if which mawk >/dev/null; then
+    echo "mawk is already installed"
+else
+	"Downloading and installing mawk"
+	wget http://invisible-island.net/datafiles/release/mawk.tar.gz
+	tar xvzf mawk.tar.gz
+	cd mawk-1.3.4-20130803
+	./configure
+	sudo make install
+	cd ..
+fi
+
+echo "Checking for bwa"
+if which bwa >/dev/null; then
+    echo "bwa is already installed"
+else
+	"Downloading and installing bwa"
+	git clone https://github.com/lh3/bwa.git
+	cd bwa
+	make
+	cp bwa $INSTALL_PATH
+	cd ..
+fi
+
+
+echo "Checking for samtools"
+if which samtools >/dev/null; then
+    echo "samtools is already installed"
+else
+	"Downloading and installing samtools"
+	wget http://sourceforge.net/projects/samtools/files/latest/download?source=files
+	tar xvjf samtools-0.*.tar.bz2
+	cd samtools-0.1*
+	make
+	cp samtools $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for picard"
+if [ -f $INSTALL_PATH/CreateSequenceDictionary.jar ]; then
+    echo "Picard is already installed"
+else
+	echo "Downloading and installing Picard"
+	wget http://sourceforge.net/projects/picard/files/picard-tools/1.99/picard-tools-1.99.zip/download
+	unzip picard-tools-1.99.zip
+	cd picard-tools-1.99
+	cp * $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for VCFtools"
+if which vcftools >/dev/null; then
+    echo "VCFtools is already installed"
+else
+	echo "Downloading and installing VCFtools"
+	wget http://sourceforge.net/projects/vcftools/files/latest/download?source=files
+	tar xvzf vcftools_*.tar.gz
+	cd vcftools_0*
+	make
+	cp ./bin/vcftools $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for Rainbow"
+if which rainbow >/dev/null; then
+    echo "Rainbow is already installed"
+else
+	echo "Downloading and installing Rainbow"
+	wget http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+	tar xvzf rainbow*.tar.gz
+	cd rainbow*
+	make
+	cp rainbow rbasm rbmergetag select_* $INSTALL_PATH	
+	cd ..
+fi
+
+echo "Checking for seqtk"
+if which seqtk >/dev/null; then
+    echo "seqtk is already installed"
+else
+	"Downloading and installing seqtk"
+	git clone https://github.com/lh3/seqtk.git
+	cd seqtk
+	make
+	cp seqtk $INSTALL_PATH	
+	cd ..
+fi
+
+echo "Checking for cd-hit"
+if which cd-hit-est >/dev/null; then
+    echo "cd-hit is already installed"
+else
+	echo "Downloading and installing cd-hit"
+	wget http://www.bioinformatics.org/downloads/index.php/cd-hit/cd-hit-v4.5.4-2011-03-07.tgz
+	tar xvzf cd-hit-v4.5.4-2011-03-07.tgz
+	cd cd-hit-v4.5.4-2011-03-07
+	make openmp=yes
+	cp cd-hit-est cd-hit-est-2d $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for mergefq.pl"
+if [ -f $INSTALL_PATH/mergefq.pl ]; then
+	echo "mergefq.pl already installed"
+else
+	wget https://github.com/jpuritz/dDocent/raw/master/mergefq.pl	
+	cp mergefq.pl $INSTALL_PATH
+fi
