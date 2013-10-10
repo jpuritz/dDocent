@@ -893,7 +893,7 @@ Genotype()
             Prun=1
             fi
 			java -XX:+UseParallelGC -XX:ParallelGCThreads=8 -Xmx${LargeMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar -R reference.fasta -T HaplotypeCaller -I bamlist.$2.list \
-   			-o rawVariants.$2.$1.vcf -stand_call_conf 10.0 -stand_emit_conf 5.0 --min_mapping_quality_score 5 --heterozygosity 0.05 \
+   			-o rawVariants.$2.$1.vcf -stand_call_conf 10.0 -stand_emit_conf 5.0 --min_mapping_quality_score 5 --heterozygosity 0.01 \
    			--numPruningSamples $Prun -nct $NUMProc -log HC.$2.$1.log -L mapped.$1.bed -globalMAPQ -1 -dcov 200 --logging_level INFO \
    			--mergeVariantsViaLD &>HC.$2.$1.error.log
        
