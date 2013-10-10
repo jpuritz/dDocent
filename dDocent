@@ -342,7 +342,10 @@ mv mapaa mapped.1.bed
 mv mapab mapped.2.bed
 mv mapac mapped.3.bed
 mv mapad mapped.4.bed
-cat mapae >> mapped.4.bed
+if [ -f mape ]; then
+	cat mapae >> mapped.4.bed
+	rm mapae 
+fi
 
 #Create list of populations
 cp namelist poplist
