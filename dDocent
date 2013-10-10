@@ -36,6 +36,13 @@ ls -S *.F.fq > sizelist
 sed -i 's/.F.fq//g' sizelist
 SIZE=( `cat "sizelist" `)
 
+#Create path variable for script
+DIR=$(which samtools)
+LENGTH=${#DIR}
+LENGTH=$(($LENGTH - 9))
+DIR=${DIR:0:$LENGTH}
+
+
 ##########User Input Section##########
 #This code gets input from the user and assigns variables
 ######################################
@@ -249,9 +256,9 @@ if [ "$MAP" != "no" ]; then
 echo "Using BWA to map reads."
 	if [ -f ./reference.dict ]; then
 	rm reference.dict
-	java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
+	java -jar $DIR/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
 	else
-	java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
+	java -jar $DIR/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
 	fi
 	samtools faidx reference.fasta
 	bwa index reference.fasta &> index.log
@@ -383,7 +390,7 @@ wait
 
 #Gather SNP calls
 if [ -f "rawVariants.pop.2.vcf" ]; then
-	java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+	java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
 	-T CombineVariants -R reference.fasta -V rawVariants.pop.1.vcf -V rawVariants.pop.2.vcf \
 	-o rawVariants.F.2.vcf -genotypeMergeOptions UNSORTED -mergeInfoWithMaxAC
 
@@ -391,7 +398,7 @@ if [ -f "rawVariants.pop.2.vcf" ]; then
 		do
 		if [ -f "rawVariants.pop.$i.vcf" ]; then
 			k=$(($i-1))
-			java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+			java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
 			-T CombineVariants -R reference.fasta -V rawVariants.pop.$i.vcf -V rawVariants.F.$k.vcf \
 			-o rawVariants.F.$i.vcf -genotypeMergeOptions UNSORTED -mergeInfoWithMaxAC
 			rm rawVariants.F.$k.vcf
@@ -410,7 +417,7 @@ mv rawVariants.vcf rawVariants.all.vcf
 mv rawVariants.recode.vcf rawVariants.vcf
 
 #Annotate SNPS   	
-java -Xmx${MemMax}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${MemMax}g -jar $DIR/GenomeAnalysisTK.jar \
 -T VariantAnnotator \
 -R reference.fasta \
 -I bamlist.list \
@@ -422,7 +429,7 @@ java -Xmx${MemMax}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
 -nt $NUMThr -log VA.log --logging_level INFO  &>VA.error.log
 
 #Filter for High Quality SNPs
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
 -T VariantFiltration \
 -R reference.fasta \
 -V rawVariants-annotated.vcf \
@@ -437,14 +444,14 @@ java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
 cat Q30-Variants.vcf | grep 'PASS\|^#' > PASS-Q30-Variants.vcf
 
 #Create separate high quality SNP file and INDEL files
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -R reference.fasta \
    -T SelectVariants \
    --variant PASS-Q30-Variants.vcf \
    -o INDEL-Q30.vcf \
    -selectType INDEL
 
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -R reference.fasta \
    -T SelectVariants \
    --variant PASS-Q30-Variants.vcf \
@@ -454,7 +461,7 @@ java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
 ##Use Variant Quality Score Recalibration for lower quality SNPs
 
 #Select out lower quality SNPs
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
 -T VariantFiltration \
 -R reference.fasta \
 -V rawVariants-annotated.vcf \
@@ -468,7 +475,7 @@ java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
 -o Q15-Variants.vcf 
   
 #Calculate SNP recalibration
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -T VariantRecalibrator \
    -R reference.fasta \
    -input Q15-Variants.vcf \
@@ -482,7 +489,7 @@ java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
    --ignore_filter LowQD \
    -mode SNP &>VQSRSNP.error.log
 #Calculate INDEL recalibration
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -T VariantRecalibrator \
    -R reference.fasta \
    -input Q15-Variants.vcf \
@@ -498,7 +505,7 @@ java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
    -mode INDEL &>VQSRINDEL.error.log
      
 #Apply SNP recalibration   
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -T ApplyRecalibration \
    -R reference.fasta \
    -input Q15-Variants.vcf \
@@ -512,7 +519,7 @@ java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
    -o recalibrated_SNPS.rawIndels.vcf
 
 #Apply INDEL recalibration
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -T ApplyRecalibration \
    -R reference.fasta \
    -input recalibrated_SNPS.rawIndels.vcf \
@@ -526,14 +533,14 @@ java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
    -o VQSR.Variant.vcf   
 
 #Create separate vcf files for SNPs and INDEls   
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -R reference.fasta \
    -T SelectVariants \
    --variant VQSR.Variant.vcf \
    -o INDEL-VQSR.vcf \
    -selectType INDEL
 
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    -R reference.fasta \
    -T SelectVariants \
    --variant VQSR.Variant.vcf \
@@ -664,7 +671,7 @@ uniq2fasta totaluniqseq > uniq.fasta
 cd-hit-est -i uniq.fasta -o reference.fasta -mask N -M 0 -T 0 -c $simC &>cdhit.log
 wait
 rm reference.dict
-java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
+java -jar $DIR/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
 samtools faidx reference.fasta
 bwa index reference.fasta
 
@@ -699,7 +706,7 @@ samtools index $1-RG.bam
 #Function to realign BAM files using GATK
 Realign()
 {
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
 -T IndelRealigner \
 -R reference.fasta \
 -I $1-RG.bam \
@@ -713,7 +720,7 @@ rm $1-RG.bam
 samtools index $1-RGa.bam
 
 #Compress BAM files for GATK
-java -Xmx4g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx4g -jar $DIR/GenomeAnalysisTK.jar \
    -R reference.fasta \
    -T ReduceReads \
    -I $1-RGa.bam  \
@@ -773,7 +780,7 @@ wait
 #Create intervals
 bamToBed -i cat-RG.bam > map.bed
 bedtools merge -i map.bed > mapped.bed
-java -Xmx${SmallMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar \
+java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
 -T RealignerTargetCreator \
 -R reference.fasta \
 -I cat-RG.bam \
@@ -892,7 +899,7 @@ Genotype()
 			if [ $Prun -lt 1 ]; then
             Prun=1
             fi
-			java -XX:+UseParallelGC -XX:ParallelGCThreads=8 -Xmx${LargeMem}g -jar /usr/local/bin/GenomeAnalysisTK.jar -R reference.fasta -T HaplotypeCaller -I bamlist.$2.list \
+			java -XX:+UseParallelGC -XX:ParallelGCThreads=8 -Xmx${LargeMem}g -jar $DIR/GenomeAnalysisTK.jar -R reference.fasta -T HaplotypeCaller -I bamlist.$2.list \
    			-o rawVariants.$2.$1.vcf -stand_call_conf 10.0 -stand_emit_conf 5.0 --min_mapping_quality_score 5 --heterozygosity 0.01 \
    			--numPruningSamples $Prun -nct $NUMProc -log HC.$2.$1.log -L mapped.$1.bed -globalMAPQ -1 -dcov 200 --logging_level INFO \
    			--mergeVariantsViaLD &>HC.$2.$1.error.log
@@ -920,7 +927,7 @@ GenoError=$(($GenoError + 0))
 	fi
 done	
 #Gathers all SNP data
-java -Xmx${SmallMem}g -cp /usr/local/bin/GenomeAnalysisTK.jar org.broadinstitute.sting.tools.CatVariants \
+java -Xmx${SmallMem}g -cp $DIR/GenomeAnalysisTK.jar org.broadinstitute.sting.tools.CatVariants \
 -R reference.fasta -V rawVariants.$1.1.vcf -V rawVariants.$1.2.vcf -V rawVariants.$1.3.vcf -V rawVariants.$1.4.vcf  \
 -out rawVariants.pop.$1.vcf -assumeSorted
 }
