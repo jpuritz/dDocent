@@ -612,6 +612,9 @@ done
 Assemble()
 {
 
+###Assembly first concatenates forward and reverse reads and reduces the entire data set to concatenated reads that are present at a user defined level of coverage.  
+###These reads are then split and assembled using Rainbow.  Then finally clustered with cd-hit.
+
 #Creates a concatenated file of every read in fasta format
 cat *.F.fq | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > forward
 cat *.R.fq | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > reverse
@@ -670,11 +673,41 @@ mawk -v x=$CUTOFF '$1 >= x' uniq.seqs | cut -f 2 > totaluniqseq
 #Convert reads to fasta
 uniq2fasta totaluniqseq > uniq.fasta
 
-#Use CD-Hit to cluster reads based on similarity
-cd-hit-est -i uniq.fasta -o reference.fasta -mask N -M 0 -T 0 -c $simC &>cdhit.log
-wait
+
+#This section is rather particular to some Gold lab data and may need to be updated
+
+#Perl function to split contigs by lenth
+perl Seq_filter.pl -i uniq.fasta -min 207 -max 207 -0
+mv sequences_ok.fas uniqL.fasta
+mv sequences_too_short.fas uniqS.fasta
+perl cutseq_fasta.pl -r :-112 uniqL.fasta > uniqLF.fasta
+perl cutseq_fasta.pl -r -101: uniqL.fasta > uniqLR.fasta
+perl cutseq_fasta.pl -r :-112 uniqS.fasta > uniqSF.fasta
+perl cutseq_fasta.pl -r -101: uniqS.fasta > uniqSR.fasta
+
+cat uniqLF.fasta uniqSF.fasta > uniq.F.fasta
+cat uniqLR.fasta uniqSR.fasta > uniq.R.fasta
+
+sed -i 's/_96 (96)//g' uniq.F.fasta
+sed -i 's/_95 (95)//g' uniq.F.fasta
+sed -i 's/_107_207 (101)/_2/g' uniq.R.fasta 
+sed -i 's/_106_206 (101)/_2/g' uniq.R.fasta
+seqtk seq -r uniq.R.fasta > uniq.RC.fasta
+rm uniq.R.fasta
+
+#Now use rainbow to cluster and assemble reads into longer contigs
+rainbow cluster -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster
+rainbow div -i rcluster -o rbdiv.out
+rainbow merge -o rbasm.out -a -i rbdiv.out
+perl select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
+
+#cd-hit to cluster reads based on sequence similarity
+cd-hit-est -i rainbow.fasta -o reference.fasta -mask N -M 0 -T 0 -c $simC &>cdhit.log
+
+if [ -f reference.dict ]; then
 rm reference.dict
-java -jar $DIR/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
+fi
+java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
 samtools faidx reference.fasta
 bwa index reference.fasta
 
