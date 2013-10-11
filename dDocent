@@ -677,13 +677,13 @@ uniq2fasta totaluniqseq > uniq.fasta
 #This section is rather particular to some Gold lab data and may need to be updated
 
 #Perl function to split contigs by lenth
-perl Seq_filter.pl -i uniq.fasta -min 207 -max 207 -0
+perl $DIR/Seq_filter.pl -i uniq.fasta -min 207 -max 207 -0
 mv sequences_ok.fas uniqL.fasta
 mv sequences_too_short.fas uniqS.fasta
-perl cutseq_fasta.pl -r :-112 uniqL.fasta > uniqLF.fasta
-perl cutseq_fasta.pl -r -101: uniqL.fasta > uniqLR.fasta
-perl cutseq_fasta.pl -r :-112 uniqS.fasta > uniqSF.fasta
-perl cutseq_fasta.pl -r -101: uniqS.fasta > uniqSR.fasta
+perl $DIR/cutseq_fasta.pl -r :-112 uniqL.fasta > uniqLF.fasta
+perl $DIR/cutseq_fasta.pl -r -101: uniqL.fasta > uniqLR.fasta
+perl $DIR/cutseq_fasta.pl -r :-112 uniqS.fasta > uniqSF.fasta
+perl $DIR/cutseq_fasta.pl -r -101: uniqS.fasta > uniqSR.fasta
 
 cat uniqLF.fasta uniqSF.fasta > uniq.F.fasta
 cat uniqLR.fasta uniqSR.fasta > uniq.R.fasta
@@ -699,7 +699,7 @@ rm uniq.R.fasta
 rainbow cluster -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster
 rainbow div -i rcluster -o rbdiv.out
 rainbow merge -o rbasm.out -a -i rbdiv.out
-perl select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
+perl $DIR/select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
 
 #cd-hit to cluster reads based on sequence similarity
 cd-hit-est -i rainbow.fasta -o reference.fasta -mask N -M 0 -T 0 -c $simC &>cdhit.log
