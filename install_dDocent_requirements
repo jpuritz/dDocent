@@ -199,3 +199,19 @@ else
 	wget https://github.com/jpuritz/dDocent/raw/master/mergefq.pl	
 	cp mergefq.pl $INSTALL_PATH
 fi
+
+echo "Checking for Seq_filter.pl"
+if [ -f $INSTALL_PATH/Seq_filter.pl ]; then
+	echo "Seq_filter.pl already installed"
+else
+	wget http://seq-filter.googlecode.com/files/Seq_filter.pl
+	cp Seq_filter.pl $INSTALL_PATH
+fi
+
+echo "Checking for cutseq_fasta.pl"
+if [ -f $INSTALL_PATH/cutseq_fasta.pl ]; then
+	echo "cutseq_fasta.pl already installed"
+else
+	wget http://nash-bioinformatics-codelets.googlecode.com/files/cutseq_fasta.pl
+	cp cutseq_fasta.pl $INSTALL_PATH
+fi
