@@ -669,6 +669,17 @@ read CUTOFF
 
 mawk -v x=$CUTOFF '$1 >= x' uniq.seqs | cut -f 2 > totaluniqseq
 
+#Prints instructions on how to move analysis to background and disown process
+echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
+echo "It is recommended that you move this script to a background operation and disable terminal input and output."
+echo "All data and logfiles will still be recorded."
+echo "To do this:"
+echo "Press control and Z simultaneously"
+echo "Type 'bg' without the quotes and press enter"
+echo "Type 'disown -h' again without the quotes and press enter"
+echo ""
+echo "Now sit back, relax, and wait for your analysis to finish."
+
 
 #Convert reads to fasta
 uniq2fasta totaluniqseq > uniq.fasta
@@ -711,16 +722,6 @@ java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=refere
 samtools faidx reference.fasta
 bwa index reference.fasta
 
-#Prints instructions on how to move analysis to background and disown process
-echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
-echo "It is recommended that you move this script to a background operation and disable terminal input and output."
-echo "All data and logfiles will still be recorded."
-echo "To do this:"
-echo "Press control and Z simultaneously"
-echo "Type 'bg' without the quotes and press enter"
-echo "Type 'disown -h' again without the quotes and press enter"
-echo ""
-echo "Now sit back, relax, and wait for your analysis to finish."
 }
 
 #Function to convert a SAM file to BAM file
