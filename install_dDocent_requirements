@@ -215,3 +215,8 @@ else
 	wget http://nash-bioinformatics-codelets.googlecode.com/files/cutseq_fasta.pl
 	cp cutseq_fasta.pl $INSTALL_PATH
 fi
+
+echo "Now installing dDocent"
+	wget https://github.com/jpuritz/dDocent/raw/master/dDocent
+	cp dDocent $INSTALL_PATH
+
