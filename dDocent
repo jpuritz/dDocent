@@ -552,6 +552,7 @@ java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    
 #Create a vcf with only passing SNPs
 cat SNP-VQSR.vcf | grep 'VQSLOD\|^#' | grep -v TruthSensitivityTranche > SNP-VQSR-PASS.vcf
+cat INDEL-VQSR.vcf | grep 'VQSLOD\|^#' | grep -v TruthSensitivityTranche > INDEL-VQSR-PASS.vcf
 
 echo "Using VCFtools to parse SNPS.vcf for SNPS that are called in at least 90% of individuals"
 vcftools --vcf SNP-VQSR-PASS.vcf --geno 0.9 --out Final --counts --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --recode-INFO-all &>VCFtools.log
