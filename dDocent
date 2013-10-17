@@ -254,12 +254,10 @@ fi
 #This code checks if the reference indexes need to be remade, if mapping
 if [ "$MAP" != "no" ]; then
 echo "Using BWA to map reads."
-	if [ -f ./reference.dict ]; then
+	if [ -f reference.dict ]; then
 	rm reference.dict
-	java -jar $DIR/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
-	else
-	java -jar $DIR/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
 	fi
+	java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
 	samtools faidx reference.fasta
 	bwa index reference.fasta &> index.log
 	
