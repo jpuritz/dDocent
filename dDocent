@@ -706,7 +706,7 @@ seqtk seq -r uniq.R.fasta > uniq.RC.fasta
 rm uniq.R.fasta
 
 #Now use rainbow to cluster and assemble reads into longer contigs
-rainbow cluster -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster
+rainbow cluster -m 6 -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster
 rainbow div -i rcluster -o rbdiv.out
 rainbow merge -o rbasm.out -a -i rbdiv.out
 perl $DIR/select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
