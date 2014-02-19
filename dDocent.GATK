@@ -290,7 +290,7 @@ fi
 
 Len=$(($NumInd - 1))
 
-if [[ "$MAP" == "no" && ! -f "${NAMES[$Len]}-RGa.bam" ]]; then
+if [[ "$MAP" == "no" && ! -f "${NAMES[$Len]}-RG.bam" ]]; then
 echo "Creating BAM Files"
 #Convert Sam to Bam 
 pBAM
@@ -502,7 +502,7 @@ java -Xmx${SmallMem}g -jar $DIR/GenomeAnalysisTK.jar \
    --ignore_filter BadValidation \
    --ignore_filter LowQual \
    --ignore_filter LowQD \
-   --maxGaussians 4 \
+   --maxGaussians 6 \
    -mode INDEL &>VQSRINDEL.error.log
      
 #Apply SNP recalibration   
