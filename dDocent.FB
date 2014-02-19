@@ -1,0 +1,550 @@
+#!/bin/bash
+
+##########dDocent 0.5##########
+
+
+#This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.
+#It requires that your raw data are split up by tagged individual and follow the naming convenction of:
+
+#Pop_Sample1.F.fq and Pop_Sample1.R.fq
+
+
+#Prints out title and contact info
+echo -e "dDocent 0.9 by J. Puritz for Gold lab \n"
+echo -e "Contact jpuritz@gmail.com with any problems \n\n "
+
+#This code checks for individual fq labels labeled with the right convention
+NumInd=$(ls *.F.fq | wc -l)
+NumInd=$(($NumInd - 0))
+
+if [ $NumInd -gt 9 ]
+        then
+        MinAll=0.05
+        MaxSize=9
+        else
+        MinAll=$(echo "scale=2; 1 / (2 * $NumInd) " | bc)
+        MaxSize=$(( $NumInd - 1 ))
+fi
+
+#Create list of sample names
+ls *.F.fq > namelist
+sed -i 's/.F.fq//g' namelist
+NAMES=( `cat "namelist" `)
+
+#Create list of samples by size
+ls -S *.F.fq > sizelist
+sed -i 's/.F.fq//g' sizelist
+SIZE=( `cat "sizelist" `)
+
+#Create path variable for script
+DIR=$(which samtools)
+LENGTH=${#DIR}
+LENGTH=$(($LENGTH - 9))
+DIR=${DIR:0:$LENGTH}
+
+
+##########User Input Section##########
+#This code gets input from the user and assigns variables
+######################################
+
+#This checks that dDocent has detected the proper number of individuals and exits if incorrect
+echo "$NumInd individuals are detected is this correct? Enter yes or no and press [ENTER]"
+
+read Indcorrect
+
+if [ "$Indcorrect" == "no" ]; then
+        echo "Please double check that all fastq files are named Ind01.F.fq and Ind01.R.fq"
+        exit 1
+elif [ "$Indcorrect" == "yes" ]; then
+            echo "Proceeding with $NumInd individuals"
+else
+        echo "Incorrect Input"
+        exit 1
+fi
+
+#Tries to get number of processors, if not asks user
+NUMProc=( `grep -c ^processor /proc/cpuinfo 2> /dev/null` ) 
+NUMProc=$(($NUMProc + 0)) 
+
+if [ $NUMProc -lt 1 ]; then
+        echo "Please enter the number of processing cores on this computer"
+        read NUMProc
+fi        
+if [ $NUMProc -lt 1 ]; then
+        echo "Incorrect. Please enter the number of processing cores on this computer"
+        read NUMProc
+fi                
+if [ $NUMProc -lt 1 ]; then
+        echo "Incorrect input, exiting"
+        exit 1
+fi
+
+NUMThr=$(($NUMProc / 4))
+
+#Asks if user wants to trim reads.  This allows this part of the pipeline to be skipped during subsequent analyses
+echo -e "\nDo you want to quality trim your reads?" 
+echo "Type yes or no and press [ENTER]?"
+
+read TRIM
+
+#Asks if user wants to perform an assembly.  This allows this part of the pipeline to be skipped during subsequent analyses
+
+echo -e "\nDo you want to perform an assembly?"
+echo "Type yes or no and press [ENTER]?"
+
+read ASSEMBLY
+
+if [ "$ASSEMBLY" == "no" ]; then
+        echo -e "\nReference contigs need to be in a file named reference.fasta\n"
+        sleep 1
+fi
+
+#If performing de novo assembly, asks if the user wants to enter a different -c value
+if [ "$ASSEMBLY" == "yes" ]; then
+        echo "Reads will be assembled with Rainbow"
+    echo "CD-HIT will cluster reference sequences by similarity. The -c parameter (% similarity to cluster) may need to be changed for your taxa."
+    echo "Would you like to enter a new c parameter now? Type yes or no and press [ENTER]"
+    read optC
+    echo $optC
+    if [ "$optC" == "no" ]; then
+            echo "Proceeding with default 0.9 value."
+            simC=0.9
+        elif [ "$optC" == "yes" ]; then
+            echo "Please enter new value for c. Enter in decimal form (For 90%, enter 0.9)"
+            read newC
+            simC=$newC
+        else
+            echo "Incorrect input. Proceeding with the default value."
+            simC=0.9
+        fi
+fi
+
+#Asks if user wants to map reads and change default mapping variables for BWA
+echo "Do you want to map reads?  Type yes or no and press [ENTER]"
+read MAP
+if [ "$MAP" == "no" ]; then
+        echo "Mapping will not be performed"
+        optA=1
+    	optB=4
+    	optO=6
+        else
+                echo "BWA will be used to map reads.  You may need to adjust -A -B and -O parameters for your taxa."
+                echo "Would you like to enter a new parameters now? Type yes or no and press [ENTER]"
+                read optq
+
+        if [ "$optq" == "yes" ]; then
+        echo "Please enter new value for A (match score).  It should be an integer.  Default is 1."
+        read newA
+        optA=$newA
+                echo "Please enter new value for B (mismatch score).  It should be an integer.  Default is 4."
+        read newB
+        optB=$newB
+                echo "Please enter new value for O (gap penalty).  It should be an integer.  Default is 6."
+        read newO
+        optO=$newO
+        else
+                echo "Proceeding with default values for BWA read mapping."
+                optA=1
+                optB=4
+                optO=6
+        fi
+fi
+        
+
+#Asks user for email address to notify when analysis is complete
+echo ""
+echo "Please enter your email address.  dDocent will email you when it is finished running."
+echo "Don't worry; dDocent has no financial need to sell your email address to spammers."
+read MAIL
+echo ""
+echo ""
+
+if [ "$ASSEMBLY" == "no" ]; then
+#Prints instructions on how to move analysis to background and disown process
+echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
+echo "It is recommended that you move this script to a background operation and disable terminal input and output."
+echo "All data and logfiles will still be recorded."
+echo "To do this:"
+echo "Press control and Z simultaneously"
+echo "Type 'bg' without the quotes and press enter"
+echo "Type 'disown -h' again without the quotes and press enter"
+echo ""
+echo "Now sit back, relax, and wait for your analysis to finish."
+fi
+
+if [ "$ASSEMBLY" == "yes" ]; then
+echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."
+fi
+
+
+#Wrapper for main program functions.  This allows the entire file to be read first before execution
+main(){
+
+#Sets a start time variable
+STARTTIME=$(date)
+
+#STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them
+
+STACKS=$(head -1 ${NAMES[0]}.F.fq | mawk '/\/1/')
+
+if [ -z "$STACKS" ]; then
+
+        echo "Removing the _1 character and replacing with /1 in the name of every sequence"
+        for i in "${NAMES[@]}"
+        do        
+        sed -e 's:_2$:/2:g' $i.R.fq > $i.Ra.fq
+        sed -e 's:_1$:/1:g' $i.F.fq > $i.Fa.fq
+        mv $i.Ra.fq $i.R.fq
+        mv $i.Fa.fq $i.F.fq
+        done
+
+fi
+
+#This allows for simultaneous assembly and quality trimming, if needed
+
+if [[ "$TRIM" == "yes" && "$ASSEMBLY" == "yes" ]]; then
+        echo "Trimming reads and simultaneously assemblying reference sequences"        
+        TrimReads & 2> trim.log
+        Assemble
+        #setupRainbow 2> rainbow.log
+        wait
+fi
+
+if [[ "$TRIM" == "yes" && "$ASSEMBLY" != "yes" ]]; then
+        echo "Trimming reads"
+        TrimReads 2> trim.log
+fi                
+                
+if [[ "$TRIM" != "yes" && "$ASSEMBLY" == "yes" ]]; then                
+        Assemble
+        #setupRainbow 2> rainbow.log
+fi
+
+
+##Assembly
+
+##Use BWA to map reads to assembly
+
+#This code checks if the reference indexes need to be remade, if mapping
+if [ "$MAP" != "no" ]; then
+echo "Using BWA to map reads."
+        if [ -f reference.dict ]; then
+        rm reference.dict
+        fi
+        java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
+        samtools faidx reference.fasta
+        bwa index reference.fasta &> index.log
+        
+        #BWA for mapping for all samples
+        for i in "${NAMES[@]}"
+        do
+        bwa mem reference.fasta $i.R1.fq $i.R2.fq -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        samtools sort -@$NUMProc $i.bam $i 
+		mv $i.bam $i-RG.bam
+		samtools index $i-RG.bam
+        done
+fi
+
+
+##Creating mapping intervals if needed, CreateIntervals function is defined later in script
+
+#If mapping is being performed, intervals are created automatically
+
+if [ "$MAP" != "no" ]; then
+echo "Creating alignment intervals"
+CreateIntervals 
+fi
+
+#If mapping is not being performed, but intervals do not exist they are created
+if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
+CreateIntervals 
+fi
+
+Len=$(($NumInd - 1))
+
+##SNP Calling
+
+#Create list of BAM files
+ls *-RG.bam >bamlist.list
+
+#Check to make sure interval files have been created
+if [[ "$MAP" == "no" && ! -f "map.bed" ]]; then
+bamToBed -i cat-RRG.bam > map.bed
+bedtools merge -i map.bed > mapped.bed
+fi
+
+#Split interval files for scatter gather of SNP calling
+NumMaps=$(cat mapped.bed | wc -l)
+NumMaps=$(( $NumMaps / $NUMProc ))
+split -l $NumMaps mapped.bed splitmap
+ls splitmap* > splitlist
+MAPNAMES=( `cat "splitlist" `)
+NumBED=$(( $NUMProc + 1 ))
+FB1=$(( $NUMProc / 2 ))
+
+for ((i = 0; i <= $FB1; i++));
+do
+j=$(( $NumBED - $i ))
+k=$(( $j - 1 ))
+mv ${MAPNAMES[$k]} mapped.$j.bed 2>/dev/null
+if [ -f mapped.$j.bed ]; then
+freebayes -L bamlist.list -t mapped.$j.bed -v raw.$j.vcf -f reference.fasta -m 10 -q 10 -E 3 &
+fi
+done
+
+for ((i = 0; i < $FB1; i++));
+do
+j=$(( $i + 1 ))
+mv ${MAPNAMES[$i]} mapped.$j.bed 2>/dev/null
+if [ -f mapped.$j.bed ]; then
+freebayes -L bamlist.list -t mapped.$j.bed -v raw.$j.vcf -f reference.fasta -m 10 -q 10 -E 3 &
+fi
+done
+
+wait
+
+mv raw.1.vcf raw.01.vcf
+mv raw.2.vcf raw.02.vcf
+mv raw.3.vcf raw.03.vcf
+mv raw.4.vcf raw.04.vcf
+mv raw.5.vcf raw.05.vcf
+mv raw.6.vcf raw.06.vcf
+mv raw.7.vcf raw.07.vcf
+mv raw.8.vcf raw.08.vcf
+mv raw.9.vcf raw.09.vcf
+
+ls raw.*.vcf > vcflist
+vcf-concat -f vcflist > TotalRawSNPs.vcf
+
+
+echo "Using VCFtools to parse SNPS.vcf for SNPS that are called in at least 90% of individuals"
+vcftools --vcf TotalRawSNPs.vcf --geno 0.9 --out Final --counts --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
+
+
+##Checking for possible errors
+
+if [ "$MAP" != "no" ]; then
+ERROR1=$(mawk '/developer/' bwa* | wc -l) 2> /dev/null
+fi
+ERROR2=$(mawk '/error/' *.bam.log | wc -l)
+ERRORS=$(($ERROR1 + $ERROR2))
+
+#Move various log files to own directory
+if [ ! -d "logfiles" ]; then
+mkdir logfiles
+fi
+mv *.txt *.log log ./logfiles 2> /dev/null
+
+#Sending a completion email
+
+if [ $ERRORS -gt 0 ]; then
+        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 0.5 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
+else
+        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 0.5 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
+fi
+}
+
+
+##Function definitions
+
+#Function for trimming reads using trim_galore
+TrimReads () 
+{ for i in "${NAMES[@]}"
+do
+echo "Trimming Sample $i"
+trim_galore --paired -q 10 --length 20 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNATATCGTATGCCGTCTTCTGCTTG -a2 GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG --stringency 10 $i.F.fq $i.R.fq 2> $i.trim.log
+mv $i.F_val_1.fq $i.R1.fq
+mv $i.R_val_2.fq $i.R2.fq
+done
+}
+
+#Function to convert a file of unique sequences to fasta format
+uniq2fasta()
+{
+i=1
+cat $1 | while read line
+do
+echo ">Contig"$i
+echo $line
+i=$(($i + 1))
+done
+}
+
+
+#Main function for assembly
+Assemble()
+{
+
+###Assembly first concatenates forward and reverse reads and reduces the entire data set to concatenated reads that are present at a user defined level of coverage.  
+###These reads are then split and assembled using Rainbow.  Then finally clustered with cd-hit.
+
+#Creates a concatenated file of every read in fasta format
+cat *.F.fq | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > forward
+cat *.R.fq | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > reverse
+
+#Reverse complements paired reads and pastes them together with forward reads with 10 Ns in between
+seqtk seq -r reverse > reverseRC
+mergefq.pl forward reverseRC concat.fasta
+
+#Clean up of large files
+rm forward
+rm reverse
+rm reverseRC
+
+#Convert fasta format to just sequences
+mawk '!/>/' concat.fasta > concat.seq
+
+#Find every unique sequence and count the number of occurrences
+perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' concat.seq > uniq.seqs
+
+#Create a data file with the number of unique sequences and the number of occurrences
+ONE=$(mawk '$1 > 1' uniq.seqs | wc -l)
+echo -e "1""\t""$ONE" > uniqseq.data
+
+for ((i = 2; i <= 50; i++));
+do
+J=$(mawk -v x=$i '$1 > x' uniq.seqs | wc -l)
+echo -e "$i""\t""$J" >> uniqseq.data
+done
+
+#Plot graph of above data
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Number of Unique Sequences with More than X Occurrences"
+#set xlabel "Number of Occurrences"
+set ylabel "Number of Unique Sequences
+#set yr [0:100000]
+plot 'uniqseq.data' with dots notitle
+pause -1
+EOF
+
+#Ask user to pick cutoff
+##The cutoff should roughly correlate to the expected coverage per RAD loci.  This is an easy way to get rid of reads only corresponding to a few individuals
+
+echo -en "\007"
+echo -en "\007"
+echo -en "\007"
+echo -e "Please choose data cutoff.  Pick point right before assymptote, probably between 10 and 30.  \n\nIt approximates the expected coverage per RAD fragment."
+
+read CUTOFF
+
+mawk -v x=$CUTOFF '$1 >= x' uniq.seqs | cut -f 2 > totaluniqseq
+
+#Prints instructions on how to move analysis to background and disown process
+echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
+echo "It is recommended that you move this script to a background operation and disable terminal input and output."
+echo "All data and logfiles will still be recorded."
+echo "To do this:"
+echo "Press control and Z simultaneously"
+echo "Type 'bg' without the quotes and press enter"
+echo "Type 'disown -h' again without the quotes and press enter"
+echo ""
+echo "Now sit back, relax, and wait for your analysis to finish."
+
+
+#Convert reads to fasta
+uniq2fasta totaluniqseq > uniq.fasta
+
+
+#This section is rather particular to some Gold lab data and may need to be updated
+
+#Perl function to split contigs by lenth
+perl $DIR/Seq_filter.pl -i uniq.fasta -min 207 -max 207 -0
+mv sequences_ok.fas uniqL.fasta
+mv sequences_too_short.fas uniqS.fasta
+perl $DIR/cutseq_fasta.pl -r :-112 uniqL.fasta > uniqLF.fasta
+perl $DIR/cutseq_fasta.pl -r -101: uniqL.fasta > uniqLR.fasta
+perl $DIR/cutseq_fasta.pl -r :-112 uniqS.fasta > uniqSF.fasta
+perl $DIR/cutseq_fasta.pl -r -101: uniqS.fasta > uniqSR.fasta
+
+cat uniqLF.fasta uniqSF.fasta > uniq.F.fasta
+cat uniqLR.fasta uniqSR.fasta > uniq.R.fasta
+
+sed -i 's/_96 (96)//g' uniq.F.fasta
+sed -i 's/_95 (95)//g' uniq.F.fasta
+sed -i 's/_107_207 (101)/_2/g' uniq.R.fasta 
+sed -i 's/_106_206 (101)/_2/g' uniq.R.fasta
+seqtk seq -r uniq.R.fasta > uniq.RC.fasta
+rm uniq.R.fasta
+
+#Now use rainbow to cluster and assemble reads into longer contigs
+rainbow cluster -m 6 -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster
+rainbow div -i rcluster -o rbdiv.out
+rainbow merge -o rbasm.out -a -i rbdiv.out
+perl $DIR/select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
+
+#cd-hit to cluster reads based on sequence similarity
+cd-hit-est -i rainbow.fasta -o reference.fasta -mask N -M 0 -T 0 -c $simC &>cdhit.log
+
+if [ -f reference.dict ]; then
+rm reference.dict
+fi
+java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
+samtools faidx reference.fasta
+bwa index reference.fasta
+
+}
+
+##Create alignment intervals
+##This takes advantage of the fact that RAD loci are very discrete.  Instead of calculating intervals for every BAM file,
+##this function first distills all the data down to only unique reads and then maps then to the reference.  This overall BAM file 
+##is used to create a single list of intervals, saving a large amount of computational time.
+
+CreateIntervals()
+{
+#Concatenate all reads
+cat *.F.fq > forward1 
+cat *.R.fq > reverse1
+wait
+
+#Split reads into 4 smaller files to reduce memory usage
+NumSeqs=$(cat forward1 | wc -l)
+NumSeqs=$(( $NumSeqs / 4 ))
+split -l $NumSeqs forward1 fw
+split -l $NumSeqs reverse1 rw
+wait
+
+#Remove all duplicate reads
+clone_filter -1 fwaa -2 rwaa
+clone_filter -1 fwab -2 rwab
+clone_filter -1 fwac -2 rwac
+clone_filter -1 fwad -2 rwad
+wait
+
+cat *.fq_1 > fw
+cat *.fq_2 > rw
+
+rm *.fq_1 *.fq_2
+
+clone_filter -1 fw -2 rw
+
+mv fw.fil.fq_1 forward1
+mv rw.fil.fq_2 reverse1
+
+#Map reads to reference
+bwa mem reference.fasta forward1 reverse1 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:cat\tSM:cat\tPL:Illumina" | samtools view -q1 -@ $NUMProc -SbT reference.fasta - > cat.bam 2>cat.bam.log
+
+rm forward1 fw*
+rm reverse1 rw*
+
+wait
+
+samtools sort -@$NUMProc cat.bam cat 
+mv cat.bam cat-RRG.bam
+samtools index cat-RRG.bam 
+wait
+
+#Create intervals
+bamToBed -i cat-RRG.bam > map.bed
+bedtools merge -i map.bed > mapped.bed
+}
+
+
+
+
+
+#Actually starts program
+main
+
