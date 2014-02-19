@@ -39,7 +39,7 @@ else
 	cp * $INSTALL_PATH
 	cd ..
 	cd ..
-
+fi
 echo "Checking for cutadapt"
 if which cutadapt >/dev/null; then
     echo "cutadapt is already installed"
