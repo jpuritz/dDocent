@@ -228,10 +228,6 @@ fi
 #This code checks if the reference indexes need to be remade, if mapping
 if [ "$MAP" != "no" ]; then
 echo "Using BWA to map reads."
-        if [ -f reference.dict ]; then
-        rm reference.dict
-        fi
-        java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
         samtools faidx reference.fasta
         bwa index reference.fasta &> index.log
         
@@ -478,10 +474,6 @@ perl $DIR/select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
 #cd-hit to cluster reads based on sequence similarity
 cd-hit-est -i rainbow.fasta -o reference.fasta -mask N -M 0 -T 0 -c $simC &>cdhit.log
 
-if [ -f reference.dict ]; then
-rm reference.dict
-fi
-java -jar /usr/local/bin/CreateSequenceDictionary.jar R=reference.fasta O=reference.dict
 samtools faidx reference.fasta
 bwa index reference.fasta
 
