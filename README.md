@@ -34,7 +34,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 
 Programs with * are only required for dDocent.GATK
 
-#####Dependencies can be installed with the install_dDocent.FB_requirements script by calling it and passing it an installation directory
+#####Dependencies can be installed with the install_dDocent.FB_requirements script by calling it and passing it an installation directory.  Remember to run as sudo if installing to a system directory (for all users).  Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
 
 
 dDocent requires that your raw data are split up by tagged individual and follow the naming convenction of:
