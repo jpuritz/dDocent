@@ -94,7 +94,7 @@ echo "Checking for bwa"
 if which bwa >/dev/null; then
     echo "bwa is already installed"
 else
-	"Downloading and installing bwa"
+    echo "Downloading and installing bwa"
 	git clone https://github.com/lh3/bwa.git
 	cd bwa
 	make
@@ -135,8 +135,8 @@ if which rainbow >/dev/null; then
 else
 	echo "Downloading and installing Rainbow"
 	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
-	tar xvzf rainbow*.tar.gz
-	cd rainbow*
+	tar xvzf rainbow.x.tar.gz
+	cd rainbow_*
 	make
 	cp rainbow rbasm rbmergetag select_* $INSTALL_PATH	
 	cd ..
@@ -146,7 +146,7 @@ echo "Checking for seqtk"
 if which seqtk >/dev/null; then
     echo "seqtk is already installed"
 else
-	"Downloading and installing seqtk"
+    	echo "Downloading and installing seqtk"
 	git clone https://github.com/lh3/seqtk.git
 	cd seqtk
 	make
@@ -192,6 +192,6 @@ else
 fi
 
 echo "Now installing dDocent"
-	curl -O https://github.com/jpuritz/dDocent/raw/master/dDocent.FB
+	curl -L -O https://github.com/jpuritz/dDocent/raw/master/dDocent.FB
 	cp dDocent.FB $INSTALL_PATH
 
