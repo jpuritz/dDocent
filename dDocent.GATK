@@ -28,12 +28,12 @@ fi
 
 #Create list of sample names
 ls *.F.fq > namelist
-sed -i 's/.F.fq//g' namelist
+sed -i'' -e 's/.F.fq//g' namelist
 NAMES=( `cat "namelist" `)
 
 #Create list of samples by size
 ls -S *.F.fq > sizelist
-sed -i 's/.F.fq//g' sizelist
+sed -i'' -e 's/.F.fq//g' sizelist
 SIZE=( `cat "sizelist" `)
 
 #Create path variable for script
@@ -347,7 +347,7 @@ fi
 
 #Create list of populations
 cp namelist poplist
-sed -i 's/_.*//g' poplist | uniq > pop.names
+sed -i'' -e 's/_.*//g' poplist | uniq > pop.names
 uniq poplist > pop.names
 
 #Split BAM list by groups of populations for scatter gather of SNP calling
