@@ -196,7 +196,7 @@ if which bamToBed >/dev/null; then
     	echo "bedtools is already installed"
 else
 	curl -L -O https://github.com/arq5x/bedtools2/releases/download/v2.19.1/bedtools-2.19.1.tar.gz
-	tarz xvzf bedtools-2.19.1.tar.gz
+	tar xvzf bedtools-2.19.1.tar.gz
 	cd bedtools2-2.19.1
 	make 
 	cd bin
