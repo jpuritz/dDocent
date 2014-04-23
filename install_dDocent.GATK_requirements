@@ -45,21 +45,34 @@ if which clone_filter >/dev/null; then
     echo "STACKS is already installed"
 else
 	echo "Downloading and installing STACKS components clone_filter and process_radtags"
-	wget http://creskolab.uoregon.edu/stacks/source/stacks-1.08.tar.gz
-	tar xvzf stacks-1.08.tar.gz
-	cd stacks-1.08
+	curl -O http://creskolab.uoregon.edu/stacks/source/stacks-1.12.tar.gz
+	tar xvzf stacks-1.12.tar.gz
+	cd stacks-1.12
 	./configure
 	make
 	cp clone_filter process_radtags $INSTALL_PATH
 	cd ..
 fi
 
+echo "Checking for FreeBayes"
+if which freebayes >/dev/null; then
+    echo "FreeBayes is already installed"
+else
+        echo "Downloading and installing FreeBayes"
+	git clone --recursive git://github.com/ekg/freebayes.git
+        cd freebayes
+        make
+	cd bin
+	cp * $INSTALL_PATH
+	cd ..
+	cd ..
+fi
 echo "Checking for cutadapt"
 if which cutadapt >/dev/null; then
     echo "cutadapt is already installed"
 else
 	"Downloading and installing cutadapt"
-	wget http://cutadapt.googlecode.com/files/cutadapt-1.2.1.tar.gz
+	curl -O  http://cutadapt.googlecode.com/files/cutadapt-1.2.1.tar.gz
 	tar xvzf cutadapt-1.2.1.tar.gz
 	cd cutadapt-1.2.1
 	python setup.py build
@@ -73,7 +86,7 @@ if which cutadapt >/dev/null; then
     echo "fastqc is already installed"
 else
 	"Downloading and installing fastqc"
-	wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.10.1.zip
+	curl -O http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.10.1.zip
 	unzip fastqc_v0.10.1.zip
 	cd FastQC
 	cp fastqc $INSTALL_PATH
@@ -85,7 +98,7 @@ if which trim_galore >/dev/null; then
     echo "trim_galore is already installed"
 else
 	"Downloading and installing trim_galore"
-	wget http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/trim_galore_v0.3.3.zip
+	curl -O http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/trim_galore_v0.3.3.zip
 	unzip trim_galore_v0.3.3.zip
 	cp trim_galore $INSTALL_PATH
 fi
@@ -95,11 +108,12 @@ if which mawk >/dev/null; then
     echo "mawk is already installed"
 else
 	"Downloading and installing mawk"
-	wget http://invisible-island.net/datafiles/release/mawk.tar.gz
+	curl -O http://invisible-island.net/datafiles/release/mawk.tar.gz
 	tar xvzf mawk.tar.gz
-	cd mawk-1.3.4-20130803
+	cd mawk-1.*
 	./configure
-	sudo make install
+	make
+	cp mawk $INSTALL_PATH
 	cd ..
 fi
 
@@ -107,7 +121,7 @@ echo "Checking for bwa"
 if which bwa >/dev/null; then
     echo "bwa is already installed"
 else
-	"Downloading and installing bwa"
+    echo "Downloading and installing bwa"
 	git clone https://github.com/lh3/bwa.git
 	cd bwa
 	make
@@ -121,23 +135,11 @@ if which samtools >/dev/null; then
     echo "samtools is already installed"
 else
 	"Downloading and installing samtools"
-	wget http://sourceforge.net/projects/samtools/files/latest/download?source=files
-	tar xvjf samtools-0.*.tar.bz2
+	curl -L -o samtools-0.x.tar.bz2 http://sourceforge.net/projects/samtools/files/latest/download?source=files
+	tar xvjf samtools-0.x.tar.bz2
 	cd samtools-0.1*
 	make
 	cp samtools $INSTALL_PATH
-	cd ..
-fi
-
-echo "Checking for picard"
-if [ -f $INSTALL_PATH/CreateSequenceDictionary.jar ]; then
-    echo "Picard is already installed"
-else
-	echo "Downloading and installing Picard"
-	wget http://sourceforge.net/projects/picard/files/picard-tools/1.99/picard-tools-1.99.zip/download
-	unzip picard-tools-1.99.zip
-	cd picard-tools-1.99
-	cp * $INSTALL_PATH
 	cd ..
 fi
 
@@ -146,8 +148,8 @@ if which vcftools >/dev/null; then
     echo "VCFtools is already installed"
 else
 	echo "Downloading and installing VCFtools"
-	wget http://sourceforge.net/projects/vcftools/files/latest/download?source=files
-	tar xvzf vcftools_*.tar.gz
+	curl -L -o vcftools_x.tar.gz http://sourceforge.net/projects/vcftools/files/latest/download?source=files
+	tar xvzf vcftools_x.tar.gz
 	cd vcftools_0*
 	make
 	cp ./bin/vcftools $INSTALL_PATH
@@ -159,9 +161,9 @@ if which rainbow >/dev/null; then
     echo "Rainbow is already installed"
 else
 	echo "Downloading and installing Rainbow"
-	wget http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
-	tar xvzf rainbow*.tar.gz
-	cd rainbow*
+	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+	tar xvzf rainbow.x.tar.gz
+	cd rainbow_*
 	make
 	cp rainbow rbasm rbmergetag select_* $INSTALL_PATH	
 	cd ..
@@ -171,7 +173,7 @@ echo "Checking for seqtk"
 if which seqtk >/dev/null; then
     echo "seqtk is already installed"
 else
-	"Downloading and installing seqtk"
+    	echo "Downloading and installing seqtk"
 	git clone https://github.com/lh3/seqtk.git
 	cd seqtk
 	make
@@ -184,7 +186,7 @@ if which cd-hit-est >/dev/null; then
     echo "cd-hit is already installed"
 else
 	echo "Downloading and installing cd-hit"
-	wget http://www.bioinformatics.org/downloads/index.php/cd-hit/cd-hit-v4.5.4-2011-03-07.tgz
+	curl -O http://www.bioinformatics.org/downloads/index.php/cd-hit/cd-hit-v4.5.4-2011-03-07.tgz
 	tar xvzf cd-hit-v4.5.4-2011-03-07.tgz
 	cd cd-hit-v4.5.4-2011-03-07
 	make openmp=yes
@@ -196,7 +198,7 @@ echo "Checking for mergefq.pl"
 if [ -f $INSTALL_PATH/mergefq.pl ]; then
 	echo "mergefq.pl already installed"
 else
-	wget https://github.com/jpuritz/dDocent/raw/master/mergefq.pl	
+	curl -O https://github.com/jpuritz/dDocent/raw/master/mergefq.pl	
 	cp mergefq.pl $INSTALL_PATH
 fi
 
@@ -204,7 +206,7 @@ echo "Checking for Seq_filter.pl"
 if [ -f $INSTALL_PATH/Seq_filter.pl ]; then
 	echo "Seq_filter.pl already installed"
 else
-	wget http://seq-filter.googlecode.com/files/Seq_filter.pl
+	curl -O http://seq-filter.googlecode.com/files/Seq_filter.pl
 	cp Seq_filter.pl $INSTALL_PATH
 fi
 
@@ -212,11 +214,27 @@ echo "Checking for cutseq_fasta.pl"
 if [ -f $INSTALL_PATH/cutseq_fasta.pl ]; then
 	echo "cutseq_fasta.pl already installed"
 else
-	wget http://nash-bioinformatics-codelets.googlecode.com/files/cutseq_fasta.pl
+	curl -O http://nash-bioinformatics-codelets.googlecode.com/files/cutseq_fasta.pl
 	cp cutseq_fasta.pl $INSTALL_PATH
 fi
 
+echo "Checking for bedtools"
+if which bamToBed >/dev/null; then
+    	echo "bedtools is already installed"
+else
+	curl -L -O https://github.com/arq5x/bedtools2/releases/download/v2.19.1/bedtools-2.19.1.tar.gz
+	tar xvzf bedtools-2.19.1.tar.gz
+	cd bedtools2-2.19.1
+	make 
+	cd bin
+	cp * $INSTALL_PATH
+	cd ..
+	cd ..
+fi
+
 echo "Now installing dDocent"
-	wget https://github.com/jpuritz/dDocent/raw/master/dDocent
-	cp dDocent $INSTALL_PATH
+	curl -L -O https://github.com/jpuritz/dDocent/raw/master/dDocent.GATK
+	chmod +x dDocent.GATK
+	cp dDocent.GATK $INSTALL_PATH
+
 
