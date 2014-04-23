@@ -31,6 +31,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |CD-HIT		      | http://weizhong-lab.ucsd.edu/cd-hit/ |
 |Seq_filter.pl  | https://code.google.com/p/seq-filter/downloads/list |
 |cutseq_fasta.pl| http://code.google.com/p/nash-bioinformatics-codelets/ |
+|bedtools| https://code.google.com/p/bedtools/ |
 
 Programs with * are only required for dDocent.GATK
 
