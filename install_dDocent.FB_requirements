@@ -121,7 +121,7 @@ if which vcftools >/dev/null; then
     echo "VCFtools is already installed"
 else
 	echo "Downloading and installing VCFtools"
-	curl -L -o vcftools_x.tar.gz http://sourceforge.net/projects/vcftools/files/latest/download?source=files
+	curl -L -o vcftools_x.tar.gz http://downloads.sourceforge.net/project/vcftools/vcftools_0.1.11.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fvcftools%2Ffiles%2F%3Fsource%3Dnavbar&ts=1398959218&use_mirror=hivelocity
 	tar xvzf vcftools_x.tar.gz
 	cd vcftools_0*
 	make
