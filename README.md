@@ -35,7 +35,38 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 
 Programs with * are only required for dDocent.GATK
 
-#####Dependencies can be installed with the install_dDocent.FB_requirements script by calling it and passing it an installation directory.  Remember to run as sudo if installing to a system directory (for all users).  Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
+Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
+
+#Installation
+
+dDocent is designed to run on a multicore, high memory capacity linux based computer.  As stated above, dDocent depends on several other software packages and assumes that they will be installed in your $PATH directory and that all dDocent dependencies are in a single directory.  The easiest way to do this, for all users of your machine is to install everything into the /usr/local/bin directory.  You will need administrator or "root" privileges to do this.
+
+If you don't have access to the /usr/local/bin directory, don't worry.  dDocent can be installed locally in your user account.  To do this, follow these simple commands:
+
+	cd ~
+
+	mkdir dDocent
+
+	nano .bash_profile
+
+If this file is blank, type:
+
+	PATH="~/dDocent:${PATH}"
+	export PATH
+
+Otherwise, simply add ~/dDocent to the end of the existing string.
+
+**Now if you are using a Mac computer, things get a little trickier.  You need to make sure you have Xcode installed, as well as the command line tools.  After this is complete, download the gcc complier from (http://hpc.sourceforge.net) and install it according to the website's instructions.   You will also have to install git from (http://git-scm.com/download).**
+
+If you want more information on setting your $PATH and this setup process, check out the Palumbi Lab’s Simple Fool’s Guide for a good explanation and tutorial on what $PATH is and how to set it (http://sfg.stanford.edu/computer.html).
+
+Once $PATH is setup, there is a VERY simplistic installation script located in the GitHub Repository called install_dDocent_requirements.  To run it, simply type:
+
+	sh install_dDocent.FB_requirements <your path directory>
+
+The script will check to see if any of the required packages are installed and if they aren’t download and install them.  If you are installing computer wide, you probably will need to run the script as sudo.
+
+If all went well, typing “dDocent.FB” and hitting return should start the pipeline.
 
 
 dDocent requires that your raw data are split up by tagged individual and follow the naming convenction of:
