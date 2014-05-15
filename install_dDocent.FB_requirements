@@ -38,6 +38,10 @@ else
 	cd bin
 	cp * $INSTALL_PATH
 	cd ..
+	cd ./vcflib/bin
+	cp * $INSTALL_PATH
+	cd ..
+	cd ..
 	cd ..
 fi
 echo "Checking for cutadapt"
