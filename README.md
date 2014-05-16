@@ -32,6 +32,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |Seq_filter.pl  | https://code.google.com/p/seq-filter/downloads/list |
 |cutseq_fasta.pl| http://code.google.com/p/nash-bioinformatics-codelets/ |
 |bedtools| https://code.google.com/p/bedtools/ |
+|vcflib| https://github.com/ekg/vcflib |
 
 Programs with * are only required for dDocent.GATK
 
