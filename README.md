@@ -33,6 +33,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |cutseq_fasta.pl| http://code.google.com/p/nash-bioinformatics-codelets/ |
 |bedtools| https://code.google.com/p/bedtools/ |
 |vcflib| https://github.com/ekg/vcflib |
+|gnuplot| http://www.gnuplot.info |
 
 Programs with * are only required for dDocent.GATK
 
