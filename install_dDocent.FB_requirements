@@ -176,7 +176,7 @@ if which cd-hit-est >/dev/null; then
     echo "cd-hit is already installed"
 else
 	echo "Downloading and installing cd-hit"
-	curl -O http://www.bioinformatics.org/downloads/index.php/cd-hit/cd-hit-v4.5.4-2011-03-07.tgz
+	curl -L -O http://www.bioinformatics.org/downloads/index.php/cd-hit/cd-hit-v4.5.4-2011-03-07.tgz
 	tar xvzf cd-hit-v4.5.4-2011-03-07.tgz
 	cd cd-hit-v4.5.4-2011-03-07
 	make openmp=yes
