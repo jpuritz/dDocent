@@ -77,9 +77,9 @@ dDocent requires that your raw data are split up by tagged individual and follow
 
 dDocent uses raw reads for reference assembly and trimmed reads for read mapping and SNP/variant calling.  If the user is not using dDocent for trimming, trimmed reads must already be in the directory and must follow the naming convention below:
 
-Pop1_001.R1.fq  Pop1_001.R2.fq
+	Pop1_001.R1.fq  Pop1_001.R2.fq
 
-Pop1_002.R1.fq  Pop1_002.R2.fq
+	Pop1_002.R1.fq  Pop1_002.R2.fq
 
 Where R1 are trimmed forward reads and R2 are trimmed paired-end reads.
 
