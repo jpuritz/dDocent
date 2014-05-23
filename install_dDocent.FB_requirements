@@ -27,6 +27,21 @@ else
 	cd ..
 fi
 
+echo "Checking for cmake"
+if which cmake >/dev/null; then
+    echo "make is already installed"
+else
+	echo "Downloading and installing cmake"
+	curl -O http://www.cmake.org/files/v2.8/cmake-2.8.12.2.tar.gz
+	tar xvzf cmake-2.8.12.2.tar.gz
+	cd cmake-2.8.12.2
+	./configure
+	make
+	cd bin
+	cp * $INSTALL_PATH
+	cd ..
+	cd ..
+
 echo "Checking for FreeBayes"
 if which freebayes >/dev/null; then
     echo "FreeBayes is already installed"
