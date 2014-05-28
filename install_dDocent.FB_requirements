@@ -41,6 +41,7 @@ else
 	cp * $INSTALL_PATH
 	cd ..
 	cd ..
+fi
 
 echo "Checking for FreeBayes"
 if which freebayes >/dev/null; then
