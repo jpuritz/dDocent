@@ -64,7 +64,7 @@ echo "Checking for cutadapt"
 if which cutadapt >/dev/null; then
     echo "cutadapt is already installed"
 else
-	"Downloading and installing cutadapt"
+	echo "Downloading and installing cutadapt"
 	curl -O  http://cutadapt.googlecode.com/files/cutadapt-1.2.1.tar.gz
 	tar xvzf cutadapt-1.2.1.tar.gz
 	cd cutadapt-1.2.1
@@ -78,7 +78,7 @@ echo "Checking for fastqc"
 if which fastqc >/dev/null; then
     echo "fastqc is already installed"
 else
-	"Downloading and installing fastqc"
+	echo "Downloading and installing fastqc"
 	curl -O http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.10.1.zip
 	unzip fastqc_v0.10.1.zip
 	cd FastQC
@@ -90,7 +90,7 @@ echo "Checking for trim_galore"
 if which trim_galore >/dev/null; then
     echo "trim_galore is already installed"
 else
-	"Downloading and installing trim_galore"
+	echo "Downloading and installing trim_galore"
 	curl -O http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/trim_galore_v0.3.3.zip
 	unzip trim_galore_v0.3.3.zip
 	cp trim_galore $INSTALL_PATH
@@ -100,7 +100,7 @@ echo "Checking for mawk"
 if which mawk >/dev/null; then
     echo "mawk is already installed"
 else
-	"Downloading and installing mawk"
+	echo "Downloading and installing mawk"
 	curl -O http://invisible-island.net/datafiles/release/mawk.tar.gz
 	tar xvzf mawk.tar.gz
 	cd mawk-1.*
@@ -127,7 +127,7 @@ echo "Checking for samtools"
 if which samtools >/dev/null; then
     echo "samtools is already installed"
 else
-	"Downloading and installing samtools"
+	echo "Downloading and installing samtools"
 	curl -L -o samtools-0.x.tar.bz2 http://sourceforge.net/projects/samtools/files/latest/download?source=files
 	tar xvjf samtools-0.x.tar.bz2
 	cd samtools-0.1*
