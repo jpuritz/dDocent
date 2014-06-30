@@ -75,7 +75,7 @@ else
 fi
 
 echo "Checking for fastqc"
-if which cutadapt >/dev/null; then
+if which fastqc >/dev/null; then
     echo "fastqc is already installed"
 else
 	"Downloading and installing fastqc"
@@ -204,7 +204,7 @@ echo "Checking for mergefq.pl"
 if [ -f $INSTALL_PATH/mergefq.pl ]; then
 	echo "mergefq.pl already installed"
 else
-	curl -O https://github.com/jpuritz/dDocent/raw/master/mergefq.pl	
+	curl -L -O https://github.com/jpuritz/dDocent/raw/master/mergefq.pl	
 	cp mergefq.pl $INSTALL_PATH
 fi
 
