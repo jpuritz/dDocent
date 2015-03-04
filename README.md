@@ -8,6 +8,7 @@ There are now two different versions of dDocent: dDocent.FB and dDocent.GATK.  d
 For now, I will be focusing on dDocent.FB because it is substantially faster and has less dependecies.  See http://bcbio.wordpress.com/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/ for a great comparison of FreeBayes and GATK.
 
 #Requirements
+**THESE HAVE CHANGED AS OF VERSION 1.2**
 
 Instead of reinventing the wheel, dDocent relies almost entirely on third party software to complete every step of the 
 analysis pipeline, and users are encouraged to familiarize themselves with several of these programs, especially Rainbow, 
