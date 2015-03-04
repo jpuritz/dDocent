@@ -20,7 +20,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |STACKS         | http://creskolab.uoregon.edu/stacks|
 |cutadapt       | http://code.google.com/p/cutadapt/ |
 |FastQC		      | http://www.bioinformatics.babraham.ac.uk/projects/fastqc/ |
-|TrimGalore!	  | http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/ |
+|Trimmomatic	  | http://www.usadellab.org/cms/?page=trimmomatic |
 |Mawk			      | http://invisible-island.net/mawk/ |
 |BWA		  	    | http://bio-bwa.sourceforge.net |
 |SAMtools		    | http://samtools.sourceforge.net |
@@ -29,11 +29,11 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |rainbow		    | http://sourceforge.net/projects/bio-rainbow/files/ |
 |seqtk			    | https://github.com/lh3/seqtk |
 |CD-HIT		      | http://weizhong-lab.ucsd.edu/cd-hit/ |
-|Seq_filter.pl  | https://code.google.com/p/seq-filter/downloads/list |
-|cutseq_fasta.pl| http://code.google.com/p/nash-bioinformatics-codelets/ |
 |bedtools| https://code.google.com/p/bedtools/ |
 |vcflib| https://github.com/ekg/vcflib |
 |gnuplot| http://www.gnuplot.info |
+|gnu-parallel| http://www.gnu.org/software/parallel/ |
+|bamtools|https://github.com/pezmaster31/bamtools|
 
 Programs with * are only required for dDocent.GATK
 
