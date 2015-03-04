@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##########dDocent 1.0##########
+##########dDocent 1.2##########
 
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.
@@ -10,11 +10,89 @@
 
 
 #Prints out title and contact info
-echo -e "dDocent 1.0 \n"
+echo -e "dDocent 1.2 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
+###Code to check for the required software for dDocent
+echo "Checking for required software"
+DEP=(freebayes cutadapt mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed mergefq.pl bedtools coverageBed parallel vcfcombine bamtools)
+NUMDEP=0
+for i in "${DEP[@]}"
+do
+if which $i &> /dev/null; then
+   foo=0
+else
+    echo "The dependency" $i "is not installed or is not in your" '$PATH'"."
+    NUMDEP=$((NUMDEP + 1))
+fi
+done
+
+if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'trim' ; then
+	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
+	else
+    echo "The dependency trimmomatic is not installed or is not in your" '$PATH'"."
+    NUMDEP=$((NUMDEP + 1))
+	fi
+	
+if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru' ; then
+	ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
+	else
+    echo "The file listing adapters (included with trimmomatic) is not installed or is not in your" '$PATH'"."
+    NUMDEP=$((NUMDEP + 1))
+    fi
+
+SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Ver.*:\s//' | sed -e 's/-.*//')
+	if [ "$SAMV" != "0.1.19" ]; then
+        	echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo -en "\007"
+			echo -en "\007"
+			echo -en "\007"
+			echo "Is the version of Samtools installed newer than 0.1.18?  Enter yes or no."
+			read TEST
+			if [ "$TEST" != "yes" ]; then 
+        		echo "Please install a version newer than 0.1.18"
+        		exit 1
+        	fi
+        fi
+
+RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
+	if [ "$RAINV" != "2.0.2" ]; then
+        	echo "The version of Rainbow installed in your" '$PATH' "is not optimized for dDocent."
+        	echo -en "\007"
+			echo -en "\007"
+			echo -en "\007"
+        	echo "Is the version of rainbow installed newer than 2.0.2?  Enter yes or no."
+			read TEST
+			if [ "$TEST" != "yes" ]; then 
+        		echo "Please install a version newer than 2.0.2"
+        		exit 1
+        	fi
+        fi
+        	
+VCFTV=$(vcftools | grep VCF | sed -e 's/VCFtools\s(v//' | sed -e 's/)//')   
+	if [ "$VCFTV" != "0.1.11" ]; then
+        	echo "The version of VCFtools installed in your" '$PATH' "is the not optimized for dDocent."
+        	echo "Please install only version 0.1.11"
+        	exit 1 
+		fi
+if [ $NUMDEP -gt 0 ]; then
+	echo -e "\nPlease install all required software before running dDocent again."
+	exit 1
+else
+	echo -e "\nAll required software is installed!"
+fi
+
 #This code checks for individual fq labels labeled with the right convention
-NumInd=$(ls *.F.fq | wc -l)
+TEST=$(ls *.fq 2> /dev/null | wc -l )
+if [ "$TEST" != "0" ]; then
+echo -e "\ndDocent is now configured to work on compressed sequence files.  Please run gzip to compress your files."
+echo "This is as simple as 'gzip *.fq'"
+echo "Please rerun dDocent after compressing files."
+exit 1
+fi
+
+#Count number of individuals in current directory
+NumInd=$(ls *.F.fq.gz | wc -l)
 NumInd=$(($NumInd - 0))
 
 if [ $NumInd -gt 9 ]
@@ -27,20 +105,9 @@ if [ $NumInd -gt 9 ]
 fi
 
 #Create list of sample names
-ls *.F.fq > namelist
-sed -i'' -e 's/.F.fq//g' namelist
+ls *.F.fq.gz > namelist
+sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
-
-#Create list of samples by size
-ls -S *.F.fq > sizelist
-sed -i'' -e 's/.F.fq//g' sizelist
-SIZE=( `cat "sizelist" `)
-
-#Create path variable for script
-DIR=$(which samtools)
-LENGTH=${#DIR}
-LENGTH=$(($LENGTH - 9))
-DIR=${DIR:0:$LENGTH}
 
 
 ##########User Input Section##########
@@ -53,7 +120,7 @@ echo "$NumInd individuals are detected is this correct? Enter yes or no and pres
 read Indcorrect
 
 if [ "$Indcorrect" == "no" ]; then
-        echo "Please double check that all fastq files are named Ind01.F.fq and Ind01.R.fq"
+        echo "Please double check that all fastq files are named Ind01.F.fq.gz and Ind01.R.fq.gz"
         exit 1
 elif [ "$Indcorrect" == "yes" ]; then
             echo "Proceeding with $NumInd individuals"
@@ -185,17 +252,21 @@ STARTTIME=$(date)
 
 #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them
 
-STACKS=$(head -1 ${NAMES[0]}.F.fq | mawk '/\/1/')
+STACKS=$(zcat ${NAMES[@]:(-1)}.F.fq.gz | head -1 | mawk '/\/1/')
 
 if [ -z "$STACKS" ]; then
 
         echo "Removing the _1 character and replacing with /1 in the name of every sequence"
         for i in "${NAMES[@]}"
         do        
-        sed -e 's:_2$:/2:g' $i.R.fq > $i.Ra.fq
-        sed -e 's:_1$:/1:g' $i.F.fq > $i.Fa.fq
+        zcat $i.R.fq.gz | sed -e 's:_2$:/2:g' > $i.Ra.fq
+        zcat $i.F.fq.gz | sed -e 's:_1$:/1:g' > $i.Fa.fq
         mv $i.Ra.fq $i.R.fq
         mv $i.Fa.fq $i.F.fq
+        rm $i.R.fq.gz
+        rm $i.F.fq.gz
+        gzip $i.F.fq 
+        gzip $i.R.fq
         done
 
 fi
@@ -221,7 +292,6 @@ if [[ "$TRIM" != "yes" && "$ASSEMBLY" == "yes" ]]; then
 fi
 
 
-##Assembly
 
 ##Use BWA to map reads to assembly
 
@@ -230,17 +300,35 @@ if [ "$MAP" != "no" ]; then
 echo "Using BWA to map reads."
         samtools faidx reference.fasta
         bwa index reference.fasta &> index.log
-        
-        #BWA for mapping for all samples
-        for i in "${NAMES[@]}"
-        do
-        bwa mem reference.fasta $i.R1.fq $i.R2.fq -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
-        samtools sort -@$NUMProc $i.bam $i 
-		mv $i.bam $i-RG.bam
-		samtools index $i-RG.bam
-        done
+        if head -1 reference.fasta | grep -e '>E.*L' 1>/dev/null; then
+        	rm lengths.txt &> /dev/null
+        	for i in ${NAMES[@]};
+        		do
+        		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+        		done	
+        	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+        	INSERT=$(($MaxLen * 2 ))
+        	INSERTH=$(($INSERT + 100 ))
+        	INSERTL=$(($INSERT - 100 ))
+        	SD=$(($INSERT / 10))
+        	#BWA for mapping for all samples
+        	for i in "${NAMES[@]}"
+        	do
+        	bwa mem reference.fasta $i.R1.fq.gz $i.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        	samtools sort -@$NUMProc $i.bam $i 
+			mv $i.bam $i-RG.bam
+			samtools index $i-RG.bam
+        	done
+        else
+        	for i in "${NAMES[@]}"
+        	do
+        	bwa mem reference.fasta $i.R1.fq.gz $i.R2.fq.gz -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        	samtools sort -@$NUMProc $i.bam $i 
+			mv $i.bam $i-RG.bam
+			samtools index $i-RG.bam
+        	done
+        fi
 fi
-
 
 ##Creating mapping intervals if needed, CreateIntervals function is defined later in script
 
@@ -248,11 +336,13 @@ fi
 
 if [ "$MAP" != "no" ]; then
 echo "Creating alignment intervals"
+ls *-RG.bam >bamlist.list
 CreateIntervals 
 fi
 
 #If mapping is not being performed, but intervals do not exist they are created
 if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
+ls *-RG.bam >bamlist.list
 CreateIntervals 
 fi
 
@@ -269,36 +359,49 @@ bamToBed -i cat-RRG.bam > map.bed
 bedtools merge -i map.bed > mapped.bed
 fi
 
-#Split interval files for scatter gather of SNP calling
-NumMaps=$(cat mapped.bed | wc -l)
-NumMaps=$(( $NumMaps / $NUMProc ))
-split -l $NumMaps mapped.bed splitmap
+
+##SNP Calling
+
+#Create list of BAM files
+ls *-RG.bam >bamlist.list
+
+#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
+#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
+coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
+DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.0001;@l=<>;print $l[int($d*$#l)]')
+mawk -v x=$DP '$4 < x' cov.stats | cut -f1-3 | sort -V -k1,1 -k2,2 > mapped.F.bed
+
+
+#Calculating intervals to split up variant calling over genomic intervals
+NumMaps=$(cat mapped.F.bed | wc -l)
+NumMaps=$(( $NumMaps / 50 ))
+
+split -l $NumMaps mapped.F.bed splitmap
 ls splitmap* > splitlist
 MAPNAMES=( `cat "splitlist" `)
-NumBED=$(( $NUMProc + 1 ))
+NumBED=$( cat splitlist | wc -l )
+NumBED=$(($NumBED - 0))
 FB1=$(( $NUMProc / 2 ))
 
-for ((i = 0; i <= $FB1; i++));
-do
-j=$(( $NumBED - $i ))
-k=$(( $j - 1 ))
-mv ${MAPNAMES[$k]} mapped.$j.bed 2>/dev/null
-if [ -f mapped.$j.bed ]; then
-freebayes -L bamlist.list -t mapped.$j.bed -v raw.$j.vcf -f reference.fasta -m 10 -q 10 -E 3 &
-fi
-done
-
-
-for ((i = 0; i < $FB1; i++));
+for ((i = 0; i <= $NumBED; i++));
 do
 j=$(( $i + 1 ))
 mv ${MAPNAMES[$i]} mapped.$j.bed 2>/dev/null
-if [ -f mapped.$j.bed ]; then
-freebayes -L bamlist.list -t mapped.$j.bed -v raw.$j.vcf -f reference.fasta -m 10 -q 10 -E 3 &
-fi
 done
 
-wait
+echo "Using FreeBayes to call SNPs"
+
+cut -f1 -d "_" namelist > p
+paste namelist p > popmap
+rm p
+
+if [ "$NumBED" == "51" ]; then
+parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
+else
+parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
+fi
+
+rm mapped.*.bed
 
 mv raw.1.vcf raw.01.vcf
 mv raw.2.vcf raw.02.vcf
@@ -310,8 +413,13 @@ mv raw.7.vcf raw.07.vcf
 mv raw.8.vcf raw.08.vcf
 mv raw.9.vcf raw.09.vcf
 
-vcfcombine raw.*.vcf > TotalRawSNPs1.vcf
-vcfglxgt TotalRawSNPs1.vcf | vcffixup - > TotalRawSNPs.vcf
+vcfcombine raw.*.vcf | sed -e 's/\t\.\:/\t\.\/\.\:/g' > TotalRawSNPs.vcf
+
+if [ ! -d "raw.vcf" ]; then
+mkdir raw.vcf
+fi
+
+mv raw.*.vcf ./raw.vcf
 
 echo "Using VCFtools to parse SNPS.vcf for SNPS that are called in at least 90% of individuals"
 vcftools --vcf TotalRawSNPs.vcf --geno 0.9 --out Final --counts --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
@@ -320,9 +428,9 @@ vcftools --vcf TotalRawSNPs.vcf --geno 0.9 --out Final --counts --recode --non-r
 ##Checking for possible errors
 
 if [ "$MAP" != "no" ]; then
-ERROR1=$(mawk '/developer/' bwa* | wc -l) 2> /dev/null
+ERROR1=$(mawk '/developer/' bwa* | wc -l 2> /dev/null) 
 fi
-ERROR2=$(mawk '/error/' *.bam.log | wc -l)
+ERROR2=$(mawk '/error/' *.bam.log | wc -l 2> /dev/null)
 ERRORS=$(($ERROR1 + $ERROR2))
 
 #Move various log files to own directory
@@ -334,9 +442,9 @@ mv *.txt *.log log ./logfiles 2> /dev/null
 #Sending a completion email
 
 if [ $ERRORS -gt 0 ]; then
-        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 0.5 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
+        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 1.2 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
 else
-        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 0.5 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
+        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 1.2 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
 fi
 }
 
@@ -345,13 +453,14 @@ fi
 
 #Function for trimming reads using trim_galore
 TrimReads () 
+
 { for i in "${NAMES[@]}"
 do
-echo "Trimming Sample $i"
-trim_galore --paired -q 10 --length 20 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNATATCGTATGCCGTCTTCTGCTTG -a2 GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG --stringency 10 $i.F.fq $i.R.fq 2> $i.trim.log
-mv $i.F_val_1.fq $i.R1.fq
-mv $i.R_val_2.fq $i.R2.fq
+#echo "Trimming Sample $i"
+java -jar $TRIMMOMATIC PE -threads $NUMProc -phred33 $i.F.fq.gz $i.R.fq.gz $i.R1.fq.gz $i.unpairedF.fq.gz $i.R2.fq.gz $i.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 MINLEN:50 &> $i.trim.log
 done
+mkdir unpaired &>/dev/null
+mv *unpaired*.gz ./unpaired &>/dev/null	
 }
 
 #Function to convert a file of unique sequences to fasta format
@@ -375,8 +484,8 @@ Assemble()
 ###These reads are then split and assembled using Rainbow.  Then finally clustered with cd-hit.
 
 #Creates a concatenated file of every read in fasta format
-cat *.F.fq | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > forward
-cat *.R.fq | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > reverse
+zcat *.F.fq.gz | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > forward
+zcat *.R.fq.gz | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > reverse
 
 #Reverse complements paired reads and pastes them together with forward reads with 10 Ns in between
 seqtk seq -r reverse > reverseRC
@@ -394,12 +503,12 @@ mawk '!/>/' concat.fasta > concat.seq
 perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' concat.seq > uniq.seqs
 
 #Create a data file with the number of unique sequences and the number of occurrences
-ONE=$(mawk '$1 > 1' uniq.seqs | wc -l)
-echo -e "1""\t""$ONE" > uniqseq.data
+ONE=$(mawk '$1 >= 2' uniq.seqs | wc -l)
+echo -e "2""\t""$ONE" > uniqseq.data
 
-for ((i = 2; i <= 50; i++));
+for ((i = 3; i <= 50; i++));
 do
-J=$(mawk -v x=$i '$1 > x' uniq.seqs | wc -l)
+J=$(mawk -v x=$i '$1 >= x' uniq.seqs | wc -l)
 echo -e "$i""\t""$J" >> uniqseq.data
 done
 
@@ -409,9 +518,8 @@ set terminal dumb size 120, 30
 set autoscale 
 unset label
 set title "Number of Unique Sequences with More than X Occurrences"
-#set xlabel "Number of Occurrences"
+set xlabel "Number of Occurrences"
 set ylabel "Number of Unique Sequences
-#set yr [0:100000]
 plot 'uniqseq.data' with dots notitle
 pause -1
 EOF
@@ -445,73 +553,23 @@ uniq2fasta totaluniqseq > uniq.fasta
 
 #Perl function to split contigs by length
 
-mawk '!/>/' uniq.fasta | mawk '{ print length() | "sort -rn" }' > lengths.txt
-MaxLen=$(head -1 lengths.txt)
-MaxLen=$(($MaxLen - 0))
-MinLen=$(tail -1 lengths.txt)
-MinLen=$(($MinLen - 0))
-
-
-if [ $MaxLen == $MinLen ]; then
-	FLENGTH=$(head -2 *.F.fq | tail -1 | awk '{ print length($0); }')
-	RLENGTH=$(head -2 *.R.fq | tail -1 | awk '{ print length($0); }')
-	FLENGTH=$(($FLENGTH - 0))
-	RLENGTH=$(($RLENGTH - 0))
-	CUT=$(($MaxLen - $FLENGTH + 1))
-	perl $DIR/cutseq_fasta.pl -r :-$CUT uniq.fasta > uniq.F.fasta
-	perl $DIR/cutseq_fasta.pl -r -$RLENGTH: uniq.fasta > uniq.R.fasta
-	sed -i'' -e 's/_.* (.*)/_1/g' uniq.F.fasta
-	sed -i'' -e 's/_.*_.* (.*)/_2/g' uniq.R.fasta 
-else
-	RLENGTH=$(head -2 *.R.fq | tail -1 | awk '{ print length($0); }')
-	LENGTH=$(head -2 ${NAMES[0]}.F.fq | tail -1 | awk '{ print length($0); }')
-	LENGTH=$(($LENGTH - 0))
-	for i in "${NAMES[@]}"
-		do
-		LENGTHX=$(head -2 $i.F.fq | tail -1 | awk '{ print length($0); }')
-		LENGTHX=$(($LENGTHX - 0))
-		if [ $LENGTHX -lt $LENGTH ]; then
-			LENGTHMIN=$(($LENGTHX))
-			fi
-		if [ $LENGTHX -gt $LENGTH ]; then
-			LENGTHMAX=$(($LENGTHX))
-			fi
-		done
-	if [ -z "$LENGTHMIN" ]; then
-		LENGTHMIN=$(($LENGTH))
-		else
-		LENGTHMAX=$(($LENGTH))
-		fi
-	perl $DIR/Seq_filter.pl -i uniq.fasta -min $MaxLen -max $MaxLen -0
-	mv sequences_ok.fas uniqL.fasta
-	mv sequences_too_short.fas uniqS.fasta
-	CUT1=$(($MaxLen - $LENGTHMAX + 1 ))
-	CUT2=$(($MinLen - $LENGTHMIN + 1 ))
-	perl $DIR/cutseq_fasta.pl -r :-$CUT1 uniqL.fasta > uniqLF.fasta
-	perl $DIR/cutseq_fasta.pl -r -$RLENGTH: uniqL.fasta > uniqLR.fasta
-	perl $DIR/cutseq_fasta.pl -r :-$CUT2 uniqS.fasta > uniqSF.fasta
-	perl $DIR/cutseq_fasta.pl -r -$RLENGTH: uniqS.fasta > uniqSR.fasta
-
-	cat uniqLF.fasta uniqSF.fasta > uniq.F.fasta
-	cat uniqLR.fasta uniqSR.fasta > uniq.R.fasta
-
-	sed -i'' -e 's/_.* (.*)/_1/g' uniq.F.fasta
-	sed -i'' -e 's/_.*_.* (.*)/_2/g' uniq.R.fasta 
-fi
+sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
+sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f2 > uniq.R.fasta
 
 seqtk seq -r uniq.R.fasta > uniq.RC.fasta
 rm uniq.R.fasta
 
 #Now use rainbow to cluster and assemble reads into longer contigs
-rainbow cluster -m 6 -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster
-rainbow div -i rcluster -o rbdiv.out
-rainbow merge -o rbasm.out -a -i rbdiv.out
-perl $DIR/select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
+rainbow cluster -m 6 -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster 2>rainbow.log
+rainbow div -i rcluster -o rbdiv.out -f 0.01
+rainbow merge -o rbasm.out -a -i rbdiv.out -r 2
+select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
 
 #cd-hit to cluster reads based on sequence similarity
-cd-hit-est -i rainbow.fasta -o referenceRC.fasta -mask N -M 0 -T 0 -c $simC &>cdhit.log
+cd-hit-est -i rainbow.fasta -o referenceRC.fasta -M 0 -T 0 -c $simC &>cdhit.log
 
 seqtk seq -r referenceRC.fasta > reference.fasta.original
+rm referenceRC.fasta
 
 sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original > reference.fasta
 
@@ -522,50 +580,12 @@ bwa index reference.fasta
 
 ##Create alignment intervals
 ##This takes advantage of the fact that RAD loci are very discrete.  Instead of calculating intervals for every BAM file,
-##this function first distills all the data down to only unique reads and then maps then to the reference.  This overall BAM file 
+##this function merges all bam files together and removes duplicates.  This overall BAM file 
 ##is used to create a single list of intervals, saving a large amount of computational time.
 
 CreateIntervals()
 {
-#Concatenate all reads
-cat *.F.fq > forward1 
-cat *.R.fq > reverse1
-wait
-
-#Split reads into 4 smaller files to reduce memory usage
-NumSeqs=$(cat forward1 | wc -l)
-NumSeqs=$(( $NumSeqs / 4 ))
-split -l $NumSeqs forward1 fw
-split -l $NumSeqs reverse1 rw
-wait
-
-#Remove all duplicate reads
-clone_filter -1 fwaa -2 rwaa
-clone_filter -1 fwab -2 rwab
-clone_filter -1 fwac -2 rwac
-clone_filter -1 fwad -2 rwad
-wait
-
-cat *.fq_1 > fw
-cat *.fq_2 > rw
-
-rm *.fq_1 *.fq_2
-
-clone_filter -1 fw -2 rw
-
-mv fw.fil.fq_1 forward1
-mv rw.fil.fq_2 reverse1
-
-#Map reads to reference
-bwa mem reference.fasta forward1 reverse1 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:cat\tSM:cat\tPL:Illumina" | samtools view -q1 -@ $NUMProc -SbT reference.fasta - > cat.bam 2>cat.bam.log
-
-rm forward1 fw*
-rm reverse1 rw*
-
-wait
-
-samtools sort -@$NUMProc cat.bam cat 
-mv cat.bam cat-RRG.bam
+bamtools merge -list bamlist.list | samtools rmdup - cat-RRG.bam &>/dev/null
 samtools index cat-RRG.bam 
 wait
 
@@ -574,10 +594,11 @@ bamToBed -i cat-RRG.bam > map.bed
 bedtools merge -i map.bed > mapped.bed
 }
 
-
-
-
-
 #Actually starts program
 main
+
+#Compress Large Leftover files
+rm concat.fasta.gz concat.seq.gz rcluster.gz rbdiv.out.gz rbasm.out.gz rainbow.fasta.gz reference.fasta.original.gz uniq.seqs.gz uniq.fasta.gz totaluniqseq.gz uniq.F.fasta.gz uniq.RC.fasta.gz 2> /dev/null
+gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
+
 
