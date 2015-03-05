@@ -133,10 +133,10 @@ fi
 NUMProc=( `grep -c ^processor /proc/cpuinfo 2> /dev/null` ) 
 NUMProc=$(($NUMProc + 0)) 
 
-if [ $NUMProc -lt 1 ]; then
-        echo "Please enter the number of processing cores on this computer"
+echo "dDocent detects $NUMProc processors available on this system."
+echo "Please enter the maximum number of processors to use for this analysis."
         read NUMProc
-fi        
+        
 if [ $NUMProc -lt 1 ]; then
         echo "Incorrect. Please enter the number of processing cores on this computer"
         read NUMProc
