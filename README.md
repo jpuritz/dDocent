@@ -3,7 +3,8 @@ dDocent
 
 This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.  It is designed to run on Linux based machines with large memory capacity and multiple processing cores
 
-#Check out the new tutorials!
+##Check out the new tutorials!
+https://github.com/jpuritz/dDocent/tree/master/tutorials
 
 #Requirements
 **THESE HAVE CHANGED AS OF VERSION 1.2**
