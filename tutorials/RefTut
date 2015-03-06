@@ -357,7 +357,7 @@ else
 	LOC="./RefTut"
 fi
 if [[ -z "$1" ]]; then
-grep "##" $LOC | mawk '!/grep/'
+grep "^##" $LOC | mawk '!/grep/'
 else
 PATTERN=#$1[[:blank:]]
 grep "$PATTERN" $LOC | awk '{$1=""; print $0}'
