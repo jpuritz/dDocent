@@ -663,6 +663,8 @@ Processing population: 2 (20 inds)
 Outputting results of HWE test for filtered loci to 'filtered.hwe'
 Kept 8232 of a possible 8417 loci (filtered 185 loci)
 ```
+*Note, I would not normally use such a high `-h` value.  It's purely for this example.  Typically, errors would have a low p-vaule and would be present in many populations.*
+
 We have now created a thoroughly filtered VCF.  There's not much more we can do with it in this format.  To filter further, we need to convert the file to SNPs only.
 To do this we will use another command from vcflib called vcfallelicprimatives
 ```bash
