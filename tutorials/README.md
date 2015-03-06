@@ -4,7 +4,7 @@ There are two different tutorials.  One works on assembling an optimal reference
 
 In the eternal words of Baz Luhrman:
 
-> Advice is a form of nostalgia. Dispensing it is a way of fishing the past from the disposal, wiping it off, painting over the > ugly parts and recycling it for more than it's worth.
+> Advice is a form of nostalgia. Dispensing it is a way of fishing the past from the disposal, wiping it off, painting over the ugly parts and recycling it for more than it's worth.
 
 **The guidelines in here are not intended to be a best practices document**
 **Do not blindly apply them to your own data.  Take the time to experiment**
