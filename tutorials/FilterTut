@@ -709,7 +709,7 @@
 #51 We don't have enough time to go into depth with all these options and this tool is still under development.  
 #51	It also take some substantial resources to run. I will simulate running this for you.
 #c#51	$#rad_haplotyper.pl -v SNP.DP3g95p5maf05.HWE.recode.vcf -x 40 -mp 1 -u 20 -ml 4 -n -r reference.fasta
-#51	Note, this
+#51	Note, this will not actually run.  It needs all the BAM files to proceed.
 #51	
 #51	Removed 0 loci (0 SNPs) with more than 20 SNPs at a locus
 #51	Building haplotypes for BR_024
