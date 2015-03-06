@@ -569,7 +569,7 @@
 #46	Processing population: 2 (20 inds)
 #46	Outputting results of HWE test for filtered loci to 'filtered.hwe'
 #46	Kept 8232 of a possible 8417 loci (filtered 185 loci)
-#47	
+#47	Note that I would not normally filter with that high of a -h value.  It's purely for this example.
 #47	We have now created a thoroughly filtered VCF.  There's not much more we can do with it in this format.  To filter further, we need to convert the file to SNPs only.
 #48	To do this we will use another command from vcflib called vcfallelicprimatives
 #c#48	$vcfallelicprimitives DP3g95p5maf05.HWE.recode.vcf --keep-info --keep-geno > DP3g95p5maf05.HWE.prim.vcf
