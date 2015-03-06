@@ -69,7 +69,7 @@ set title "Histogram of number of reference contigs"
 set ylabel "Number of Occurrences"
 set xlabel "Number of reference contigs"
 max = `sort -g plot.kopt.data | tail -1`
-binwidth = max/150.0
+binwidth = max/250.0
 bin(x,width)=width*floor(x/width) + binwidth/2.0
 #set xtics 10
 plot 'plot.kopt.data' using (bin($1,binwidth)):(1.0) smooth freq with boxes
