@@ -83,4 +83,4 @@ echo -e "X\tContig number"
 perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' plot.kopt.data | sort -k1 -g -r | head -3
 echo "The top three most common number of contigs (with values rounded)"
 echo -e "X\tContig number"
-while read NAME; do python -c "print round($NAME,-2)"; done < plot.kopt.data | uniq -c | sort -g -r | head -3 | sed "s/^[ \t]*//"
+while read NAME; do python -c "print round($NAME,-2)"; done < plot.kopt.data | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | sort -g -r | head -3 | sed "s/^[ \t]*//"
