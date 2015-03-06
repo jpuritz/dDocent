@@ -3,9 +3,7 @@ dDocent
 
 This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.  It is designed to run on Linux based machines with large memory capacity and multiple processing cores
 
-There are now two different versions of dDocent: dDocent.FB and dDocent.GATK.  dDocent.FB uses minimal BAM file preparation steps before calling SNPs and INDELS simultaneously using FreeBayes (Garrison & Marth 2012).  dDocent.GATK uses GATK (McKenna et al. 2010) for INDEL realignment, SNP and INDEL genotyping (using HaplotypeCaller), and variant quality score recalibration, largely following GATK Best Practices recommendations (DePristo et al. 2011; Auwera & Carneiro 2013).  The modules represent two different strategies for SNP/INDEL calling, and are completely independent of one another.
-
-For now, I will be focusing on dDocent.FB because it is substantially faster and has less dependecies.  See http://bcbio.wordpress.com/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/ for a great comparison of FreeBayes and GATK.
+#Check out the new tutorials!
 
 #Requirements
 **THESE HAVE CHANGED AS OF VERSION 1.2**
