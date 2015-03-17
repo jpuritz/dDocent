@@ -65,9 +65,9 @@ mawk '!/#/' $1 | cut -f1,2,6 > $1.loci.qual
 
 #Calculates the average depth and standard deviation
 DEPTH=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $1.DEPTH)
-#SD=$(mawk '{delta = $1 - avg; avg += delta / NR; mean2 += delta * ($1 - avg); } END { print sqrt(mean2 / NR); }' $1.DEPTH)
-#DEPTH=$(python -c "print int("$DEPTH") + int("$SD")")
-DEPTH=$(python -c "print int("$DEPTH"+3*("$DEPTH"**0.5))")
+SD=$(mawk '{delta = $1 - avg; avg += delta / NR; mean2 += delta * ($1 - avg); } END { print sqrt(mean2 / NR); }' $1.DEPTH)
+DEPTH=$(python -c "print int("$DEPTH") + int("$SD")")
+#DEPTH=$(python -c "print int("$DEPTH"+3*("$DEPTH"**0.5))")
 
 #Filters loci above the mean depth + 1 standard deviation that have quality scores that are less than 2*DEPTH
 paste $1.loci.qual $1.DEPTH | mawk -v x=$DEPTH '$4 > x'| mawk '$3 < 2 * $4' > $1.lowQDloci
