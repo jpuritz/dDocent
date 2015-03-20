@@ -66,6 +66,12 @@ Once $PATH is setup, there is a VERY simplistic installation script located in t
 
 	sh install_dDocent.FB_requirements <your path directory>
 
+On UBUNTU the default shell is dash which does not support substitution used in install_dDocent.FB_requirements. Here you have to
+type:
+
+	bash install_dDocent.FB_requirements <your path directory>
+
+
 The script will check to see if any of the required packages are installed and if they aren’t download and install them.  If you are installing computer wide, you probably will need to run the script as sudo.
 
 If all went well, typing “dDocent.FB” and hitting return should start the pipeline.

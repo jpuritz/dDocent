@@ -2,7 +2,7 @@
 
 ###Script to check for and install most of the required software for dDocent
 
-if [[ -z "$1" ]]; then
+if [ -z "$1" ]; then
 echo "Correct usage is sh install_dDocent_requirements [directory in your computer or user PATH]"
 echo "if installing for all users, best to run this script as root"
 exit 1
@@ -34,7 +34,7 @@ if which freebayes &>/dev/null; then
     echo "FreeBayes is already installed"
 else
         echo "Downloading and installing FreeBayes"
-	git clone --recursive git://github.com/ekg/freebayes.git
+	git clone --recursive https://github.com/ekg/freebayes.git
         cd freebayes
         make
 	cd bin
@@ -75,7 +75,8 @@ fi
 
 
 echo "Checking for Trimmomatic"
-if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | awk '/./'; then
+
+if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | awk '/./' ; then
     echo "Trimmomatic is already installed"
 else
 	echo "Downloading and installing Trimmomatic"
@@ -260,7 +261,7 @@ echo "Checking for bamtools"
 if which bamtools &>/dev/null; then
 	echo "bamtools is already installed"
 else
-	git clone git://github.com/pezmaster31/bamtools.git
+	git clone https://github.com/pezmaster31/bamtools.git
 	cd bamtools
 	mkdir build
 	cd build
