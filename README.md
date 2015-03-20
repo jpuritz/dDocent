@@ -66,7 +66,7 @@ Once $PATH is setup, there is a VERY simplistic installation script located in t
 
 	sh install_dDocent.FB_requirements <your path directory>
 
-On UBUNTU the default shell is dash wich does not support substitution used in install_dDocent.FB_requirements. Here you have to
+On UBUNTU the default shell is dash which does not support substitution used in install_dDocent.FB_requirements. Here you have to
 type:
 
 	bash install_dDocent.FB_requirements <your path directory>
