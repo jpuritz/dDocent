@@ -132,7 +132,7 @@ if which samtools &>/dev/null; then
     echo "samtools is already installed"
 else
 	echo "Downloading and installing samtools"
-	curl -L -o samtools-0.x.tar.bz2 http://sourceforge.net/projects/samtools/files/latest/download?source=files
+	curl -L -o samtools-0.x.tar.bz2 http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2/download
 	tar xvjf samtools-0.x.tar.bz2
 	cd samtools-0.1*
 	make
