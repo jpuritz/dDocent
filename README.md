@@ -34,6 +34,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |gnuplot| http://www.gnuplot.info |
 |gnu-parallel| http://www.gnu.org/software/parallel/ |
 |bamtools|https://github.com/pezmaster31/bamtools|
+|java| http://www.oracle.com/technetwork/java/javase/downloads/index.html|
 
 Programs with * are only required for dDocent.GATK
 
