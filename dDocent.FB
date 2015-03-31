@@ -302,7 +302,7 @@ echo "Using BWA to map reads."
         bwa index reference.fasta &> index.log
         if head -1 reference.fasta | grep -e '>E.*L' 1>/dev/null; then
         	rm lengths.txt &> /dev/null
-        	for i in ${NAMES[@]};
+        	for i in "${NAMES[@]}";
         		do
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
         		done	
