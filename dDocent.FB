@@ -47,10 +47,7 @@ SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Ver.*:\s//' | sed -e 's/-
         	echo -en "\007"
 			echo -en "\007"
 			echo -en "\007"
-			echo "Is the version of Samtools installed newer than 0.1.18?  Enter yes or no."
-			read TEST
-			if [ "$TEST" != "yes" ]; then 
-        		echo "Please install a version newer than 0.1.18"
+        		echo "Please install a version 0.1.19"
         		exit 1
         	fi
         fi
