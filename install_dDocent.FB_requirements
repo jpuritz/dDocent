@@ -10,6 +10,7 @@ fi
 
 INSTALL_PATH=$1
 
+export PATH=$INSTALL_PATH:$PATH
 
 echo "Checking for required software"
 
@@ -145,7 +146,7 @@ if which vcftools &>/dev/null; then
     echo "VCFtools is already installed"
 else
 	echo "Downloading and installing VCFtools"
-	curl -L -o vcftools_x.tar.gz http://downloads.sourceforge.net/project/vcftools/vcftools_0.1.11.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fvcftools%2Ffiles%2F%3Fsource%3Dnavbar&ts=1398959218&use_mirror=hivelocity
+	curl -L -o vcftools_x.tar.gz "http://downloads.sourceforge.net/project/vcftools/vcftools_0.1.11.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fvcftools%2Ffiles%2F%3Fsource%3Dnavbar&ts=1398959218&use_mirror=hivelocity"	
 	tar xvzf vcftools_x.tar.gz
 	cd vcftools_0*
 	make
@@ -183,11 +184,13 @@ if which gnuplot &>/dev/null; then
 else
 	echo "Downliading and installing gnuplot"
 	curl -L -o gnuplot.x.tar.gz http://sourceforge.net/projects/gnuplot/files/latest/download?source=files
-	tar xvzf gnuplot.x.tar.gz
-	cd gnuplot-*
-	./configure
-	make install
-	cd ..
+	tar xvzf gnuplot.x.tar.gz 
+	cd gnuplot-* 
+	current=`pwd` 
+	./configure --prefix=$current/gnuplot_install 
+	make install 
+	cp gnuplot_install/bin/gnuplot $INSTALL_PATH 
+	cd .. 
 fi
 
 echo "Checking for seqtk"
