@@ -49,7 +49,6 @@ SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Ver.*:\s//' | sed -e 's/-
 			echo -en "\007"
         		echo "Please install a version 0.1.19"
         		exit 1
-        	fi
         fi
 
 RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
