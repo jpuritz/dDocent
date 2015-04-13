@@ -64,7 +64,19 @@ RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)
         		exit 1
         	fi
         fi
-        	
+FREEB=(`freebayes | grep -oh 'v[0-9].*-' | sed 's/-.*-//g' `)	
+	if [ "$FREEB" != "v0.9.21" ]; then
+        	echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
+        	echo -en "\007"
+			echo -en "\007"
+			echo -en "\007"
+        	echo "Is the version of FreeBayes installed newer than 0.9.20?  Enter yes or no."
+			read TEST
+			if [ "$TEST" != "yes" ]; then 
+        		echo "Please install a version newer than 0.9.20"
+        		exit 1
+        	fi
+        fi         	
 VCFTV=$(vcftools | grep VCF | sed -e 's/VCFtools\s(v//' | sed -e 's/)//')   
 	if [ "$VCFTV" != "0.1.11" ]; then
         	echo "The version of VCFtools installed in your" '$PATH' "is the not optimized for dDocent."
@@ -392,9 +404,9 @@ paste namelist p > popmap
 rm p
 
 if [ "$NumBED" == "51" ]; then
-parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
+parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3  --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
 else
-parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
+parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3  --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
 fi
 
 rm mapped.*.bed
