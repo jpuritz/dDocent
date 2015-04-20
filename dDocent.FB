@@ -64,7 +64,7 @@ RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)
         		exit 1
         	fi
         fi
-FREEB=(`freebayes | grep -oh 'v[0-9].*-' | sed 's/-.*-//g' `)	
+FREEB=(`freebayes | grep -oh 'v[0-9].*' | sed 's/-.*//g' `)	
 	if [ "$FREEB" != "v0.9.20" ]; then
         	echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
         	echo "Please install a version 0.9.20"
