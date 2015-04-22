@@ -399,7 +399,7 @@ rm p
 if [ "$NumBED" == "51" ]; then
 parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
 else
-parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls--min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
+parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
 fi
 
 rm mapped.*.bed
