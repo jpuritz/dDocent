@@ -375,7 +375,7 @@ mawk -v x=$DP '$4 < x' cov.stats | cut -f1-3 | sort -V -k1,1 -k2,2 > mapped.F.be
 
 #Calculating intervals to split up variant calling over genomic intervals
 NumMaps=$(cat mapped.F.bed | wc -l)
-NumMaps=$(python -c "print round($NumMaps / 50,-1)")
+NumMaps=$(python -c "print int(round($NumMaps / 50,-1))")
 
 
 split -l $NumMaps mapped.F.bed splitmap
