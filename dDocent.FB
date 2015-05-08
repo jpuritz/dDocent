@@ -10,12 +10,12 @@
 
 
 #Prints out title and contact info
-echo -e "dDocent 1.2 \n"
+echo -e "dDocent 2.0 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 ###Code to check for the required software for dDocent
 echo "Checking for required software"
-DEP=(freebayes cutadapt mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed mergefq.pl bedtools coverageBed parallel vcfcombine bamtools)
+DEP=(freebayes cutadapt mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed mergefq.pl bedtools coverageBed parallel vcfcombine bamtools pearRM)
 NUMDEP=0
 for i in "${DEP[@]}"
 do
@@ -487,9 +487,9 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 	AWK2='!/>/'
 	PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
-	cat namelist | parallel --no-notice "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
-	cat namelist | parallel --no-notice "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
-	cat namelist | parallel --no-notice "paste -d '-' {}.forward {}.reverse | mawk '!/NNN/'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs" 
+	cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
+	cat namelist | parallel --no-notice -j $NUMProc "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
+	cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '!/NNN/'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs" 
 
 	#Clean up of large files
 	rm *.forward
@@ -497,13 +497,13 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 
 fi
 
-parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
+parallel --no-notice -j $NUMProc mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
 cut -f2 uniq.k.$1.c.$2.seqs > totaluniqseq
 mawk '{c= c + 1; print ">Contig_" c "\n" $1}' totaluniqseq > uniq.fasta
 sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
-CDHIT=$(python -c "print max("$3" - 0.1,0.8)")
+#CDHIT=$(python -c "print max("$3" - 0.5,0.8)")
 
-cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1
+cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1
 mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
 sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
@@ -537,7 +537,7 @@ LENGTH=$(( $LENGTH * 5 / 4))
 
 pear-0.9.5-64 -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j 32 -n $LENGTH
 
-rm ref.F.fq rm ref.R.fq
+rm ref.F.fq ref.R.fq
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
 mawk '/>/' overlap.fasta > overlap.loci.names
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
