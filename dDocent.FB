@@ -76,12 +76,7 @@ VCFTV=$(vcftools | grep VCF | sed -e 's/VCFtools\s(v//' | sed -e 's/)//')
         	echo "Please install only version 0.1.11"
         	exit 1 
 		fi
-CAV=$(cutadapt --version)
-	if [ "$CAV" != "1.8.1"]; then
-		echo "The version of cutadapt installed in your" '$PATH' "is not optimized for dDocent"
-		echo "Please install only version 1.8.1"
-		exit 1
-		fi
+
 if [ $NUMDEP -gt 0 ]; then
 	echo -e "\nPlease install all required software before running dDocent again."
 	exit 1
@@ -496,7 +491,11 @@ cut -f2 uniq.k.$1.c.$2.seqs > totaluniqseq
 mawk '{c= c + 1; print ">Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
-cutadapt -m $LENGTH -b file:$ADAPTERS -o uniq.fasta uniq.full.fasta
+awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' uniq.full.fasta > uniq.fq
+java -jar $TRIMMOMATIC SE -threads 20 -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH
+mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
+rm uniq.fq*
+#cutadapt -m $LENGTH -b file:$ADAPTERS -o uniq.fasta uniq.full.fasta
 sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
 #CDHIT=$(python -c "print max("$3" - 0.5,0.8)")
 
