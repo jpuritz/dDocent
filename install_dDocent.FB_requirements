@@ -60,23 +60,6 @@ else
 	cd ..
 	cd ..
 fi
-echo "Checking for cutadapt"
-if which cutadapt &>/dev/null; then
-    echo "cutadapt is already installed"
-else
-	echo "Downloading and installing cutadapt"
-	curl -O  https://pypi.python.org/packages/source/c/cutadapt/cutadapt-1.8.1.tar.gz
-	tar xvzf cutadapt-1.8.1.tar.gz
-	cd cutadapt-1.8.1
-	python setup.py build
-	python setup.py build_ext -i
-	python setup.py install
-	cd bin
-	cp cutadapt $INSTALL_PATH
-	cd ..
-	cd ..
-fi
-
 
 echo "Checking for Trimmomatic"
 
