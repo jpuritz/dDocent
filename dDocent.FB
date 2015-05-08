@@ -481,97 +481,75 @@ done
 #Main function for assembly
 Assemble()
 {
+if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
+	
+	#Creates a concatenated file of every read in fasta format
+	AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
+	AWK2='!/>/'
+	PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
+	cat namelist | parallel --no-notice "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
+	cat namelist | parallel --no-notice "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
+	cat namelist | parallel --no-notice "paste -d '-' {}.forward {}.reverse | mawk '!/NNN/'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs" 
 
-###Assembly first concatenates forward and reverse reads and reduces the entire data set to concatenated reads that are present at a user defined level of coverage.  
-###These reads are then split and assembled using Rainbow.  Then finally clustered with cd-hit.
+	#Clean up of large files
+	rm *.forward
+	rm *.reverse
 
-#Creates a concatenated file of every read in fasta format
-zcat *.F.fq.gz | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > forward
-zcat *.R.fq.gz | mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' > reverse
+fi
 
-#Reverse complements paired reads and pastes them together with forward reads with 10 Ns in between
-seqtk seq -r reverse > reverseRC
-mergefq.pl forward reverseRC concat.fasta
-
-#Clean up of large files
-rm forward
-rm reverse
-rm reverseRC
-
-#Convert fasta format to just sequences
-mawk '!/>/' concat.fasta > concat.seq
-
-#Find every unique sequence and count the number of occurrences
-perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' concat.seq > uniq.seqs
-
-#Create a data file with the number of unique sequences and the number of occurrences
-ONE=$(mawk '$1 >= 2' uniq.seqs | wc -l)
-echo -e "2""\t""$ONE" > uniqseq.data
-
-for ((i = 3; i <= 50; i++));
-do
-J=$(mawk -v x=$i '$1 >= x' uniq.seqs | wc -l)
-echo -e "$i""\t""$J" >> uniqseq.data
-done
-
-#Plot graph of above data
-gnuplot << \EOF 
-set terminal dumb size 120, 30
-set autoscale 
-unset label
-set title "Number of Unique Sequences with More than X Occurrences"
-set xlabel "Number of Occurrences"
-set ylabel "Number of Unique Sequences
-plot 'uniqseq.data' with dots notitle
-pause -1
-EOF
-
-#Ask user to pick cutoff
-##The cutoff should roughly correlate to the expected coverage per RAD loci.  This is an easy way to get rid of reads only corresponding to a few individuals
-
-echo -en "\007"
-echo -en "\007"
-echo -en "\007"
-echo -e "Please choose data cutoff.  Pick point right before assymptote, probably between 10 and 30.  \n\nIt approximates the expected coverage per RAD fragment."
-
-read CUTOFF
-
-mawk -v x=$CUTOFF '$1 >= x' uniq.seqs | cut -f 2 > totaluniqseq
-
-#Prints instructions on how to move analysis to background and disown process
-echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
-echo "It is recommended that you move this script to a background operation and disable terminal input and output."
-echo "All data and logfiles will still be recorded."
-echo "To do this:"
-echo "Press control and Z simultaneously"
-echo "Type 'bg' without the quotes and press enter"
-echo "Type 'disown -h' again without the quotes and press enter"
-echo ""
-echo "Now sit back, relax, and wait for your analysis to finish."
-
-
-#Convert reads to fasta
-uniq2fasta totaluniqseq > uniq.fasta
-
-#Perl function to split contigs by length
-
+parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
+cut -f2 uniq.k.$1.c.$2.seqs > totaluniqseq
+mawk '{c= c + 1; print ">Contig_" c "\n" $1}' totaluniqseq > uniq.fasta
 sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
-sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f2 > uniq.R.fasta
+CDHIT=$(python -c "print max("$3" - 0.1,0.8)")
 
-seqtk seq -r uniq.R.fasta > uniq.RC.fasta
-rm uniq.R.fasta
+cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1
+mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
+paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
+sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
 
-#Now use rainbow to cluster and assemble reads into longer contigs
-rainbow cluster -m 6 -1 uniq.F.fasta -2 uniq.RC.fasta > rcluster 2>rainbow.log
-rainbow div -i rcluster -o rbdiv.out -f 0.01
-rainbow merge -o rbasm.out -a -i rbdiv.out -r 2
-select_best_rbcontig_plus_read1.pl rbasm.out rbdiv.out >rainbow.fasta
 
-#cd-hit to cluster reads based on sequence similarity
-cd-hit-est -i rainbow.fasta -o referenceRC.fasta -M 0 -T 0 -c $simC &>cdhit.log
+rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
+rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
+if (NR == 1) e=$2;
+else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0}
+else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0}
+else if ($1 ~/C/) clus=$2;
+else if ($1 ~/L/) len=$2;
+else if ($1 ~/S/) seq=$2;
+else if ($1 ~/N/) freq=$2;
+else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/) {seq1 = seq; fclus=clus;}
+else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
+else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
+}' > rainbow.fasta
 
-seqtk seq -r referenceRC.fasta > reference.fasta.original
-rm referenceRC.fasta
+seqtk seq -r rainbow.fasta > rainbow.RC.fasta
+mv rainbow.RC.fasta rainbow.fasta
+
+sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
+sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
+
+seqtk seq -r ref.R.fq > ref.RC.fq
+mv ref.RC.fq ref.R.fq
+LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+LENGTH=$(( $LENGTH * 5 / 4))
+
+pear-0.9.5-64 -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j 32 -n $LENGTH
+
+rm ref.F.fq rm ref.R.fq
+mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
+mawk '/>/' overlap.fasta > overlap.loci.names
+mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
+mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
+paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/\t/NNNNNNNNNN/g' > other.FR
+
+cat other.FR overlap.fasta > totalover.fasta
+
+rm *.F *.R
+
+
+cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $3
 
 sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original > reference.fasta
 
