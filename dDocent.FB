@@ -72,9 +72,15 @@ FREEB=(`freebayes | grep -oh 'v[0-9].*' | sed 's/-.*//g' `)
         fi         	
 VCFTV=$(vcftools | grep VCF | sed -e 's/VCFtools\s(v//' | sed -e 's/)//')   
 	if [ "$VCFTV" != "0.1.11" ]; then
-        	echo "The version of VCFtools installed in your" '$PATH' "is the not optimized for dDocent."
+        	echo "The version of VCFtools installed in your" '$PATH' "is not optimized for dDocent."
         	echo "Please install only version 0.1.11"
         	exit 1 
+		fi
+CAV=$(cutadapt --version)
+	if [ "$CAV" != "1.8.1"]; then
+		echo "The version of cutadapt installed in your" '$PATH' "is not optimized for dDocent"
+		echo "Please install only version 1.8.1"
+		exit 1
 		fi
 if [ $NUMDEP -gt 0 ]; then
 	echo -e "\nPlease install all required software before running dDocent again."
