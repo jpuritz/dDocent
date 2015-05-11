@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##########dDocent 1.2##########
+##########dDocent 2.0##########
 
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.
