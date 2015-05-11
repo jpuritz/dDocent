@@ -294,7 +294,7 @@ if [ "$MAP" != "no" ]; then
 echo "Using BWA to map reads."
         samtools faidx reference.fasta
         bwa index reference.fasta &> index.log
-        if head -1 reference.fasta | grep -e '>E.*L' 1>/dev/null; then
+        if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
         	rm lengths.txt &> /dev/null
         	for i in "${NAMES[@]}";
         		do
@@ -500,7 +500,7 @@ sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluste
 rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
 rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
 cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
-if (NR == 1) e=$2;
+if (NR == 1) e=$2; print "#dDocent Reference Assembly"
 else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0}
 else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0}
 else if ($1 ~/C/) clus=$2;
