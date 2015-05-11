@@ -2,12 +2,10 @@
 
 ##########dDocent 2.0##########
 
-
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convenction of:
 
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
-
 
 #Prints out title and contact info
 echo -e "dDocent 2.0 \n"
@@ -261,7 +259,7 @@ if [ -z "$STACKS" ]; then
 	cat namelist | parallel -j $FB1 --no-notice "zcat {}.F.fq.gz | sed -e 's:_1$:/1:g' > {}.F.fq"
 	cat namelist | parallel -j $FB1 --no-notice "zcat {}.R.fq.gz | sed -e 's:_2$:/2:g' > {}.R.fq"
 	rm *.fq.gz
-	cat namelist | parallel -j $FB1 --no-notice "gzip {}.F.fq && gzip {}.R.fq
+	cat namelist | parallel -j $FB1 --no-notice "gzip {}.F.fq && gzip {}.R.fq"
 fi
 
 
@@ -458,7 +456,7 @@ mv *unpaired*.gz ./unpaired &>/dev/null
 }
 
 
-#Main function for assembly
+Main function for assembly
 Assemble()
 {
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
