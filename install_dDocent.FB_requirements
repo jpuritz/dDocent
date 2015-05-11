@@ -274,7 +274,18 @@ else
 	cp ./src/parallel ./src/sem ./src/niceload ./src/sql $INSTALL_PATH
 	cd ..
 fi
-		
+
+echo "Checking for PEAR (read merger)"
+if which pearRM &>/dev/null; then
+	echo "pear is already installed"
+else
+	curl -L -O http://sco.h-its.org/exelixis/web/software/pear/files/pear-0.9.6-bin-64.tar.gz
+	tar vxzf pear-0.9.6-bin-64.tar.gz 
+	cd pear-0.9.6-bin-64
+	cp pear-0.9.6-bin-64 $INSTALL_PATH
+	ln -s $INSTALL_PATH/pear-0.9.6.bin-64 $INSTALL_PATH/pearRM
+	cd ..
+fi	
 	
 echo "Now installing dDocent"
 	curl -L -O https://github.com/jpuritz/dDocent/raw/master/dDocent.FB
