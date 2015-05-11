@@ -15,7 +15,7 @@ echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 ###Code to check for the required software for dDocent
 echo "Checking for required software"
-DEP=(freebayes cutadapt mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed mergefq.pl bedtools coverageBed parallel vcfcombine bamtools pearRM)
+DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools coverageBed parallel vcfcombine bamtools pearRM)
 NUMDEP=0
 for i in "${DEP[@]}"
 do
@@ -447,9 +447,8 @@ fi
 ##Function definitions
 
 #Function for trimming reads using trim_galore
-TrimReads () 
-
-{ for i in "${NAMES[@]}"
+TrimReads () { 
+for i in "${NAMES[@]}"
 do
 #echo "Trimming Sample $i"
 java -jar $TRIMMOMATIC PE -threads $NUMProc -phred33 $i.F.fq.gz $i.R.fq.gz $i.R1.fq.gz $i.unpairedF.fq.gz $i.R2.fq.gz $i.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 MINLEN:50 &> $i.trim.log
