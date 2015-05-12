@@ -292,6 +292,11 @@ if [ "$MAP" != "no" ]; then
 echo "Using BWA to map reads."
         samtools faidx reference.fasta
         bwa index reference.fasta &> index.log
+        if [[ "$MAP" != "no" && ! -f "${NAMES[@]:(-1)}".R1.fq.gz ]]; then
+        	echo "dDocent cannot located trimmed reads files"
+        	echo "Please rerun dDocent with quality trimming"
+        	exit 1
+        fi
         if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
         	rm lengths.txt &> /dev/null
         	for i in "${NAMES[@]}";
