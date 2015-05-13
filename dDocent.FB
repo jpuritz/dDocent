@@ -394,9 +394,9 @@ paste namelist p > popmap
 rm p
 
 if [ "$NumBED" == "51" ]; then
-parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
+parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
 else
-parallel -j $FB1 --noswap --no-notice --delay 10 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
+parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
 fi
 
 rm mapped.*.bed
@@ -461,7 +461,7 @@ mv *unpaired*.gz ./unpaired &>/dev/null
 }
 
 
-Main function for assembly
+#Main function for assembly
 Assemble()
 {
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
@@ -488,7 +488,7 @@ if [ -f "uniq.seqs.gz" ]; then
 	fi
 fi
 
-if [ ! -f "uniq.seqs"]; then
+if [ ! -f "uniq.seqs" ]; then
 	cat *.uniq.seqs > uniq.seqs
 fi
 	
@@ -509,7 +509,7 @@ set xrange [0:10]
 unset label
 set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
 set xlabel "Coverage"
-set ylabel "Number of Unique Sequences
+set ylabel "Number of Unique Sequences"
 plot 'uniqseq.data' with lines notitle
 pause -1
 EOF
@@ -538,13 +538,14 @@ rm ufile
 
 
 #Plot graph of above data
+
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale 
 unset label
 set title "Number of Unique Sequences present in more than X Individuals"
 set xlabel "Number of Individuals"
-set ylabel "Number of Unique Sequences
+set ylabel "Number of Unique Sequences"
 plot 'uniqseq.peri.data' with lines notitle
 pause -1
 EOF
@@ -581,14 +582,14 @@ sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluste
 rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
 rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
 cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
-if (NR == 1) e=$2; print "#dDocent Reference Assembly"
-else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0}
-else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0}
+if (NR == 1) e=$2;
+else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
 else if ($1 ~/C/) clus=$2;
 else if ($1 ~/L/) len=$2;
 else if ($1 ~/S/) seq=$2;
 else if ($1 ~/N/) freq=$2;
-else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/) {seq1 = seq; fclus=clus;}
+else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
 else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
 else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
 }' > rainbow.fasta
@@ -618,9 +619,10 @@ cat other.FR overlap.fasta > totalover.fasta
 rm *.F *.R
 
 
-cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $3
+cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $simC
 
-sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original > reference.fasta
+sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original  | sed '1s/^/#dDocent Assembled\n/' > reference.fasta
+
 
 samtools faidx reference.fasta
 bwa index reference.fasta
