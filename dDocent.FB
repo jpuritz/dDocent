@@ -164,18 +164,19 @@ read ASSEMBLY
 if [ "$ASSEMBLY" == "no" ]; then
         echo -e "\nReference contigs need to be in a file named reference.fasta\n"
         sleep 1
+else
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "Then press [ENTER]"
+	read ATYPE
+
+	while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" ]];
+	do
+	echo "Incorrect input"
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "Then press [ENTER]"
+	read ATYPE
+	done
 fi
-
-ATYPE=1
-
-while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" ]];
-do
-echo "Incorrect input"
-echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
-echo -e "Then press [ENTER]"
-read ATYPE
-done
-
 #If performing de novo assembly, asks if the user wants to enter a different -c value
 if [ "$ASSEMBLY" == "yes" ]; then
         echo "Reads will be assembled with Rainbow"
@@ -271,9 +272,9 @@ if [ -z "$STACKS" ]; then
 	cat namelist | parallel -j $NUMProc --no-notice "gzip {}.F.fq"
 fi
 
-if [ -f "${NAMES[@]:(-1)}".R.fq.gz]; then
+if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
 
-	STACKS=$(zcat "${NAMES[@]:(-1)}".R.fq.gz | head -1 | mawk '/\/1/')
+	STACKS=$(zcat "${NAMES[@]:(-1)}".R.fq.gz | head -1 | mawk '/\/2/')
 
 	if [ -z "$STACKS" ]; then
 		echo "Removing the _1 character and replacing with /1 in the name of every sequence"
@@ -301,7 +302,6 @@ if [[ "$TRIM" != "yes" && "$ASSEMBLY" == "yes" ]]; then
         Assemble
         #setupRainbow 2> rainbow.log
 fi
-
 
 
 ##Use BWA to map reads to assembly
@@ -332,7 +332,7 @@ echo "Using BWA to map reads."
         	#BWA for mapping for all samples
         	for i in "${NAMES[@]}"
         	do
-        	if [-f "$i.R2.fq.gz"]; then
+        	if [ -f "$i.R2.fq.gz" ]; then
         		bwa mem reference.fasta $i.R1.fq.gz $i.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	else
         		bwa mem reference.fasta $i.R1.fq.gz -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
@@ -344,7 +344,7 @@ echo "Using BWA to map reads."
         else
         	for i in "${NAMES[@]}"
         	do
-        	if [-f "$i.R2.fq.gz"]; then
+        	if [ -f "$i.R2.fq.gz" ]; then
         		bwa mem reference.fasta $i.R1.fq.gz $i.R2.fq.gz -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	else
         		bwa mem reference.fasta $i.R1.fq.gz -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
@@ -480,10 +480,21 @@ fi
 
 #Function for trimming reads using trim_galore
 TrimReads () { 
+for i in "${NAMES[@]}";
+	do
+        zcat $i.F.fq.gz | head -2 | tail -1 >> lengths.txt
+        done	
+        MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+        MLen=$(($MLen / 2))
+	TW="MINLEN:$MLen"
+	
 for i in "${NAMES[@]}"
 do
 #echo "Trimming Sample $i"
-java -jar $TRIMMOMATIC PE -threads $NUMProc -phred33 $i.F.fq.gz $i.R.fq.gz $i.R1.fq.gz $i.unpairedF.fq.gz $i.R2.fq.gz $i.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 MINLEN:50 &> $i.trim.log
+if [ -f "${NAMES[$i]}".R.fq.gz ]; then
+java -jar $TRIMMOMATIC PE -threads $NUMProc -phred33 $i.F.fq.gz $i.R.fq.gz $i.R1.fq.gz $i.unpairedF.fq.gz $i.R2.fq.gz $i.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $i.trim.log
+else java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 $i.F.fq.gz $i.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $i.trim.log
+fi 
 done
 mkdir unpaired &>/dev/null
 mv *unpaired*.gz ./unpaired &>/dev/null	
@@ -505,19 +516,19 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 		rm *.forward
 		rm *.reverse
 	fi
-	if [ "$ATYPE" == "SE"]; then
+	if [ "$ATYPE" == "SE" ]; then
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
-	if [ "$ATYPE" == "OL"]; then
+	if [ "$ATYPE" == "OL" ]; then
 		for i in "${NAMES[@]}";
         		do
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
         		done	
         	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-		LENGTH=$(( $MaxLen * 3 / 2))
+		LENGTH=$(( $MaxLen / 2))
 		for i in "${NAMES[@]}"
 			do
-			pearRM -f $i.F.fq -r $i.R.fq -o $i -j $NUMProc -n $LENGTH 
+			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH 
 			done
 		cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
@@ -615,59 +626,62 @@ java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACL
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
 rm uniq.fq*
 #cutadapt -m $LENGTH -b file:$ADAPTERS -o uniq.fasta uniq.full.fasta
-sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
-#CDHIT=$(python -c "print max("$3" - 0.5,0.8)")
 
-cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1
-mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
-paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
-sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
+if [ "$ATYPE" == "PE" ]; then
+	sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
+	#CDHIT=$(python -c "print max("$3" - 0.5,0.8)")
 
+	cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1
+	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
+	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
+	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
+	
+	rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
+	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
+		if (NR == 1) e=$2;
+		else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+		else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+		else if ($1 ~/C/) clus=$2;
+		else if ($1 ~/L/) len=$2;
+		else if ($1 ~/S/) seq=$2;
+		else if ($1 ~/N/) freq=$2;
+		else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
+		else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
+		else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
+		}' > rainbow.fasta
 
-rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
-rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
-cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
-if (NR == 1) e=$2;
-else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-else if ($1 ~/C/) clus=$2;
-else if ($1 ~/L/) len=$2;
-else if ($1 ~/S/) seq=$2;
-else if ($1 ~/N/) freq=$2;
-else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
-else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
-else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
-}' > rainbow.fasta
+	seqtk seq -r rainbow.fasta > rainbow.RC.fasta
+	mv rainbow.RC.fasta rainbow.fasta
 
-seqtk seq -r rainbow.fasta > rainbow.RC.fasta
-mv rainbow.RC.fasta rainbow.fasta
+	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
+	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
 
-sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
-sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
+	seqtk seq -r ref.R.fq > ref.RC.fq
+	mv ref.RC.fq ref.R.fq
+	LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+	LENGTH=$(( $LENGTH * 5 / 4))
 
-seqtk seq -r ref.R.fq > ref.RC.fq
-mv ref.RC.fq ref.R.fq
-LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
-LENGTH=$(( $LENGTH * 5 / 4))
+	pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j $NUMProc -n $LENGTH
 
-pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j $NUMProc -n $LENGTH
+	rm ref.F.fq ref.R.fq
 
-rm ref.F.fq ref.R.fq
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
+	mawk '/>/' overlap.fasta > overlap.loci.names
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
+	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/\t/NNNNNNNNNN/g' > other.FR
 
-mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
-mawk '/>/' overlap.fasta > overlap.loci.names
-mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
-mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
-paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/\t/NNNNNNNNNN/g' > other.FR
+	cat other.FR overlap.fasta > totalover.fasta
 
-cat other.FR overlap.fasta > totalover.fasta
-
-rm *.F *.R
-
-
+	rm *.F *.R
+fi
+if [ "$ATYPE" != "PE" ]; then
+	cp uniq.fasta totalover.fasta
+fi
 cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $simC
 
-sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original  | sed '1s/^/#dDocent Assembled\n/' > reference.fasta
+sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original > reference.fasta
 
 
 samtools faidx reference.fasta
