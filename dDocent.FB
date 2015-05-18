@@ -227,7 +227,17 @@ if [ "$MAP" == "no" ]; then
                 optO=6
         fi
 fi
-        
+
+#Does user wish to call SNPs?
+echo "Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]"
+read SNP
+
+while [[ $SNP != "yes" && $SNP != "no" ]];
+	do
+	echo "Incorrect input"
+	echo -e "Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]"
+	read SNP
+	done
 
 #Asks user for email address to notify when analysis is complete
 echo ""
@@ -366,91 +376,81 @@ ls *-RG.bam >bamlist.list
 CreateIntervals 
 fi
 
-#If mapping is not being performed, but intervals do not exist they are created
-if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
-ls *-RG.bam >bamlist.list
-CreateIntervals 
-fi
-
 Len=$(($NumInd - 1))
 
 ##SNP Calling
+if [ "$SNP" != "no" ]; then
+	#Create list of BAM files
+	ls *-RG.bam >bamlist.list
+	#If mapping is not being performed, but intervals do not exist they are created
+	if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
+		CreateIntervals 
+	fi
+	#Check to make sure interval files have been created
+	if [[ "$MAP" == "no" && ! -f "map.bed" ]]; then
+		bamToBed -i cat-RRG.bam > map.bed
+		bedtools merge -i map.bed > mapped.bed
+	fi
+	#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
+	#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
+	coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
+	DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.0001;@l=<>;print $l[int($d*$#l)]')
+	mawk -v x=$DP '$4 < x' cov.stats | cut -f1-3 | sort -V -k1,1 -k2,2 > mapped.F.bed
 
-#Create list of BAM files
-ls *-RG.bam >bamlist.list
 
-#Check to make sure interval files have been created
-if [[ "$MAP" == "no" && ! -f "map.bed" ]]; then
-bamToBed -i cat-RRG.bam > map.bed
-bedtools merge -i map.bed > mapped.bed
+	#Calculating intervals to split up variant calling over genomic intervals
+	NumMaps=$(cat mapped.F.bed | wc -l)
+	NumMaps=$(python -c "print int(round($NumMaps / 50,-1))")
+
+
+	split -l $NumMaps mapped.F.bed splitmap
+	ls splitmap* > splitlist
+	MAPNAMES=( `cat "splitlist" `)
+	NumBED=$( cat splitlist | wc -l )
+	NumBED=$(($NumBED - 0))
+	FB1=$(( $NUMProc / 2 ))
+
+	for ((i = 0; i <= $NumBED; i++));
+	do
+	j=$(( $i + 1 ))
+	mv ${MAPNAMES[$i]} mapped.$j.bed 2>/dev/null
+	done
+
+	echo "Using FreeBayes to call SNPs"
+
+	cut -f1 -d "_" namelist > p
+	paste namelist p > popmap
+	rm p
+
+	if [ "$NumBED" == "51" ]; then
+		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
+	else
+		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
+	fi
+
+	rm mapped.*.bed 
+
+	mv raw.1.vcf raw.01.vcf
+	mv raw.2.vcf raw.02.vcf
+	mv raw.3.vcf raw.03.vcf
+	mv raw.4.vcf raw.04.vcf
+	mv raw.5.vcf raw.05.vcf
+	mv raw.6.vcf raw.06.vcf
+	mv raw.7.vcf raw.07.vcf
+	mv raw.8.vcf raw.08.vcf
+	mv raw.9.vcf raw.09.vcf
+
+	vcfcombine raw.*.vcf | sed -e 's/\t\.\:/\t\.\/\.\:/g' > TotalRawSNPs.vcf
+
+	if [ ! -d "raw.vcf" ]; then
+		mkdir raw.vcf
+	fi
+
+	mv raw.*.vcf ./raw.vcf
+
+	echo "Using VCFtools to parse SNPS.vcf for SNPS that are called in at least 90% of individuals"
+	vcftools --vcf TotalRawSNPs.vcf --geno 0.9 --out Final --counts --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
 fi
-
-
-##SNP Calling
-
-#Create list of BAM files
-ls *-RG.bam >bamlist.list
-
-#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
-#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
-coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
-DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.0001;@l=<>;print $l[int($d*$#l)]')
-mawk -v x=$DP '$4 < x' cov.stats | cut -f1-3 | sort -V -k1,1 -k2,2 > mapped.F.bed
-
-
-#Calculating intervals to split up variant calling over genomic intervals
-NumMaps=$(cat mapped.F.bed | wc -l)
-NumMaps=$(python -c "print int(round($NumMaps / 50,-1))")
-
-
-split -l $NumMaps mapped.F.bed splitmap
-ls splitmap* > splitlist
-MAPNAMES=( `cat "splitlist" `)
-NumBED=$( cat splitlist | wc -l )
-NumBED=$(($NumBED - 0))
-FB1=$(( $NUMProc / 2 ))
-
-for ((i = 0; i <= $NumBED; i++));
-do
-j=$(( $i + 1 ))
-mv ${MAPNAMES[$i]} mapped.$j.bed 2>/dev/null
-done
-
-echo "Using FreeBayes to call SNPs"
-
-cut -f1 -d "_" namelist > p
-paste namelist p > popmap
-rm p
-
-if [ "$NumBED" == "51" ]; then
-parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
-else
-parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
-fi
-
-rm mapped.*.bed
-
-mv raw.1.vcf raw.01.vcf
-mv raw.2.vcf raw.02.vcf
-mv raw.3.vcf raw.03.vcf
-mv raw.4.vcf raw.04.vcf
-mv raw.5.vcf raw.05.vcf
-mv raw.6.vcf raw.06.vcf
-mv raw.7.vcf raw.07.vcf
-mv raw.8.vcf raw.08.vcf
-mv raw.9.vcf raw.09.vcf
-
-vcfcombine raw.*.vcf | sed -e 's/\t\.\:/\t\.\/\.\:/g' > TotalRawSNPs.vcf
-
-if [ ! -d "raw.vcf" ]; then
-mkdir raw.vcf
-fi
-
-mv raw.*.vcf ./raw.vcf
-
-echo "Using VCFtools to parse SNPS.vcf for SNPS that are called in at least 90% of individuals"
-vcftools --vcf TotalRawSNPs.vcf --geno 0.9 --out Final --counts --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
-
 
 ##Checking for possible errors
 
