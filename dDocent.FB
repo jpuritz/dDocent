@@ -525,7 +525,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
         		done	
         	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-		LENGTH=$(( $MaxLen / 2))
+		LENGTH=$(( $MaxLen / 3))
 		for i in "${NAMES[@]}"
 			do
 			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH 
