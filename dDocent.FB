@@ -113,10 +113,6 @@ NAMES=( `cat "namelist" `)
 
 
 
-
-
-
-
 #Wrapper for main program functions.  This allows the entire file to be read first before execution
 main(){
 ##########User Input Section##########
@@ -683,11 +679,10 @@ else
 fi
 #If performing de novo assembly, asks if the user wants to enter a different -c value
 if [ "$ASSEMBLY" == "yes" ]; then
-        echo "Reads will be assembled with Rainbow"
+    echo "Reads will be assembled with Rainbow"
     echo "CD-HIT will cluster reference sequences by similarity. The -c parameter (% similarity to cluster) may need to be changed for your taxa."
     echo "Would you like to enter a new c parameter now? Type yes or no and press [ENTER]"
     read optC
-    echo $optC
     if [ "$optC" == "no" ]; then
             echo "Proceeding with default 0.9 value."
             simC=0.9
