@@ -11,7 +11,9 @@
 echo -e "dDocent 2.0 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
+
 ###Code to check for the required software for dDocent
+
 echo "Checking for required software"
 DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools coverageBed parallel vcfcombine bamtools pearRM)
 NUMDEP=0
@@ -110,166 +112,52 @@ sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
 
 
-##########User Input Section##########
-#This code gets input from the user and assigns variables
-######################################
 
-#This checks that dDocent has detected the proper number of individuals and exits if incorrect
-echo "$NumInd individuals are detected is this correct? Enter yes or no and press [ENTER]"
 
-read Indcorrect
 
-if [ "$Indcorrect" == "no" ]; then
-        echo "Please double check that all fastq files are named Ind01.F.fq.gz and Ind01.R.fq.gz"
-        exit 1
-elif [ "$Indcorrect" == "yes" ]; then
-            echo "Proceeding with $NumInd individuals"
-else
-        echo "Incorrect Input"
-        exit 1
-fi
-
-#Tries to get number of processors, if not asks user
-NUMProc=( `grep -c ^processor /proc/cpuinfo 2> /dev/null` ) 
-NUMProc=$(($NUMProc + 0)) 
-
-echo "dDocent detects $NUMProc processors available on this system."
-echo "Please enter the maximum number of processors to use for this analysis."
-        read NUMProc
-        
-if [ $NUMProc -lt 1 ]; then
-        echo "Incorrect. Please enter the number of processing cores on this computer"
-        read NUMProc
-fi                
-if [ $NUMProc -lt 1 ]; then
-        echo "Incorrect input, exiting"
-        exit 1
-fi
-
-NUMThr=$(($NUMProc / 4))
-
-#Asks if user wants to trim reads.  This allows this part of the pipeline to be skipped during subsequent analyses
-echo -e "\nDo you want to quality trim your reads?" 
-echo "Type yes or no and press [ENTER]?"
-
-read TRIM
-
-#Asks if user wants to perform an assembly.  This allows this part of the pipeline to be skipped during subsequent analyses
-
-echo -e "\nDo you want to perform an assembly?"
-echo "Type yes or no and press [ENTER]?"
-
-read ASSEMBLY
-
-if [ "$ASSEMBLY" == "no" ]; then
-        echo -e "\nReference contigs need to be in a file named reference.fasta\n"
-        sleep 1
-else
-	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
-	echo -e "Then press [ENTER]"
-	read ATYPE
-
-	while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" ]];
-	do
-	echo "Incorrect input"
-	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
-	echo -e "Then press [ENTER]"
-	read ATYPE
-	done
-fi
-#If performing de novo assembly, asks if the user wants to enter a different -c value
-if [ "$ASSEMBLY" == "yes" ]; then
-        echo "Reads will be assembled with Rainbow"
-    echo "CD-HIT will cluster reference sequences by similarity. The -c parameter (% similarity to cluster) may need to be changed for your taxa."
-    echo "Would you like to enter a new c parameter now? Type yes or no and press [ENTER]"
-    read optC
-    echo $optC
-    if [ "$optC" == "no" ]; then
-            echo "Proceeding with default 0.9 value."
-            simC=0.9
-        elif [ "$optC" == "yes" ]; then
-            echo "Please enter new value for c. Enter in decimal form (For 90%, enter 0.9)"
-            read newC
-            simC=$newC
-        else
-            echo "Incorrect input. Proceeding with the default value."
-            simC=0.9
-        fi
-fi
-
-#Asks if user wants to map reads and change default mapping variables for BWA
-echo "Do you want to map reads?  Type yes or no and press [ENTER]"
-read MAP
-if [ "$MAP" == "no" ]; then
-        echo "Mapping will not be performed"
-        optA=1
-    	optB=4
-    	optO=6
-        else
-                echo "BWA will be used to map reads.  You may need to adjust -A -B and -O parameters for your taxa."
-                echo "Would you like to enter a new parameters now? Type yes or no and press [ENTER]"
-                read optq
-
-        if [ "$optq" == "yes" ]; then
-        echo "Please enter new value for A (match score).  It should be an integer.  Default is 1."
-        read newA
-        optA=$newA
-                echo "Please enter new value for B (mismatch score).  It should be an integer.  Default is 4."
-        read newB
-        optB=$newB
-                echo "Please enter new value for O (gap penalty).  It should be an integer.  Default is 6."
-        read newO
-        optO=$newO
-        else
-                echo "Proceeding with default values for BWA read mapping."
-                optA=1
-                optB=4
-                optO=6
-        fi
-fi
-
-#Does user wish to call SNPs?
-echo "Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]"
-read SNP
-
-while [[ $SNP != "yes" && $SNP != "no" ]];
-	do
-	echo "Incorrect input"
-	echo -e "Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]"
-	read SNP
-	done
-
-#Asks user for email address to notify when analysis is complete
-echo ""
-echo "Please enter your email address.  dDocent will email you when it is finished running."
-echo "Don't worry; dDocent has no financial need to sell your email address to spammers."
-read MAIL
-echo ""
-echo ""
-
-if [ "$ASSEMBLY" == "no" ]; then
-#Prints instructions on how to move analysis to background and disown process
-echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
-echo "It is recommended that you move this script to a background operation and disable terminal input and output."
-echo "All data and logfiles will still be recorded."
-echo "To do this:"
-echo "Press control and Z simultaneously"
-echo "Type 'bg' without the quotes and press enter"
-echo "Type 'disown -h' again without the quotes and press enter"
-echo ""
-echo "Now sit back, relax, and wait for your analysis to finish."
-fi
-
-if [ "$ASSEMBLY" == "yes" ]; then
-echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."
-fi
 
 
 #Wrapper for main program functions.  This allows the entire file to be read first before execution
 main(){
+##########User Input Section##########
+#This code gets input from the user and assigns variables
+######################################
 
+#Checks if a configuration file is being used, if not asks for user input
+if [ -n "$1" ]; then
+	CONFIG=$1
+	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
+	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
+	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
+	ATYPE=$(grep -A1 Type $CONFIG | tail -1)
+	simC=$(grep -A1 Simi $CONFIG | tail -1)
+	MAP=$(grep -A1 Mapping_R $CONFIG | tail -1)
+	optA=$(grep -A1 _Match $CONFIG | tail -1)
+	optB=$(grep -A1 MisMatch $CONFIG | tail -1)
+	optO=$(grep -A1 Gap $CONFIG | tail -1)
+	SNP=$(grep -A1 SNP $CONFIG | tail -1)
+	MAIL=$(grep -A1 Email $CONFIG | tail -1)
+	if [ "$ASSEMBLY" == "no" ]; then
+		#Prints instructions on how to move analysis to background and disown process
+		echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
+		echo "It is recommended that you move this script to a background operation and disable terminal input and output."
+		echo "All data and logfiles will still be recorded."
+		echo "To do this:"
+		echo "Press control and Z simultaneously"
+		echo "Type 'bg' without the quotes and press enter"
+		echo "Type 'disown -h' again without the quotes and press enter"
+		echo ""
+		echo "Now sit back, relax, and wait for your analysis to finish."
+	else
+		echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."
+	fi
+
+else
+	GetInfo 
+fi
 #Sets a start time variable
 STARTTIME=$(date)
+
 
 #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them
 
@@ -473,8 +361,34 @@ if [ $ERRORS -gt 0 ]; then
 else
         echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 1.2 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
 fi
-}
 
+
+#Creates (or appends to) a dDcoent run file recording variables
+echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
+echo "Number of Processors" >> dDocent.runs
+echo $NUMProc >> dDocent.runs
+echo "Trimming" >> dDocent.runs
+echo $TRIM >> dDocent.runs
+echo "Assembly?" >> dDocent.runs
+echo $ASSEMBLY >> dDocent.runs
+echo "Type_of_Assembly" >> dDocent.runs
+echo $ATYPE >> dDocent.runs
+echo "Clustering_Similarity%" >> dDocent.runs
+echo $simC >> dDocent.runs
+echo "Mapping_Reads?" >> dDocent.runs
+echo $MAP >> dDocent.runs
+echo "Mapping_Match_Value" >> dDocent.runs
+echo $optA >> dDocent.runs
+echo "Mapping_MisMatch_Value" >> dDocent.runs
+echo $optB >> dDocent.runs
+echo "Mapping_GapOpen_Penalty" >> dDocent.runs
+echo $optO >> dDocent.runs
+echo "Calling_SNPs?" >> dDocent.runs
+echo $SNP >> dDocent.runs
+echo "Email" >> dDocent.runs
+echo $MAIL >> dDocent.runs
+
+}
 
 ##Function definitions
 
@@ -704,9 +618,163 @@ wait
 bamToBed -i cat-RRG.bam > map.bed
 bedtools merge -i map.bed > mapped.bed
 }
+GetInfo(){
+#This checks that dDocent has detected the proper number of individuals and exits if incorrect
+echo "$NumInd individuals are detected is this correct? Enter yes or no and press [ENTER]"
+
+read Indcorrect
+
+if [ "$Indcorrect" == "no" ]; then
+        echo "Please double check that all fastq files are named Ind01.F.fq.gz and Ind01.R.fq.gz"
+        exit 1
+elif [ "$Indcorrect" == "yes" ]; then
+            echo "Proceeding with $NumInd individuals"
+else
+        echo "Incorrect Input"
+        exit 1
+fi
+
+#Tries to get number of processors, if not asks user
+NUMProc=( `grep -c ^processor /proc/cpuinfo 2> /dev/null` ) 
+NUMProc=$(($NUMProc + 0)) 
+
+echo "dDocent detects $NUMProc processors available on this system."
+echo "Please enter the maximum number of processors to use for this analysis."
+        read NUMProc
+        
+if [ $NUMProc -lt 1 ]; then
+        echo "Incorrect. Please enter the number of processing cores on this computer"
+        read NUMProc
+fi                
+if [ $NUMProc -lt 1 ]; then
+        echo "Incorrect input, exiting"
+        exit 1
+fi
+
+
+#Asks if user wants to trim reads.  This allows this part of the pipeline to be skipped during subsequent analyses
+echo -e "\nDo you want to quality trim your reads?" 
+echo "Type yes or no and press [ENTER]?"
+
+read TRIM
+
+#Asks if user wants to perform an assembly.  This allows this part of the pipeline to be skipped during subsequent analyses
+
+echo -e "\nDo you want to perform an assembly?"
+echo "Type yes or no and press [ENTER]?"
+
+read ASSEMBLY
+
+if [ "$ASSEMBLY" == "no" ]; then
+        echo -e "\nReference contigs need to be in a file named reference.fasta\n"
+        sleep 1
+else
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "Then press [ENTER]"
+	read ATYPE
+
+	while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" ]];
+	do
+	echo "Incorrect input"
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "Then press [ENTER]"
+	read ATYPE
+	done
+fi
+#If performing de novo assembly, asks if the user wants to enter a different -c value
+if [ "$ASSEMBLY" == "yes" ]; then
+        echo "Reads will be assembled with Rainbow"
+    echo "CD-HIT will cluster reference sequences by similarity. The -c parameter (% similarity to cluster) may need to be changed for your taxa."
+    echo "Would you like to enter a new c parameter now? Type yes or no and press [ENTER]"
+    read optC
+    echo $optC
+    if [ "$optC" == "no" ]; then
+            echo "Proceeding with default 0.9 value."
+            simC=0.9
+        elif [ "$optC" == "yes" ]; then
+            echo "Please enter new value for c. Enter in decimal form (For 90%, enter 0.9)"
+            read newC
+            simC=$newC
+        else
+            echo "Incorrect input. Proceeding with the default value."
+            simC=0.9
+        fi
+fi
+
+#Asks if user wants to map reads and change default mapping variables for BWA
+echo "Do you want to map reads?  Type yes or no and press [ENTER]"
+read MAP
+if [ "$MAP" == "no" ]; then
+        echo "Mapping will not be performed"
+        optA=1
+    	optB=4
+    	optO=6
+        else
+                echo "BWA will be used to map reads.  You may need to adjust -A -B and -O parameters for your taxa."
+                echo "Would you like to enter a new parameters now? Type yes or no and press [ENTER]"
+                read optq
+
+        if [ "$optq" == "yes" ]; then
+        echo "Please enter new value for A (match score).  It should be an integer.  Default is 1."
+        read newA
+        optA=$newA
+                echo "Please enter new value for B (mismatch score).  It should be an integer.  Default is 4."
+        read newB
+        optB=$newB
+                echo "Please enter new value for O (gap penalty).  It should be an integer.  Default is 6."
+        read newO
+        optO=$newO
+        else
+                echo "Proceeding with default values for BWA read mapping."
+                optA=1
+                optB=4
+                optO=6
+        fi
+fi
+
+#Does user wish to call SNPs?
+echo "Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]"
+read SNP
+
+while [[ $SNP != "yes" && $SNP != "no" ]];
+	do
+	echo "Incorrect input"
+	echo -e "Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]"
+	read SNP
+	done
+
+#Asks user for email address to notify when analysis is complete
+echo ""
+echo "Please enter your email address.  dDocent will email you when it is finished running."
+echo "Don't worry; dDocent has no financial need to sell your email address to spammers."
+read MAIL
+echo ""
+echo ""
+
+if [ "$ASSEMBLY" == "no" ]; then
+#Prints instructions on how to move analysis to background and disown process
+echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
+echo "It is recommended that you move this script to a background operation and disable terminal input and output."
+echo "All data and logfiles will still be recorded."
+echo "To do this:"
+echo "Press control and Z simultaneously"
+echo "Type 'bg' without the quotes and press enter"
+echo "Type 'disown -h' again without the quotes and press enter"
+echo ""
+echo "Now sit back, relax, and wait for your analysis to finish."
+fi
+
+if [ "$ASSEMBLY" == "yes" ]; then
+echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."
+fi
+}
 
 #Actually starts program
-main
+if [ -n "$1" ]; then
+	main $1
+else
+	main
+fi
 
 #Compress Large Leftover files
 rm concat.fasta.gz concat.seq.gz rcluster.gz rbdiv.out.gz rbasm.out.gz rainbow.fasta.gz reference.fasta.original.gz uniq.seqs.gz uniq.fasta.gz totaluniqseq.gz uniq.F.fasta.gz uniq.RC.fasta.gz 2> /dev/null
