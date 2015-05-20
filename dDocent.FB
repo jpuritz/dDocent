@@ -19,12 +19,12 @@ DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamTo
 NUMDEP=0
 for i in "${DEP[@]}"
 do
-if which $i &> /dev/null; then
-   foo=0
-else
-    echo "The dependency" $i "is not installed or is not in your" '$PATH'"."
-    NUMDEP=$((NUMDEP + 1))
-fi
+	if which $i &> /dev/null; then
+		foo=0
+	else
+    		echo "The dependency" $i "is not installed or is not in your" '$PATH'"."
+    		NUMDEP=$((NUMDEP + 1))
+	fi
 done
 
 if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'trim' ; then
@@ -84,7 +84,7 @@ else
 	echo -e "\nAll required software is installed!"
 fi
 
-#This code checks for individual fq labels labeled with the right convention
+#This code checks for individual fastq files follow the correct naming convention and are gziped
 TEST=$(ls *.fq 2> /dev/null | wc -l )
 if [ "$TEST" != "0" ]; then
 echo -e "\ndDocent is now configured to work on compressed sequence files.  Please run gzip to compress your files."
@@ -97,21 +97,11 @@ fi
 NumInd=$(ls *.F.fq.gz | wc -l)
 NumInd=$(($NumInd - 0))
 
-if [ $NumInd -gt 9 ]
-        then
-        MinAll=0.05
-        MaxSize=9
-        else
-        MinAll=$(echo "scale=2; 1 / (2 * $NumInd) " | bc)
-        MaxSize=$(( $NumInd - 1 ))
-fi
-
 #Create list of sample names
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
+#Create an array of sample names
 NAMES=( `cat "namelist" `)
-
-
 
 #Wrapper for main program functions.  This allows the entire file to be read first before execution
 main(){
@@ -119,6 +109,7 @@ main(){
 #This code gets input from the user and assigns variables
 ######################################
 
+#dDocent can now accept a configuration file instead of running interactively
 #Checks if a configuration file is being used, if not asks for user input
 if [ -n "$1" ]; then
 	CONFIG=$1
@@ -151,11 +142,13 @@ if [ -n "$1" ]; then
 else
 	GetInfo 
 fi
+
 #Sets a start time variable
 STARTTIME=$(date)
 
 
-#STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them
+#STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
+#This functionality is now parallelized and will run if only SE sequences are used.
 
 STACKS=$(zcat "${NAMES[@]:(-1)}".F.fq.gz | head -1 | mawk '/\/1/')
 
@@ -177,7 +170,8 @@ if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
 		cat namelist | parallel -j $NUMProc --no-notice "gzip {}.R.fq"
 	fi
 fi
-#This allows for simultaneous assembly and quality trimming, if needed
+
+##Section of logic statements that dictates the order and function of processing the pipeline
 
 if [[ "$TRIM" == "yes" && "$ASSEMBLY" == "yes" ]]; then
         echo "Trimming reads and simultaneously assemblying reference sequences"        
@@ -197,21 +191,21 @@ if [[ "$TRIM" != "yes" && "$ASSEMBLY" == "yes" ]]; then
         #setupRainbow 2> rainbow.log
 fi
 
-
-##Use BWA to map reads to assembly
-
-#This code checks if the reference indexes need to be remade, if mapping
+#Checks to see if reads will be mapped.
 if [ "$MAP" != "no" ]; then
 echo "Using BWA to map reads."
 	if [ reference.fasta -nt reference.fasta.fai ]; then
         samtools faidx reference.fasta
         bwa index reference.fasta &> index.log
 	fi
+#dDocent now checks for trimmed read files before attempting mapping
         if [[ "$MAP" != "no" && ! -f "${NAMES[@]:(-1)}".R1.fq.gz ]]; then
         	echo "dDocent cannot located trimmed reads files"
         	echo "Please rerun dDocent with quality trimming"
         	exit 1
         fi
+#This next section of code checks to see if the reference was assembled by dDocent 
+#and if so, modifies the expected insert length distribution for BWA's metric for proper pairing
         if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
         	rm lengths.txt &> /dev/null
         	for i in "${NAMES[@]}";
@@ -223,7 +217,7 @@ echo "Using BWA to map reads."
         	INSERTH=$(($INSERT + 100 ))
         	INSERTL=$(($INSERT - 100 ))
         	SD=$(($INSERT / 5))
-        	#BWA for mapping for all samples
+#BWA for mapping for all samples.  As of version 2.0 can handle SE or PE reads by checking for PE read files
         	for i in "${NAMES[@]}"
         	do
         	if [ -f "$i.R2.fq.gz" ]; then
@@ -251,7 +245,6 @@ echo "Using BWA to map reads."
 fi
 
 ##Creating mapping intervals if needed, CreateIntervals function is defined later in script
-
 #If mapping is being performed, intervals are created automatically
 
 if [ "$MAP" != "no" ]; then
@@ -260,9 +253,8 @@ ls *-RG.bam >bamlist.list
 CreateIntervals 
 fi
 
-Len=$(($NumInd - 1))
+##SNP Calling Section of code
 
-##SNP Calling
 if [ "$SNP" != "no" ]; then
 	#Create list of BAM files
 	ls *-RG.bam >bamlist.list
@@ -281,11 +273,9 @@ if [ "$SNP" != "no" ]; then
 	DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.0001;@l=<>;print $l[int($d*$#l)]')
 	mawk -v x=$DP '$4 < x' cov.stats | cut -f1-3 | sort -V -k1,1 -k2,2 > mapped.F.bed
 
-
 	#Calculating intervals to split up variant calling over genomic intervals
 	NumMaps=$(cat mapped.F.bed | wc -l)
-	NumMaps=$(python -c "print int(round($NumMaps / 50,-1))")
-
+	NumMaps=$(python -c "print int(round($NumMaps / 100,-1))")
 
 	split -l $NumMaps mapped.F.bed splitmap
 	ls splitmap* > splitlist
@@ -302,14 +292,15 @@ if [ "$SNP" != "no" ]; then
 
 	echo "Using FreeBayes to call SNPs"
 
+	#Creates a population file to use for more accurate genotype calling
 	cut -f1 -d "_" namelist > p
 	paste namelist p > popmap
 	rm p
 
-	if [ "$NumBED" == "51" ]; then
-		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..51}
+	if [ "$NumBED" == "101" ]; then
+		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..101}
 	else
-		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..50}
+		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..100}
 	fi
 
 	rm mapped.*.bed 
@@ -388,7 +379,7 @@ echo $MAIL >> dDocent.runs
 
 ##Function definitions
 
-#Function for trimming reads using trim_galore
+#Function for trimming reads using trimmomatic
 TrimReads () { 
 for i in "${NAMES[@]}";
 	do
@@ -419,7 +410,7 @@ AWK2='!/>/'
 PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	if [ "$ATYPE" == "PE" ]; then
-	#Creates a concatenated file of every read in fasta format
+	#If PE assembly, creates a concatenated file of every unique for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
 		cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '!/NNN/'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
@@ -427,9 +418,11 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 		rm *.reverse
 	fi
 	if [ "$ATYPE" == "SE" ]; then
+	#if SE assembly, creates files of every unique read for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
 	if [ "$ATYPE" == "OL" ]; then
+	#If OL assembly, dDocent assumes that the marjority of PE reads will overlap, so the software PEAR is used to merge paired reads into single reads
 		for i in "${NAMES[@]}";
         		do
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
@@ -480,13 +473,11 @@ plot 'uniqseq.data' with lines notitle
 pause -1
 EOF
 
-#Ask user to pick cutoff
-##The cutoff should roughly correlate to the expected coverage per RAD loci.  This is an easy way to get rid of reads only corresponding to a few individuals
 
 echo -en "\007"
 echo -en "\007"
 echo -en "\007"
-echo -e "Please choose data cutoff.  Pick point right before assymptote, probably between 2 and 5."
+echo -e "Please choose data cutoff.  In essence, you are picking a minimum (within individual) coverage level for an read (allele) to be used in the reference assembly"
 
 read CUTOFF
 
@@ -516,15 +507,15 @@ plot 'uniqseq.peri.data' with lines notitle
 pause -1
 EOF
 
-#Ask user to pick cutoff
-##The cutoff should roughly correlate to the expected coverage per RAD loci.  This is an easy way to get rid of reads only corresponding to a few individuals
-
 echo -en "\007"
 echo -en "\007"
 echo -en "\007"
-echo -e "Please choose data cutoff.  Pick point right before the assymptote.  This number should be close to approximately 10% of the total number of individuals"
+echo -e "Please choose data cutoff.  Pick point right before the assymptote. A good starting cutoff might be 10% of the total number of individuals"
 
 read CUTOFF2
+
+#Now that data cutoffs have been chosen, reduce data set to specified set of unique reads, convert to FASTA format,
+#and remove reads with substantial amounts of adapters
 
 mawk -v x=$CUTOFF2 '$1 >= x' uniqCperindv > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
 cut -f2 uniq.k.$CUTOFF.c.$CUTOFF2.seqs > totaluniqseq
@@ -535,19 +526,19 @@ awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, 
 java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
 rm uniq.fq*
-#cutadapt -m $LENGTH -b file:$ADAPTERS -o uniq.fasta uniq.full.fasta
 
+#If this is a PE assebmle
 if [ "$ATYPE" == "PE" ]; then
+	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 	sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
-	#CDHIT=$(python -c "print max("$3" - 0.5,0.8)")
-
 	cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
 	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
-	
+	#CD-hit output is converted to rainbow format
 	rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
 	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+	#This AWK code replaces rainbow's contig selection perl script
 	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 		if (NR == 1) e=$2;
 		else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
@@ -564,6 +555,7 @@ if [ "$ATYPE" == "PE" ]; then
 	seqtk seq -r rainbow.fasta > rainbow.RC.fasta
 	mv rainbow.RC.fasta rainbow.fasta
 
+	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
 	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
 	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
 
@@ -571,6 +563,7 @@ if [ "$ATYPE" == "PE" ]; then
 	mv ref.RC.fq ref.R.fq
 	LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 	LENGTH=$(( $LENGTH * 5 / 4))
+	
 
 	pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j $NUMProc -n $LENGTH
 
@@ -609,13 +602,12 @@ CreateIntervals()
 bamtools merge -list bamlist.list | samtools rmdup - cat-RRG.bam &>/dev/null
 samtools index cat-RRG.bam 
 wait
-
-#Create intervals
 bamToBed -i cat-RRG.bam > map.bed
 bedtools merge -i map.bed > mapped.bed
 }
-GetInfo(){
+
 #This checks that dDocent has detected the proper number of individuals and exits if incorrect
+GetInfo(){
 echo "$NumInd individuals are detected is this correct? Enter yes or no and press [ENTER]"
 
 read Indcorrect
