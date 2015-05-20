@@ -204,34 +204,6 @@ else
 	cd ..
 fi
 
-echo "Checking for mergefq.pl"
-if which mergefq.pl &>/dev/null; then
-	echo "mergefq.pl already installed"
-else
-	curl -L -O https://github.com/jpuritz/dDocent/raw/master/mergefq.pl
-	chmod +x mergefq.pl	
-	cp mergefq.pl $INSTALL_PATH
-fi
-
-echo "Checking for Seq_filter.pl"
-if which Seq_filter.pl &>/dev/null; then
-	echo "Seq_filter.pl already installed"
-else
-	curl -O http://seq-filter.googlecode.com/files/Seq_filter.pl
-	chmod +x Seq_filter.pl
-	dos2unix Seq_filter.pl
-	cp Seq_filter.pl $INSTALL_PATH
-fi
-
-echo "Checking for cutseq_fasta.pl"
-if which cutseq_fasta.pl &>/dev/null; then
-	echo "cutseq_fasta.pl already installed"
-else
-	curl -O http://nash-bioinformatics-codelets.googlecode.com/files/cutseq_fasta.pl
-	chmod +x cutseq_fasta.pl
-	cp cutseq_fasta.pl $INSTALL_PATH
-fi
-
 echo "Checking for bedtools"
 if which bamToBed &>/dev/null; then
     	echo "bedtools is already installed"
