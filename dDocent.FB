@@ -41,7 +41,7 @@ if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru
     NUMDEP=$((NUMDEP + 1))
     fi
 
-SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Ver.*:\s//' | sed -e 's/-.*//')
+SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//')
 	if [ "$SAMV" != "0.1.19" ]; then
         	echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
         	echo -en "\007"
