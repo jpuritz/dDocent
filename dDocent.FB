@@ -452,7 +452,7 @@ if [ ! -f "uniq.seqs" ]; then
 fi
 	
 
-for i in {1..10};
+for i in {2..20};
 do 
 echo $i >> pfile
 done
@@ -485,7 +485,7 @@ parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs
 
 NUM=$(($NumInd / 2))
 
-for ((i = 1; i <= $NUM; i++));
+for ((i = 2; i <= $NUM; i++));
 do
 echo $i >> ufile
 done
