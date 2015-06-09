@@ -269,26 +269,20 @@ if [ "$SNP" != "no" ]; then
 	fi
 	#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
 	#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
-	coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
+	if [ "cat-RRG.bam" -nt "cov.stats" ]; then
+		coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
+	fi
 	DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.0001;@l=<>;print $l[int($d*$#l)]')
-	mawk -v x=$DP '$4 < x' cov.stats | cut -f1-3 | sort -V -k1,1 -k2,2 > mapped.F.bed
-
-	#Calculating intervals to split up variant calling over genomic intervals
-	NumMaps=$(cat mapped.F.bed | wc -l)
-	NumMaps=$(python -c "print int(round($NumMaps / 100,-1))")
-
-	split -l $NumMaps mapped.F.bed splitmap
-	ls splitmap* > splitlist
-	MAPNAMES=( `cat "splitlist" `)
-	NumBED=$( cat splitlist | wc -l )
-	NumBED=$(($NumBED - 0))
+	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{ sum += $4 } END { if (NR > 0) print sum / 100 }' )
+		 
+	mawk -v x=$DP '$4 < x' cov.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
+	{
+	cov = cov +$4
+	if ( cov < cutoff) {x="mapped."i".bed";print $0 > x}
+	else {i=i+1; x="mapped."i".bed"; print $0 > x; cov=0}
+	}' 
+	
 	FB1=$(( $NUMProc / 2 ))
-
-	for ((i = 0; i <= $NumBED; i++));
-	do
-	j=$(( $i + 1 ))
-	mv ${MAPNAMES[$i]} mapped.$j.bed 2>/dev/null
-	done
 
 	echo "Using FreeBayes to call SNPs"
 
@@ -297,11 +291,8 @@ if [ "$SNP" != "no" ]; then
 	paste namelist p > popmap
 	rm p
 
-	if [ "$NumBED" == "101" ]; then
-		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..101}
-	else
-		parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V  --populations popmap ::: {1..100}
-	fi
+	ls mapped.* | sed 's/mapped.//g' | sed 's/.bed//g' | sort -g | parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V --populations popmap -n 10
+
 
 	rm mapped.*.bed 
 
@@ -547,7 +538,7 @@ if [ "$ATYPE" == "PE" ]; then
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
 	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
-	#CD-hit output is converted to rainbow format
+	#CD-hit output is converte	 to rainbow format
 	rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
 	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
 	#This AWK code replaces rainbow's contig selection perl script
