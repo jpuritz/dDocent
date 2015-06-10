@@ -767,7 +767,6 @@ else
 fi
 
 #Compress Large Leftover files
-rm concat.fasta.gz concat.seq.gz rcluster.gz rbdiv.out.gz rbasm.out.gz rainbow.fasta.gz reference.fasta.original.gz uniq.seqs.gz uniq.fasta.gz totaluniqseq.gz uniq.F.fasta.gz uniq.RC.fasta.gz 2> /dev/null
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
 
 
