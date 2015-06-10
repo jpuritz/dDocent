@@ -277,9 +277,9 @@ if [ "$SNP" != "no" ]; then
 		 
 	mawk -v x=$DP '$4 < x' cov.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
 	{
-	cov = cov +$4
-	if ( cov < cutoff) {x="mapped."i".bed";print $0 > x}
-	else {i=i+1; x="mapped."i".bed"; print $0 > x; cov=0}
+	cov = cov + $4
+	if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 	}' 
 	
 	FB1=$(( $NUMProc / 2 ))
