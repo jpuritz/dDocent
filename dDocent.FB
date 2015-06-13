@@ -151,12 +151,12 @@ STARTTIME=$(date)
 #This functionality is now parallelized and will run if only SE sequences are used.
 
 STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | head -1" | mawk '!/\/1/' | wc -l)
-
+FB1=$(( $NUMProc / 2 ))
 if [ $STACKS -gt 0 ]; then
 	echo "Removing the _1 character and replacing with /1 in the name of every sequence"
-	cat namelist | parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | sed -e 's:_1$:/1:g' > {}.F.fq"
+	cat namelist | parallel -j $FB1 --no-notice "zcat {}.F.fq.gz | sed -e 's:_1$:/1:g' > {}.F.fq"
 	rm *.F.fq.gz
-	cat namelist | parallel -j $NUMProc --no-notice "gzip {}.F.fq"
+	cat namelist | parallel -j $FB1 --no-notice "gzip {}.F.fq"
 fi
 
 if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
@@ -165,9 +165,9 @@ if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
 
 	if [ $STACKS -gt 0 ]; then
 		echo "Removing the _2 character and replacing with /2 in the name of every sequence"
-		cat namelist | parallel -j $NUMProc --no-notice "zcat {}.R.fq.gz | sed -e 's:_2$:/2:g' > {}.R.fq"
+		cat namelist | parallel -j $FB1 --no-notice "zcat {}.R.fq.gz | sed -e 's:_2$:/2:g' > {}.R.fq"
 		rm *.R.fq.gz
-		cat namelist | parallel -j $NUMProc --no-notice "gzip {}.R.fq"
+		cat namelist | parallel -j $FB1 --no-notice "gzip {}.R.fq"
 	fi
 fi
 
