@@ -521,7 +521,7 @@ set autoscale
 unset label
 set title "Number of Unique Sequences with More than X Occurrences"
 set xlabel "Number of Occurrences"
-set ylabel "Number of Unique Sequences
+set ylabel "Number of Unique Sequences"
 plot 'uniqseq.data' with dots notitle
 pause -1
 EOF
