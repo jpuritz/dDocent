@@ -36,6 +36,7 @@ if which freebayes &>/dev/null; then
 else
         echo "Downloading and installing FreeBayes"
 	git clone --recursive https://github.com/ekg/freebayes.git
+	git checkout v0.9.20 && git submodule update --recursive
         cd freebayes
         make
 	cd bin
