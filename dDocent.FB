@@ -288,10 +288,12 @@ if [ "$SNP" != "no" ]; then
 	echo "Using FreeBayes to call SNPs"
 
 	#Creates a population file to use for more accurate genotype calling
-	cut -f1 -d "_" namelist > p
-	paste namelist p > popmap
-	rm p
-
+	if [ ! -f popmap ]; then
+		cut -f1 -d "_" namelist > p
+		paste namelist p > popmap
+		rm p
+	fi
+	
 	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V --populations popmap -n 10
 
 
