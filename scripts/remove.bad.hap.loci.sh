@@ -5,7 +5,7 @@ NAMES=( `cat $1 | cut -f1 | sort | uniq `)
 NAME=$(echo $2 | sed -e 's/\.recode.*//g') 
 LEN=${#NAMES[@]}
 
-mawk -v x=${NAMES[0]} '$0 !~ x' $NAME.recode.vcf > $NAME.0.t.vcf
+mawk -v x="${NAMES[0]}" '$0 !~ x' $NAME.recode.vcf > $NAME.0.t.vcf
 
 for ((i = 1; i < $LEN; i++));
 do
