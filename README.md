@@ -1,4 +1,4 @@
-####dDocent version 2.0 has arrived with major updates to the assembly alogrithms!
+#dDocent version 2.0 has arrived with major updates to the assembly alogrithms!
 
 dDocent
 =======
