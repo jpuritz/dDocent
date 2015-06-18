@@ -1,13 +1,15 @@
+####dDocent version 2.0 has arrived with major updates to the assembly alogrithms!
+
 dDocent
 =======
 
 This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.  It is designed to run on Linux based machines with large memory capacity and multiple processing cores
 
-##Check out the new tutorials!
+##Check out the tutorials!
 https://github.com/jpuritz/dDocent/tree/master/tutorials
 
 #Requirements
-**THESE HAVE CHANGED AS OF VERSION 1.2**
+**THESE HAVE CHANGED AS OF VERSION 2.0**
 
 Instead of reinventing the wheel, dDocent relies almost entirely on third party software to complete every step of the 
 analysis pipeline, and users are encouraged to familiarize themselves with several of these programs, especially Rainbow, 
@@ -16,7 +18,6 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 | Software        | Link                             |
 | ------------- |------------------------------------|
 |FreeBayes      | https://github.com/ekg/freebayes   |
-|GATK*          | http://www.broadinstitute.org      |
 |STACKS         | http://creskolab.uoregon.edu/stacks|
 |cutadapt       | http://code.google.com/p/cutadapt/ |
 |FastQC		      | http://www.bioinformatics.babraham.ac.uk/projects/fastqc/ |
@@ -24,7 +25,6 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |Mawk			      | http://invisible-island.net/mawk/ |
 |BWA		  	    | http://bio-bwa.sourceforge.net |
 |SAMtools		    | http://samtools.sourceforge.net |
-|Picard*		    | http://picard.sourceforge.net |
 |VCFtools		    | http://vcftools.sourceforge.net/index.html |
 |rainbow		    | http://sourceforge.net/projects/bio-rainbow/files/ |
 |seqtk			    | https://github.com/lh3/seqtk |
@@ -35,8 +35,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |gnu-parallel| http://www.gnu.org/software/parallel/ |
 |bamtools|https://github.com/pezmaster31/bamtools|
 |java| http://www.oracle.com/technetwork/java/javase/downloads/index.html|
-
-Programs with * are only required for dDocent.GATK
+|PEAR read merger| http://sco.h-its.org/exelixis/web/software/pear/ |
 
 Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
 
@@ -65,18 +64,11 @@ If you want more information on setting your $PATH and this setup process, check
 
 Once $PATH is setup, there is a VERY simplistic installation script located in the GitHub Repository called install_dDocent_requirements.  To run it, simply type:
 
-	sh install_dDocent.FB_requirements <your path directory>
-
-On UBUNTU the default shell is dash which does not support substitution used in install_dDocent.FB_requirements. Here you have to
-type:
-
 	bash install_dDocent.FB_requirements <your path directory>
-
 
 The script will check to see if any of the required packages are installed and if they aren’t download and install them.  If you are installing computer wide, you probably will need to run the script as sudo.
 
 If all went well, typing “dDocent.FB” and hitting return should start the pipeline.
-
 
 dDocent requires that your raw data are split up by tagged individual and follow the naming convenction of:
 
@@ -100,7 +92,7 @@ If dDocent is installed to your $PATH, change to the data directory and type:
 
 Otherwise it can be run like any other BASH script:
 
-	sh /PATH_TO_dDOCENT/dDocent.FB
+	bash /PATH_TO_dDOCENT/dDocent.FB
 
 #User Guide
 
