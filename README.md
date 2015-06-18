@@ -1,5 +1,7 @@
 #dDocent version 2.0 has arrived with major updates to the assembly alogrithms!
 
+The pipeline now employs a two-step cutoff for data to be included in assembly and has vastly improved assembly accuracy. 
+
 dDocent
 =======
 
