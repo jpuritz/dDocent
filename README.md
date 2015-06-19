@@ -100,7 +100,7 @@ Otherwise it can be run like any other BASH script:
 
 	bash /PATH_TO_dDOCENT/dDocent.FB
 #Running with configuration file
-Configuration file format:
+The file can be named anything, but must follow the format below:
 ```bash
 Number of Processors
 24
