@@ -40,9 +40,10 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |gnu-parallel| http://www.gnu.org/software/parallel/ |
 |bamtools|https://github.com/pezmaster31/bamtools|
 |java| http://www.oracle.com/technetwork/java/javase/downloads/index.html|
-|PEAR read merger| http://sco.h-its.org/exelixis/web/software/pear/ |
+|PEAR read merger**| http://sco.h-its.org/exelixis/web/software/pear/ |
 
 Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
+**PEAR neads to be installed as pearRM in your $PATH
 
 #Installation
 
