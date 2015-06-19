@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##THIS NEEDS AN UPDATE
+
 if [[ -z "$2" ]]; then
 echo "Usage is sh ReferenceOpt.sh K_value c_value"
 exit 1
