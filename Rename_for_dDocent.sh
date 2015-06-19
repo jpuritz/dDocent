@@ -16,7 +16,7 @@ echo ${BARCODES[0]}
 
 for ((i = 0; i <= $LEN; i++));
 do
-mv sample_${BARCODES[$i]}.1.fq ${NAMES[$i]}.F.fq
-mv sample_${BARCODES[$i]}.2.fq ${NAMES[$i]}.R.fq
+mv sample_${BARCODES[$i]}.1.fq.gz ${NAMES[$i]}.F.fq.gz
+mv sample_${BARCODES[$i]}.2.fq.gz ${NAMES[$i]}.R.fq.gz
 done
 fi

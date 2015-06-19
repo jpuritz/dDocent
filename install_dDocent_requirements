@@ -1,0 +1,266 @@
+#!/bin/bash
+
+###Script to check for and install most of the required software for dDocent
+
+if [ -z "$1" ]; then
+echo "Correct usage is sh install_dDocent_requirements [directory in your computer or user PATH]"
+echo "if installing for all users, best to run this script as root"
+exit 1
+fi
+
+INSTALL_PATH=$1
+
+export PATH=$INSTALL_PATH:$PATH
+
+echo "Checking for required software"
+
+echo "Checking for cmake"
+if which cmake &>/dev/null; then
+    echo "make is already installed"
+else
+	echo "Downloading and installing cmake"
+	curl -O http://www.cmake.org/files/v2.8/cmake-2.8.12.2.tar.gz
+	tar xvzf cmake-2.8.12.2.tar.gz
+	cd cmake-2.8.12.2
+	./configure
+	make
+	cd bin
+	cp * $INSTALL_PATH
+	cd ..
+	cd ..
+fi
+
+echo "Checking for FreeBayes"
+if which freebayes &>/dev/null; then
+    echo "FreeBayes is already installed"
+else
+        echo "Downloading and installing FreeBayes"
+	git clone --recursive https://github.com/ekg/freebayes.git
+	git checkout v0.9.20 && git submodule update --recursive
+        cd freebayes
+        make
+	cd bin
+	cp * $INSTALL_PATH
+	cd ..
+	cd ./vcflib/
+	make
+	cp ./bin/* $INSTALL_PATH
+	cd ..
+	cd ..
+fi
+echo "Checking for vcflib"
+if which vcfcombine &>/dev/null; then
+    echo "FreeBayes is already installed"
+else
+        echo "Downloading and installing FreeBayes"
+	git clone --recursive git://github.com/ekg/freebayes.git
+        cd freebayes
+	cd ./vcflib/
+	make
+	cp ./bin/* $INSTALL_PATH
+	cd ..
+	cd ..
+fi
+
+echo "Checking for Trimmomatic"
+
+if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | awk '/./' ; then
+    echo "Trimmomatic is already installed"
+else
+	echo "Downloading and installing Trimmomatic"
+	curl -O http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.33.zip
+	unzip Trimmomatic-0.33.zip
+	cd Trimmomatic-0.33
+	cp ./adapters/* $INSTALL_PATH
+	cp trimmomatic-0.33.jar $INSTALL_PATH
+	cd ..
+fi
+
+if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q '.' ; then
+     echo "Trimmomatic adapters already installed"
+else
+    	echo "Downloading and installing Trimmomatic"
+        curl -O http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.33.zip
+        unzip Trimmomatic-0.33.zip
+        cd Trimmomatic-0.33
+        cp ./adapters/* $INSTALL_PATH
+        cp trimmomatic-0.33.jar $INSTALL_PATH
+	cd ..
+fi
+
+
+echo "Checking for mawk"
+if which mawk &>/dev/null; then
+    echo "mawk is already installed"
+else
+	echo "Downloading and installing mawk"
+	curl -O http://invisible-island.net/datafiles/release/mawk.tar.gz
+	tar xvzf mawk.tar.gz
+	cd mawk-1.*
+	./configure
+	make
+	cp mawk $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for bwa"
+if which bwa &>/dev/null; then
+    echo "bwa is already installed"
+else
+    echo "Downloading and installing bwa"
+	git clone https://github.com/lh3/bwa.git
+	cd bwa
+	make
+	cp bwa $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for samtools"
+if which samtools &>/dev/null; then
+    echo "samtools is already installed"
+else
+	echo "Downloading and installing samtools"
+	curl -L -o samtools-0.x.tar.bz2 http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2/download
+	tar xvjf samtools-0.x.tar.bz2
+	cd samtools-0.1*
+	make
+	cp samtools $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for VCFtools"
+if which vcftools &>/dev/null; then
+    echo "VCFtools is already installed"
+else
+	echo "Downloading and installing VCFtools"
+	curl -L -o vcftools_x.tar.gz "http://downloads.sourceforge.net/project/vcftools/vcftools_0.1.11.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fvcftools%2Ffiles%2F%3Fsource%3Dnavbar&ts=1398959218&use_mirror=hivelocity"	
+	tar xvzf vcftools_x.tar.gz
+	cd vcftools_0*
+	make
+	cp ./bin/vcftools $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for Rainbow"
+if which rainbow &>/dev/null; then
+        VER=(`rainbow | head -1 | cut -f2 -d' ' `)	
+	if [ "$VER" == "2.0.2" ]; then
+        	echo "Rainbow is already installed"
+	else
+		echo "Downloading and installing Rainbow"
+        	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+        	tar xvzf rainbow.x.tar.gz
+        	cd rainbow_*
+        	make
+        	cp rainbow rbasm rbmergetag select_* $INSTALL_PATH
+		cd ..
+	fi
+else
+	echo "Downloading and installing Rainbow"
+	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+	tar xvzf rainbow.x.tar.gz
+	cd rainbow_*
+	make
+	cp rainbow rbasm rbmergetag select_* $INSTALL_PATH	
+	cd ..
+fi
+
+echo "Checking for gnuplot"
+if which gnuplot &>/dev/null; then
+	echo "gnuplot is already installed"
+else
+	echo "Downliading and installing gnuplot"
+	curl -L -o gnuplot.x.tar.gz http://sourceforge.net/projects/gnuplot/files/latest/download?source=files
+	tar xvzf gnuplot.x.tar.gz 
+	cd gnuplot-* 
+	current=`pwd` 
+	./configure --prefix=$current/gnuplot_install 
+	make install 
+	cp gnuplot_install/bin/gnuplot $INSTALL_PATH 
+	cd .. 
+fi
+
+echo "Checking for seqtk"
+if which seqtk &>/dev/null; then
+    echo "seqtk is already installed"
+else
+    	echo "Downloading and installing seqtk"
+	git clone https://github.com/lh3/seqtk.git
+	cd seqtk
+	make
+	cp seqtk $INSTALL_PATH	
+	cd ..
+fi
+
+echo "Checking for cd-hit"
+if which cd-hit-est &>/dev/null; then
+    echo "cd-hit is already installed"
+else
+	echo "Downloading and installing cd-hit"
+	curl -L -O https://cdhit.googlecode.com/files/cd-hit-v4.6.1-2012-08-27.tgz
+	tar xvzf cd-hit-v4.6.1-2012-08-27.tgz 
+	cd cd-hit-v4.6.1-2012-08-27
+	make openmp=yes
+	cp cd-hit-est cd-hit-est-2d $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for bedtools"
+if which bamToBed &>/dev/null; then
+    	echo "bedtools is already installed"
+else
+	curl -L -O https://github.com/arq5x/bedtools2/releases/download/v2.19.1/bedtools-2.19.1.tar.gz
+	tar xvzf bedtools-2.19.1.tar.gz
+	cd bedtools2-2.19.1
+	make 
+	cd bin
+	cp * $INSTALL_PATH
+	cd ..
+	cd ..
+fi
+
+echo "Checking for bamtools"
+if which bamtools &>/dev/null; then
+	echo "bamtools is already installed"
+else
+	git clone https://github.com/pezmaster31/bamtools.git
+	cd bamtools
+	mkdir build
+	cd build
+	cmake ..
+	make
+	cd ../bin
+	cp bamtools $INSTALL_PATH
+	cd ..
+	cd ..
+fi
+
+echo "Checking for GNU-parallel"
+if which parallel &>/dev/null; then
+    	echo "GNU-parallel is already installed"
+else
+	curl -L -O http://ftp.gnu.org/gnu/parallel/parallel-latest.tar.bz2
+	tar xvjf parallel-latest.tar.bz2
+	rm parallel-latest.tar.bz2
+	cd parallel*
+	./configure && make
+	cp ./src/parallel ./src/sem ./src/niceload ./src/sql $INSTALL_PATH
+	cd ..
+fi
+
+echo "Checking for PEAR (read merger)"
+if which pearRM &>/dev/null; then
+	echo "pear is already installed"
+else
+	curl -L -O http://sco.h-its.org/exelixis/web/software/pear/files/pear-0.9.6-bin-64.tar.gz
+	tar vxzf pear-0.9.6-bin-64.tar.gz 
+	cd pear-0.9.6-bin-64
+	cp pear-0.9.6-bin-64 $INSTALL_PATH
+	ln -s $INSTALL_PATH/pear-0.9.6.bin-64 $INSTALL_PATH/pearRM
+	cd ..
+fi	
+	
+echo "Now installing dDocent"
+	curl -L -O https://github.com/jpuritz/dDocent/raw/master/dDocent
+	chmod +x dDocent
+	cp dDocent $INSTALL_PATH

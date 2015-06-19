@@ -1,13 +1,21 @@
+#dDocent version 2.0 has arrived with major updates:
+
+1.  The pipeline now employs a two-step cutoff for data to be included in assembly.
+2.  Assembly accuracy has been improved by replacing the sparse seed clustering of rainbow with alignment based clustering in CD-hit
+3.  dDocent can now natively handle single-end data and paired-end data with substantial overlap between paired reads.
+4.  Parallelization of variant calling has been improved and is now faster with smaller memory loads.
+5.  dDocent can now be run non-interactively by loading a configuration file.
+
 dDocent
 =======
 
 This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD data.  It is designed to run on Linux based machines with large memory capacity and multiple processing cores
 
-There are now two different versions of dDocent: dDocent.FB and dDocent.GATK.  dDocent.FB uses minimal BAM file preparation steps before calling SNPs and INDELS simultaneously using FreeBayes (Garrison & Marth 2012).  dDocent.GATK uses GATK (McKenna et al. 2010) for INDEL realignment, SNP and INDEL genotyping (using HaplotypeCaller), and variant quality score recalibration, largely following GATK Best Practices recommendations (DePristo et al. 2011; Auwera & Carneiro 2013).  The modules represent two different strategies for SNP/INDEL calling, and are completely independent of one another.
-
-For now, I will be focusing on dDocent.FB because it is substantially faster and has less dependecies.  See http://bcbio.wordpress.com/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/ for a great comparison of FreeBayes and GATK.
+##Check out the tutorials!
+https://github.com/jpuritz/dDocent/tree/master/tutorials
 
 #Requirements
+**THESE HAVE CHANGED AS OF VERSION 2.0**
 
 Instead of reinventing the wheel, dDocent relies almost entirely on third party software to complete every step of the 
 analysis pipeline, and users are encouraged to familiarize themselves with several of these programs, especially Rainbow, 
@@ -16,28 +24,26 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 | Software        | Link                             |
 | ------------- |------------------------------------|
 |FreeBayes      | https://github.com/ekg/freebayes   |
-|GATK*          | http://www.broadinstitute.org      |
 |STACKS         | http://creskolab.uoregon.edu/stacks|
-|cutadapt       | http://code.google.com/p/cutadapt/ |
 |FastQC		      | http://www.bioinformatics.babraham.ac.uk/projects/fastqc/ |
-|TrimGalore!	  | http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/ |
+|Trimmomatic	  | http://www.usadellab.org/cms/?page=trimmomatic |
 |Mawk			      | http://invisible-island.net/mawk/ |
 |BWA		  	    | http://bio-bwa.sourceforge.net |
 |SAMtools		    | http://samtools.sourceforge.net |
-|Picard*		    | http://picard.sourceforge.net |
 |VCFtools		    | http://vcftools.sourceforge.net/index.html |
 |rainbow		    | http://sourceforge.net/projects/bio-rainbow/files/ |
 |seqtk			    | https://github.com/lh3/seqtk |
 |CD-HIT		      | http://weizhong-lab.ucsd.edu/cd-hit/ |
-|Seq_filter.pl  | https://code.google.com/p/seq-filter/downloads/list |
-|cutseq_fasta.pl| http://code.google.com/p/nash-bioinformatics-codelets/ |
 |bedtools| https://code.google.com/p/bedtools/ |
 |vcflib| https://github.com/ekg/vcflib |
 |gnuplot| http://www.gnuplot.info |
-
-Programs with * are only required for dDocent.GATK
+|gnu-parallel| http://www.gnu.org/software/parallel/ |
+|bamtools|https://github.com/pezmaster31/bamtools|
+|java| http://www.oracle.com/technetwork/java/javase/downloads/index.html|
+|PEAR read merger**| http://sco.h-its.org/exelixis/web/software/pear/ |
 
 Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
+**PEAR neads to be installed as pearRM in your $PATH
 
 #Installation
 
@@ -64,22 +70,21 @@ If you want more information on setting your $PATH and this setup process, check
 
 Once $PATH is setup, there is a VERY simplistic installation script located in the GitHub Repository called install_dDocent_requirements.  To run it, simply type:
 
-	sh install_dDocent.FB_requirements <your path directory>
+	bash install_dDocent_requirements <your path directory>
 
 The script will check to see if any of the required packages are installed and if they aren’t download and install them.  If you are installing computer wide, you probably will need to run the script as sudo.
 
-If all went well, typing “dDocent.FB” and hitting return should start the pipeline.
-
+If all went well, typing “dDocent” and hitting return should start the pipeline.
 
 dDocent requires that your raw data are split up by tagged individual and follow the naming convenction of:
 
-	Pop1_Sample1.F.fq Pop1_Sample1.R.fq
+	Pop1_Sample1.F.fq.gz Pop1_Sample1.R.fq.gz
 
 dDocent uses raw reads for reference assembly and trimmed reads for read mapping and SNP/variant calling.  If the user is not using dDocent for trimming, trimmed reads must already be in the directory and must follow the naming convention below:
 
-	Pop1_001.R1.fq  Pop1_001.R2.fq
+	Pop1_001.R1.fq.gz  Pop1_001.R2.fq.gz
 
-	Pop1_002.R1.fq  Pop1_002.R2.fq
+	Pop1_002.R1.fq.gz  Pop1_002.R2.fq.gz
 
 Where R1 are trimmed forward reads and R2 are trimmed paired-end reads.
 
@@ -89,12 +94,41 @@ These files must all be in the same directory.
 #Running
 If dDocent is installed to your $PATH, change to the data directory and type:
 
-	dDocent.FB 
+	dDocent
 
 Otherwise it can be run like any other BASH script:
 
-	sh /PATH_TO_dDOCENT/dDocent.FB
-
+	bash /PATH_TO_dDOCENT/dDocent
+#Running with configuration file
+The file can be named anything, but must follow the format below:
+```bash
+Number of Processors
+24
+Trimming
+no
+Assembly?
+yes
+Type_of_Assembly
+PE
+Clustering_Similarity%
+0.86
+Mapping_Reads?
+yes
+Mapping_Match_Value
+1
+Mapping_MisMatch_Value
+3
+Mapping_GapOpen_Penalty
+5
+Calling_SNPs?
+yes
+Email
+jpuritz@gmail.com
+```
+Run:
+```bash
+dDocent config.file
+```
 #User Guide
 
 For a detailed user guide please see: http://ddocent.wordpress.com
