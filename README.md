@@ -70,11 +70,11 @@ If you want more information on setting your $PATH and this setup process, check
 
 Once $PATH is setup, there is a VERY simplistic installation script located in the GitHub Repository called install_dDocent_requirements.  To run it, simply type:
 
-	bash install_dDocent.FB_requirements <your path directory>
+	bash install_dDocent_requirements <your path directory>
 
 The script will check to see if any of the required packages are installed and if they aren’t download and install them.  If you are installing computer wide, you probably will need to run the script as sudo.
 
-If all went well, typing “dDocent.FB” and hitting return should start the pipeline.
+If all went well, typing “dDocent” and hitting return should start the pipeline.
 
 dDocent requires that your raw data are split up by tagged individual and follow the naming convenction of:
 
@@ -94,11 +94,11 @@ These files must all be in the same directory.
 #Running
 If dDocent is installed to your $PATH, change to the data directory and type:
 
-	dDocent.FB 
+	dDocent
 
 Otherwise it can be run like any other BASH script:
 
-	bash /PATH_TO_dDOCENT/dDocent.FB
+	bash /PATH_TO_dDOCENT/dDocent
 #Running with configuration file
 The file can be named anything, but must follow the format below:
 ```bash
@@ -127,7 +127,7 @@ jpuritz@gmail.com
 ```
 Run:
 ```bash
-dDocent.FB config.file
+dDocent config.file
 ```
 #User Guide
 
