@@ -99,7 +99,36 @@ If dDocent is installed to your $PATH, change to the data directory and type:
 Otherwise it can be run like any other BASH script:
 
 	bash /PATH_TO_dDOCENT/dDocent.FB
-
+#Running with configuration file
+Configuration file format:
+```bash
+Number of Processors
+24
+Trimming
+no
+Assembly?
+yes
+Type_of_Assembly
+PE
+Clustering_Similarity%
+0.86
+Mapping_Reads?
+yes
+Mapping_Match_Value
+1
+Mapping_MisMatch_Value
+3
+Mapping_GapOpen_Penalty
+5
+Calling_SNPs?
+yes
+Email
+jpuritz@gmail.com
+```
+Run:
+```bash
+dDocent.FB config.file
+```
 #User Guide
 
 For a detailed user guide please see: http://ddocent.wordpress.com
