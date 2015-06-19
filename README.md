@@ -4,6 +4,7 @@
 2.  Assembly accuracy has been improved by replacing the sparse seed clustering of rainbow with alignment based clustering in CD-hit
 3.  dDocent can now natively handle single end data and paired end data with substantial overlap between paired reads.
 4.  Parallelization of variant calling has been improved and is now faster with smaller memory loads.
+5.  dDocent can now be run non-interactively by loading a configuration file.
 
 dDocent
 =======
