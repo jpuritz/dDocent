@@ -1,6 +1,9 @@
-#dDocent version 2.0 has arrived with major updates to the assembly alogrithms!
+#dDocent version 2.0 has arrived with major updates:
 
-The pipeline now employs a two-step cutoff for data to be included in assembly and has vastly improved assembly accuracy. 
+1.  The pipeline now employs a two-step cutoff for data to be included in assembly.
+2.  Assembly accuracy has been improved by replacing the sparse seed clustering of rainbow with alignment based clustering in CD-hit
+3.  dDocent can now natively handle single end data and paired end data with substantial overlap between paired reads.
+4.  Parallelization of variant calling has been improved and is now faster with smaller memory loads.
 
 dDocent
 =======
