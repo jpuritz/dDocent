@@ -394,7 +394,7 @@ for i in "${NAMES[@]}";
 for i in "${NAMES[@]}"
 do
 #echo "Trimming Sample $i"
-if [ -f "${NAMES[$i]}".R.fq.gz ]; then
+if [ -f $i.R.fq.gz ]; then
 java -jar $TRIMMOMATIC PE -threads $NUMProc -phred33 $i.F.fq.gz $i.R.fq.gz $i.R1.fq.gz $i.unpairedF.fq.gz $i.R2.fq.gz $i.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $i.trim.log
 else java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 $i.F.fq.gz $i.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $i.trim.log
 fi 
