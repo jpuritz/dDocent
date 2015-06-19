@@ -261,6 +261,6 @@ else
 fi	
 	
 echo "Now installing dDocent"
-	curl -L -O https://github.com/jpuritz/dDocent/raw/master/dDocent.FB
-	chmod +x dDocent.FB
-	cp dDocent.FB $INSTALL_PATH
+	curl -L -O https://github.com/jpuritz/dDocent/raw/master/dDocent
+	chmod +x dDocent
+	cp dDocent $INSTALL_PATH
