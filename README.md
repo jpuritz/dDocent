@@ -25,7 +25,6 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 | ------------- |------------------------------------|
 |FreeBayes      | https://github.com/ekg/freebayes   |
 |STACKS         | http://creskolab.uoregon.edu/stacks|
-|FastQC		      | http://www.bioinformatics.babraham.ac.uk/projects/fastqc/ |
 |Trimmomatic	  | http://www.usadellab.org/cms/?page=trimmomatic |
 |Mawk			      | http://invisible-island.net/mawk/ |
 |BWA		  	    | http://bio-bwa.sourceforge.net |
