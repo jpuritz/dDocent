@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##########dDocent 2.0##########
+##########dDocent 2.01##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convenction of:
@@ -8,7 +8,7 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.0 \n"
+echo -e "dDocent 2.01 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
@@ -101,10 +101,10 @@ NumInd=$(($NumInd - 0))
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
 #Create an array of sample names
-NAMES=( `cat "namelist" `)
+NUMNAMES=$(mawk '/_/' namelist | wc -l)
 
-if grep _ namelist; then
-	foo=foo
+if [ "$NUMNAMES" -eq "$NumInd" ]; then
+	NAMES=( `cat "namelist" `)
 else
 	echo "Individuals do not follow the dDocent naming convention."
 	echo "Please rename individuals to: Locality_Individual.F.fq.gz"
