@@ -13,8 +13,8 @@ echo "No file with old names and new names specified."
 echo "Correct usage: Rename_for_dDocent.sh namesfile"
 exit 1
 else
-NAMES=( `cut -f1  $1 `)
-BARCODES=( `cut -f2 $1 `)
+NAMES=( `cut -f2  $1 `)
+BARCODES=( `cut -f1 $1 `)
 LEN=( `wc -l $1 `)
 LEN=$(($LEN - 1))
 
