@@ -21,6 +21,8 @@ if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru
 
 ATYPE=$5
 NUMProc=$6
+ls *.F.fq.gz > namelist
+sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
 
 Reference(){
