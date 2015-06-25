@@ -128,10 +128,13 @@ EOF
 
 #Calculates a mean depth cutoff to use for filtering
 DP=$(python -c "print ($DP+ 1.645*$SD) / $IND")
+PP=$(mawk '!/SUM/' $1.site.depth | sort -rn | perl -e '$d=.05;@l=<>;print $l[int($d*$#l)]' )
+PP=$(python -c "print int($PP / $IND)")
 
 if [[ -z "$4" ]]; then
 echo "If distrubtion looks normal, a 1.645 sigma cutoff (~90% of the data) would be" $DP
-echo "Would you like to use a different maximum mean depth cutoff, yes or no"
+echo "The 95% cutoff would be" $PP
+echo "Would you like to use a different maximum mean depth cutoff than "$PP", yes or no"
 
 read NEWCUTOFF
 else
@@ -139,17 +142,17 @@ NEWCUTOFF=$4
 fi
 
 if [ "$NEWCUTOFF" != "yes" ]; then
-echo -e "Maximum mean depth cutoff is" $DP >> $2.filterstats
+echo -e "Maximum mean depth cutoff is" $PP >> $2.filterstats
 
 #Combines all filters to create a final filtered VCF file
-vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $DP --recode > /dev/null
+vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $PP --recode > /dev/null
 FILTERED=$(mawk '!/#/' $2.FIL.recode.vcf  | wc -l)
 OLD=$(mawk '!/#/' $2.fil.vcf | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
 
-vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $DP --exclude-positions $1.lowQDloci --recode > /dev/null
+vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $PP --exclude-positions $1.lowQDloci --recode > /dev/null
 
 OLD=$(mawk '!/#/' $1 | wc -l)
 FILTERED=$(mawk '!/#/' $2.FIL.recode.vcf  | wc -l)
@@ -167,20 +170,20 @@ echo "Filter stats stored in $2.filterstats"
 else
 	if [[ -z "$5" ]]; then
 	echo "Please enter new cutoff"
-	read DP
+	read PP
 	else
-	DP=$5
+	PP=$5
 	fi
-echo -e "Maximum mean depth cutoff is" $DP >> $2.filterstats
+echo -e "Maximum mean depth cutoff is" $PP >> $2.filterstats
 #Combines all filters to create a final filtered VCF file
-vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $DP --recode > /dev/null
+vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $PP --recode > /dev/null
 FILTERED=$(mawk '!/#/' $2.FIL.recode.vcf  | wc -l)
 OLD=$(mawk '!/#/' $2.fil.vcf | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
 
-vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL1 --max-meanDP $DP --exclude-positions $1.lowQDloci --recode --site-depth > /dev/null
+vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL1 --max-meanDP $PP --exclude-positions $1.lowQDloci --recode --site-depth > /dev/null
 mawk '!/CHR/' $2.FIL1.ldepth | mawk '{
 if (NR == 1) {chrom=$1;i=1;pos[i]=$2;dp[i]=$3}
 else if ($1 == chrom) {i++;pos[i]=$2;dp[i]=$3}
