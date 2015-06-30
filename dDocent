@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##########dDocent 2.01##########
+##########dDocent 2.02##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convenction of:
