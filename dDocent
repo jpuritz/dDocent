@@ -282,7 +282,7 @@ if [ "$SNP" != "no" ]; then
 		coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
 	fi
 	DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.00001;@l=<>;print $l[int($d*$#l)]')
-	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/200}')
+	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/500}')
 	
 		 
 	mawk -v x=$DP '$4 < x' cov.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
