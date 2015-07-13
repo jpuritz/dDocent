@@ -223,11 +223,13 @@ echo "Using BWA to map reads."
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
         		fi
         		done	
+        	if [ -f "lengths.txt" ]; then
         	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
         	INSERT=$(($MaxLen * 2 ))
         	INSERTH=$(($INSERT + 100 ))
         	INSERTL=$(($INSERT - 100 ))
         	SD=$(($INSERT / 5))
+        	fi
 #BWA for mapping for all samples.  As of version 2.0 can handle SE or PE reads by checking for PE read files
         	for i in "${NAMES[@]}"
         	do
