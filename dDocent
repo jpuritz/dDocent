@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##########dDocent 2.04##########
+##########dDocent 2.05##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convenction of:
@@ -8,7 +8,7 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.04 \n"
+echo -e "dDocent 2.05 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
@@ -219,7 +219,9 @@ echo "Using BWA to map reads."
         	rm lengths.txt &> /dev/null
         	for i in "${NAMES[@]}";
         		do
+        		if [ -f "$i.R.fq.gz" ]; then
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+        		fi
         		done	
         	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
         	INSERT=$(($MaxLen * 2 ))
