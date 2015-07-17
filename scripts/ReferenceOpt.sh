@@ -84,7 +84,7 @@ if [ "$ATYPE" == "PE" ]; then
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
 	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
 	#CD-hit output is converte	 to rainbow format
-	rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
+	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
 	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
 	#This AWK code replaces rainbow's contig selection perl script
 	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
