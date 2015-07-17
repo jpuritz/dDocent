@@ -557,7 +557,7 @@ mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
 #If this is a PE assebmle
-if [ "$ATYPE" == "PE" ]; then
+if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 	sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
 	cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1
@@ -608,7 +608,7 @@ if [ "$ATYPE" == "PE" ]; then
 
 	rm *.F *.R
 fi
-if [ "$ATYPE" != "PE" ]; then
+if [[ "$ATYPE" != "PE" && "$ATYPE" != "RPE" ]]; then
 	cp uniq.fasta totalover.fasta
 fi
 cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $simC
