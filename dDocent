@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##########dDocent 2.05##########
+##########dDocent 2.1##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convenction of:
@@ -8,7 +8,7 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.05 \n"
+echo -e "dDocent 2.1 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
@@ -415,12 +415,20 @@ AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 AWK2='!/>/'
 AWK3='!/NNN/'
 PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
+SED1='s/^[ \t]*//'
+SED2='s/\s/\t/g'
+
+
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
-	if [ "$ATYPE" == "PE" ]; then
+	if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#If PE assembly, creates a concatenated file of every unique for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
-		cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
+		if [ "$ATYPE" = "RPE" ]; then
+			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | sort | uniq -c -w 100| sed -e '$SED1' | sed -e '$SED2' > {}.uniq.seqs"
+		else
+			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
+		fi
 		rm *.forward
 		rm *.reverse
 	fi
@@ -487,9 +495,11 @@ echo -en "\007"
 echo -e "Please choose data cutoff.  In essence, you are picking a minimum (within individual) coverage level for an read (allele) to be used in the reference assembly"
 
 read CUTOFF
-
-parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
-
+if [ "$ATYPE" == "RPE" ]; then
+	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | sort | uniq -c -w 100| sed -e 's/^[ \t]*//' | sed -e 's/\s/\t/g' > uniqCperindv
+else
+	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
+fi
 NUM=$(($NumInd / 2))
 
 for ((i = 2; i <= $NUM; i++));
@@ -676,14 +686,14 @@ if [ "$ASSEMBLY" == "no" ]; then
         echo -e "\nReference contigs need to be in a file named reference.fasta\n"
         sleep 1
 else
-	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, RPE for paired-end sequencing for RAD protocols with random sheering, or OL for paired-end sequencing that has substantial overlap."
 	echo -e "Then press [ENTER]"
 	read ATYPE
 
-	while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" ]];
+	while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" && $ATYPE != "RPE" ]];
 	do
 	echo "Incorrect input"
-	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, RPE for paired-end sequencing for RAD protocols with random sheering, or OL for paired-end sequencing that has substantial overlap."
 	echo -e "Then press [ENTER]"
 	read ATYPE
 	done
