@@ -84,8 +84,8 @@ if [ "$ATYPE" == "PE" ]; then
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
 	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
-	#CD-hit output is converte	 to rainbow format
-	rainbow div -i rcluster -o rbdiv.out -f 0.5 -k 10
+	#CD-hit output is converted to rainbow format
+	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
 	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
 	#This AWK code replaces rainbow's contig selection perl script
 	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
@@ -151,7 +151,7 @@ for ((P = $1; P <= $2; P++))
 	echo "K1 is $P" "K2 is $i" "c is 0.80"
 	SEQS=$(Reference $P $i 0.8)
 	echo $P $i 0.80 $SEQS >> kopt.data
-		for j in {0.85,0.9,0.95,0.99}
+		for j in {0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.96,0.98}
 		do
 		echo "K1 is $P" "K2 is $i" "c is $j"
 		SEQS=$(Reference $P $i $j)
