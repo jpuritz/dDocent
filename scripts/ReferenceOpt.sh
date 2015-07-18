@@ -30,12 +30,19 @@ AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 AWK2='!/>/'
 AWK3='!/NNN/'
 PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
+SED1='s/^[ \t]*//'
+SED2='s/\s/\t/g'
+FRL=$(zcat ${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
-	if [ "$ATYPE" == "PE" ]; then
+	if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#If PE assembly, creates a concatenated file of every unique for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
-		cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
+		if [ "$ATYPE" = "RPE" ]; then
+			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | sort | uniq -c -w $FRL| sed -e '$SED1' | sed -e '$SED2' > {}.uniq.seqs"
+		else
+			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
+		fi
 		rm *.forward
 		rm *.reverse
 	fi
@@ -62,9 +69,11 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 fi
 
 #Create a data file with the number of unique sequences and the number of occurrences
-
-
-parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
+if [ "$ATYPE" == "RPE" ]; then
+	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 |  sort | uniq -c -w $FRL | sed -e 's/^[ \t]*//' | sed -e 's/\s/\t/g' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
+else
+	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
+fi
 cut -f2 uniq.k.$1.c.$2.seqs > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
@@ -76,15 +85,16 @@ mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
 #If this is a PE assebmle
-if [ "$ATYPE" == "PE" ]; then
+if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 	sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
-	cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1 &>cdhit.log
+	CDHIT=$(python -c "print max("$3" - 0.1,0.8)")
+	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 &>cdhit.log
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
 	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
-	#CD-hit output is converte	 to rainbow format
-	rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
+	#CD-hit output is converted to rainbow format
+	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
 	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
 	#This AWK code replaces rainbow's contig selection perl script
 	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
@@ -126,7 +136,7 @@ if [ "$ATYPE" == "PE" ]; then
 
 	rm *.F *.R
 fi
-if [ "$ATYPE" != "PE" ]; then
+if [[ "$ATYPE" != "PE" && "$ATYPE" != "RPE" ]]; then
 	cp uniq.fasta totalover.fasta
 fi
 cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $3 &>cdhit.log
@@ -153,10 +163,7 @@ for ((P = $1; P <= $2; P++))
 		for j in {0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.96,0.98}
 		do
 		echo "K1 is $P" "K2 is $i" "c is $j"
-		cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $j &>cdhit.log
-		sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original > reference.fasta
-		SEQS=$(cat reference.fasta | wc -l)
-		SEQS=$(($SEQS / 2 ))
+		SEQS=$(Reference $P $i $j)
 		echo $P $i $j $SEQS >> kopt.data
 		done
 	fi	
