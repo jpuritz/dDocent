@@ -479,7 +479,7 @@ rm pfile
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale
-set xrange [0:10] 
+set xrange [1:10] 
 unset label
 set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
 set xlabel "Coverage"
@@ -500,7 +500,11 @@ if [ "$ATYPE" == "RPE" ]; then
 else
 	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
 fi
-NUM=$(($NumInd / 2))
+if ["$NumInd" -gt 10]; then
+	NUM=$(($NumInd / 2))
+else
+	NUM=$NumInd
+fi
 
 for ((i = 2; i <= $NUM; i++));
 do
