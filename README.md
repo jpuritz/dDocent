@@ -6,7 +6,7 @@
 4.  Parallelization of variant calling has been improved and is now faster with smaller memory loads.
 5.  dDocent can now be run non-interactively by loading a configuration file.
 
-*As of version 2.1, dDocent can assemble data from PE RADseq libraries that use random sheering*
+**As of version 2.1, dDocent can assemble data from PE RADseq libraries that use random sheering**
 
 dDocent
 =======
