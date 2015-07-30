@@ -123,6 +123,7 @@ main(){
 if [ -n "$1" ]; then
 	CONFIG=$1
 	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
+    MAXMemory=$(grep -A1 Memory $CONFIG | tail -1)
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
 	ATYPE=$(grep -A1 Type $CONFIG | tail -1)
@@ -302,7 +303,7 @@ if [ "$SNP" != "no" ]; then
 	paste namelist p > popmap
 	rm p
 	
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V --populations popmap -n 10
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V --populations popmap -n 10
 
 
 	rm mapped.*.bed 
@@ -356,6 +357,8 @@ fi
 echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
 echo $NUMProc >> dDocent.runs
+echo "Maximum Memory" >> dDocent.runs
+echo $MAXMemory >> dDocent.runs
 echo "Trimming" >> dDocent.runs
 echo $TRIM >> dDocent.runs
 echo "Assembly?" >> dDocent.runs
@@ -654,6 +657,14 @@ if [ $NUMProc -lt 1 ]; then
         exit 1
 fi
 
+#Tries to get maximum system memory, if not asks user
+MAXMemory=$(($(grep -Po '(?<=^MemTotal:)\s*[0-9]+' /proc/meminfo | tr -d " ") / 1048576))G
+
+echo "dDocent detects $MAXMemory maximum memory available on this system."
+echo "Please enter the maximum memory to use for this analysis. The size can be postfixed with 
+K, M, G, T, P, k, m, g, t, or p which would multiply the size with 1024, 1048576, 1073741824, 
+1099511627776, 1125899906842624, 1000, 1000000, 1000000000, 1000000000000, or 1000000000000000 respectively."
+        read MAXMemory
 
 #Asks if user wants to trim reads.  This allows this part of the pipeline to be skipped during subsequent analyses
 echo -e "\nDo you want to quality trim your reads?" 
