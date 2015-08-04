@@ -52,7 +52,7 @@ SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d 
         fi
 
 RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
-	if [ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]; then
+	if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
         	echo "The version of Rainbow installed in your" '$PATH' "is not optimized for dDocent."
         	echo -en "\007"
 			echo -en "\007"
