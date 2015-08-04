@@ -144,7 +144,7 @@ fi
 echo "Checking for Rainbow"
 if which rainbow &>/dev/null; then
         VER=(`rainbow | head -1 | cut -f2 -d' ' `)	
-	if [ "$VER" == "2.0.2" ]; then
+	if [[ "$VER" == "2.0.2" || "$VER" == "2.0.3" || "$VER" == "2.0.4" ]]; then
         	echo "Rainbow is already installed"
 	else
 		echo "Downloading and installing Rainbow"
