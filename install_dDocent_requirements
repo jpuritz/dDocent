@@ -255,8 +255,8 @@ else
 	curl -L -O http://sco.h-its.org/exelixis/web/software/pear/files/pear-0.9.6-bin-64.tar.gz
 	tar vxzf pear-0.9.6-bin-64.tar.gz 
 	cd pear-0.9.6-bin-64
-	cp pear-0.9.6-bin-64 $INSTALL_PATH
-	ln -s $INSTALL_PATH/pear-0.9.6.bin-64 $INSTALL_PATH/pearRM
+	cp pear-0.9.6-bin-64 pearRM
+	cp pearRM $INSTALL_PATH
 	cd ..
 fi	
 	
