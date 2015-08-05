@@ -25,7 +25,8 @@ else
 	./configure
 	make
 	cd bin
-	cp * $INSTALL_PATH
+	chmod +x *
+	cp -f * $INSTALL_PATH
 	cd ..
 	cd ..
 fi
@@ -40,11 +41,13 @@ else
 	git checkout v0.9.20 && git submodule update --recursive
         make
 	cd bin
-	cp * $INSTALL_PATH
+	chmod +x *
+	cp -f * $INSTALL_PATH
 	cd ..
 	cd ./vcflib/
 	make
-	cp ./bin/* $INSTALL_PATH
+	chmod +x ./bin/*
+	cp -f ./bin/* $INSTALL_PATH
 	cd ..
 	cd ..
 fi
@@ -57,7 +60,8 @@ else
         cd freebayes
 	cd ./vcflib/
 	make
-	cp ./bin/* $INSTALL_PATH
+	chmod +x ./bin/*
+	cp -f ./bin/* $INSTALL_PATH
 	cd ..
 	cd ..
 fi
@@ -71,8 +75,8 @@ else
 	curl -O http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.33.zip
 	unzip Trimmomatic-0.33.zip
 	cd Trimmomatic-0.33
-	cp ./adapters/* $INSTALL_PATH
-	cp trimmomatic-0.33.jar $INSTALL_PATH
+	cp -f ./adapters/* $INSTALL_PATH
+	cp -f trimmomatic-0.33.jar $INSTALL_PATH
 	cd ..
 fi
 
@@ -83,8 +87,8 @@ else
         curl -O http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.33.zip
         unzip Trimmomatic-0.33.zip
         cd Trimmomatic-0.33
-        cp ./adapters/* $INSTALL_PATH
-        cp trimmomatic-0.33.jar $INSTALL_PATH
+        cp -f ./adapters/* $INSTALL_PATH
+        cp -f trimmomatic-0.33.jar $INSTALL_PATH
 	cd ..
 fi
 
@@ -99,7 +103,8 @@ else
 	cd mawk-1.*
 	./configure
 	make
-	cp mawk $INSTALL_PATH
+	chmod +x mawk
+	cp -f mawk $INSTALL_PATH
 	cd ..
 fi
 
@@ -111,7 +116,8 @@ else
 	git clone https://github.com/lh3/bwa.git
 	cd bwa
 	make
-	cp bwa $INSTALL_PATH
+	chmod +x bwa
+	cp -f bwa $INSTALL_PATH
 	cd ..
 fi
 
@@ -124,7 +130,8 @@ else
 	tar xvjf samtools-0.x.tar.bz2
 	cd samtools-0.1*
 	make
-	cp samtools $INSTALL_PATH
+	chmod +x samtools
+	cp -f samtools $INSTALL_PATH
 	cd ..
 fi
 
@@ -137,7 +144,8 @@ else
 	tar xvzf vcftools_x.tar.gz
 	cd vcftools_0*
 	make
-	cp ./bin/vcftools $INSTALL_PATH
+	chmod +x ./bin/vcftools
+	cp -f ./bin/vcftools $INSTALL_PATH
 	cd ..
 fi
 
@@ -152,7 +160,8 @@ if which rainbow &>/dev/null; then
         	tar xvzf rainbow.x.tar.gz
         	cd rainbow_*
         	make
-        	cp rainbow rbasm rbmergetag select_* $INSTALL_PATH
+        	chmod +x rainbow rbasm rbmergetag select_*
+        	cp -f rainbow rbasm rbmergetag select_* $INSTALL_PATH
 		cd ..
 	fi
 else
@@ -161,7 +170,8 @@ else
 	tar xvzf rainbow.x.tar.gz
 	cd rainbow_*
 	make
-	cp rainbow rbasm rbmergetag select_* $INSTALL_PATH	
+	chmod +x rainbow rbasm rbmergetag select_*
+	cp -f rainbow rbasm rbmergetag select_* $INSTALL_PATH	
 	cd ..
 fi
 
@@ -175,8 +185,9 @@ else
 	cd gnuplot-* 
 	current=`pwd` 
 	./configure --prefix=$current/gnuplot_install 
-	make install 
-	cp gnuplot_install/bin/gnuplot $INSTALL_PATH 
+	make install
+	chmod +x gnuplot_install/bin/gnuplot
+	cp -f gnuplot_install/bin/gnuplot $INSTALL_PATH 
 	cd .. 
 fi
 
@@ -188,7 +199,8 @@ else
 	git clone https://github.com/lh3/seqtk.git
 	cd seqtk
 	make
-	cp seqtk $INSTALL_PATH	
+	chmod +x seqtk
+	cp -f seqtk $INSTALL_PATH	
 	cd ..
 fi
 
@@ -201,7 +213,8 @@ else
 	tar xvzf cd-hit-v4.6.1-2012-08-27.tgz 
 	cd cd-hit-v4.6.1-2012-08-27
 	make openmp=yes
-	cp cd-hit-est cd-hit-est-2d $INSTALL_PATH
+	chmod +x cd-hit-est cd-hit-est-2d
+	cp -f cd-hit-est cd-hit-est-2d $INSTALL_PATH
 	cd ..
 fi
 
@@ -214,7 +227,8 @@ else
 	cd bedtools2-2.19.1
 	make 
 	cd bin
-	cp * $INSTALL_PATH
+	chmod +x *
+	cp -f * $INSTALL_PATH
 	cd ..
 	cd ..
 fi
@@ -230,7 +244,8 @@ else
 	cmake ..
 	make
 	cd ../bin
-	cp bamtools $INSTALL_PATH
+	chmod +x bamtools
+	cp -f bamtools $INSTALL_PATH
 	cd ..
 	cd ..
 fi
@@ -244,7 +259,8 @@ else
 	rm parallel-latest.tar.bz2
 	cd parallel*
 	./configure && make
-	cp ./src/parallel ./src/sem ./src/niceload ./src/sql $INSTALL_PATH
+	chmod +x ./src/parallel ./src/sem ./src/niceload ./src/sql
+	cp -f ./src/parallel ./src/sem ./src/niceload ./src/sql $INSTALL_PATH
 	cd ..
 fi
 
@@ -255,12 +271,13 @@ else
 	curl -L -O http://sco.h-its.org/exelixis/web/software/pear/files/pear-0.9.6-bin-64.tar.gz
 	tar vxzf pear-0.9.6-bin-64.tar.gz 
 	cd pear-0.9.6-bin-64
-	cp pear-0.9.6-bin-64 pearRM
-	cp pearRM $INSTALL_PATH
+	cp -f pear-0.9.6-bin-64 pearRM
+	chmod +x pearRM
+	cp -f pearRM $INSTALL_PATH
 	cd ..
 fi	
 	
 echo "Now installing dDocent"
 	curl -L -O https://github.com/jpuritz/dDocent/raw/master/dDocent
 	chmod +x dDocent
-	cp dDocent $INSTALL_PATH
+	cp -f dDocent $INSTALL_PATH
