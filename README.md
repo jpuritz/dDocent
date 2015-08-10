@@ -1,3 +1,5 @@
+#As of version 2.12, users can limit memory usuage of FreeBayes during variant calling.  This is implemented via the GNU-parallel and for some systems does not work properly.  If dDocent runs stall during FreeBayes, please rerun with that parameter set to "0".#
+
 #dDocent version 2.0 has arrived with major updates:
 
 1.  The pipeline now employs a two-step cutoff for data to be included in assembly.
