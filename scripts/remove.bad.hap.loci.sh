@@ -1,20 +1,9 @@
 #!/bin/bash
-
-NAMES=( `cat $1 | cut -f1 | sort | uniq `)
+if [ -z "$2" ]; then
+echo "Correct usage is sh remove.bad.hap.loci.sh file_with_bad_Loci vcf_file"
+exit 1
+fi
 
 NAME=$(echo $2 | sed -e 's/\.recode.*//g') 
-LEN=${#NAMES[@]}
 
-mawk -v x="${NAMES[0]}" '$0 !~ x' $NAME.recode.vcf > $NAME.0.t.vcf
-
-for ((i = 1; i < $LEN; i++));
-do
-j=$(($i - 1))
-mawk -v x=${NAMES[$i]} '$0 !~ x' $NAME.$j.t.vcf > $NAME.$i.t.vcf
-done
-
-LAST=$(($LEN - 1))
-
-mv $NAME.$LAST.t.vcf $NAME.filtered.vcf
-
-rm $NAME.*.t.vcf
+grep -vwf <(cut -f1 $1) $2 > $NAME.filtered.vcf
