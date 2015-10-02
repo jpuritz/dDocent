@@ -1,6 +1,6 @@
 #!/bin/bash
 
-##########dDocent 2.15##########
+##########dDocent 2.16##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
@@ -8,7 +8,7 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.15 \n"
+echo -e "dDocent 2.16 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
@@ -683,7 +683,17 @@ echo "dDocent detects $MAXMemory maximum memory available on this system."
 echo "Please enter the maximum memory to use for this analysis. The size can be postfixed with 
 K, M, G, T, P, k, m, g, t, or p which would multiply the size with 1024, 1048576, 1073741824, 
 1099511627776, 1125899906842624, 1000, 1000000, 1000000000, 1000000000000, or 1000000000000000 respectively."
+echo "For example, to limit dDocent to ten gigabytes, enter 10G or 10g"
         read MAXMemory
+
+while [[ -z $MAXMemory ]];
+	do
+	echo "Incorrect input"
+	echo -e "Please enter the maximum memory to use for this analysis. The size can be postfixed with K, M, G, T, P, k, m, g, t, or p which would multiply the size with 1024, 1048576, 1073741824, 1099511627776, 1125899906842624, 1000, 1000000, 1000000000, 1000000000000, or 1000000000000000 respectively."
+	echo -e "This option does not work with all distributions of Linux.  If runs are hanging at variant calling, enter 0"
+	echo -e "Then press [ENTER]"
+	read MAXMemory
+	done
 
 #Asks if user wants to trim reads.  This allows this part of the pipeline to be skipped during subsequent analyses
 echo -e "\nDo you want to quality trim your reads?" 
