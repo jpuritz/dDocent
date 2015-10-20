@@ -321,7 +321,7 @@ The output of the div process is similar to the previous output with the excepti
 The parameter -f can be set to control what is the minimum frequency of an allele necessary to divide it into its own cluster
 Since this is pooled data, we want to lower this from the default of 0.2.
 ```
-rainbow div -i rcluster -o rbdiv.out -f 0.05 -k 1
+rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
 ```
 Though changing the parameter for this data set has no effect, it can make a big difference when using real data.
 
