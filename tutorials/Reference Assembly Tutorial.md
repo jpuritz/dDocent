@@ -373,7 +373,7 @@ curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/remake_referenc
 ```
 You can remake a reference by calling the script along with a new cutoff value and similarity.
 ```bash
-bash remake_reference.sh 4 4 0.90 
+bash remake_reference.sh 4 4 0.90 2
 ```
 This command will remake the reference with a cutoff of 20 copies of a unique sequence to use for assembly and a final clustering value of 90%.
 It will output the number of reference sequences and create a new, indexed reference with the given parameters.
