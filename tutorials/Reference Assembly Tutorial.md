@@ -533,6 +533,8 @@ This will continue through all 40 samples
 When the clustering step completes we can examine the results by looking at the file s3.clusters.txt in the /stats directory
 ```bash 
 head -50 ./stats/s3.clusters.txt
+```
+```
 taxa	total	dpt.me	dpt.sd	d>5.tot	d>5.me	d>5.sd	badpairs
 PopA_01	869		19.824	9.084	823		20.747	8.424	78
 PopA_02	867		19.722	8.822	824		20.576	8.193	95
@@ -548,6 +550,8 @@ Let's examine some good and bad clusters
 The clusters are in the `./clust88 directory`.  Let's look at a bad one first.
 ```bash 
 zcat ./clust.88/PopA_01.badpairs.gz | head -12
+```
+```
 >PopA_01_9392_pair;size=9;
 AATTTGTGGGTTTCTCCTTAAAAGATTACCAAATTCTAGTATCAATCATCCTCCTCCCAATGCATGGAGACTGGCAACACCGTGCAGTAGCCT---nnnnTCTCGGCGGATTTGTTTACCCGCGAAGTCGTAA-CTA--CCACCACTCGACCCAACCGGTCCTAGATGACTGCTGTCATACAAT-GTCGTACCGATGA-AGA---CGG
 >PopA_01_9402_pair;size=6;+
@@ -564,7 +568,7 @@ This cluster has 5 different unique sequences in it.  Three of them are only one
 The first two sequences are the only one with any high numbers.  With the current settings, pyRAD is treating this as a paralog because the PE reads have 7 gaps in the alignment.  The default setting is to only allow 3 indels.  To improve this assembly, we will likely need to increase the setting.  Let's change it to 10.
 
 ```bash 
-sed -i '/## 27./c\10,99                     ## 27. maxIndels: within-clust,across-clust (def. 3,99) ' ./params.txt
+sed -i '/## 27./c\10,99               ## 27. maxIndels: within-clust,across-clust (def. 3,99) ' ./params.txt
 ```
 Now, let's delete all the initial cluster files and redo this step
 
@@ -575,6 +579,8 @@ pyrad -p params.txt -s 3
 Let's check the results
 ```bash 
 head -50 ./stats/s3.clusters.txt
+```
+```
 taxa	total	dpt.me	dpt.sd	d>5.tot	d>5.me	d>5.sd	badpairs
 PopA_01	901		19.829	9.083	852		20.782	8.396	46
 PopA_02	901		19.91	8.81	860		20.702	8.214	61
@@ -584,7 +590,7 @@ PopA_04	925		19.564	9.085	887		20.268	8.599	49
 This looks better, but still not ideal.  I leave it to you to experiment further.  With real data, you will again have to make a judgement call.  Keeping looking at the alignments in the clust88 directory and let them be your guide.
 You can also alter the percentage of similarity parameter to cluster by as well.  It's option  in the params.txt file.  Another option to consider is the minimum number of read pairs to form a cluster.  The default is 6. and controlled by option #8 in the params.txt.  For the rest of this example, I am going to use a minimum coverage of 3 and a gap limit of 20.
 ```bash 
-sed -i '/## 27./c\20,99                     ## 27. maxIndels: within-clust,across-clust (def. 3,99) ' ./params.txt
+sed -i '/## 27./c\20,99                ## 27. maxIndels: within-clust,across-clust (def. 3,99) ' ./params.txt
 sed -i '/## 8./c\3                     ## 8. Mindepth: min coverage for a cluster ' ./params.txt
 ```	
 The next step of the pyRAD assembly calls the consensus sequence for each within-individual cluster.  It also applies filters aiming to remove potential paralogs.
@@ -655,6 +661,8 @@ Let's take a look at the stats.
 
 ```bash 
 head ./stats/c88d6m4p3.stats 
+```
+```
 1009        ## loci with > minsp containing data
 77          ## loci with > minsp containing data & paralogs removed
 77          ## loci with > minsp containing data & paralogs removed & final filtering
