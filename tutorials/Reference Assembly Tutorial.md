@@ -437,6 +437,6 @@ X	Contig number
 ```
 You can see that the most common number of contigs across all iteration is 1000, but also that the top three occuring and the average are all within 1% of the true value
 Again, this is simulated data and with real data, the number of exact reference contigs is unknown and you will ultimately have to make a judgement call.
-Congrats!  You've finished the reference assembly tutorial for dDocent.  Let's try pyRAD
+Congrats!  You've finished the reference assembly tutorial for dDocent.
 
 
