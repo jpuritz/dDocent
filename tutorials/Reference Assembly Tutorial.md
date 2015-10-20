@@ -1,12 +1,11 @@
-#dDocent Reference Assembly Tutorial
+#RADseq Reference Assembly Tutorial
 Designed by Jon Puritz
-
-**NOTE: You can download the RefTut file from the depository and run this tutorial from the command line**
 
 #GOALS
 1. To demultiplex samples with process_radtags and rename samples 
 2. To use the methods of dDocent (via rainbow) to assemble reference contigs
 3. To learn how optimize a de novo reference assembly
+4. To learn how to utilize pyRAD for RAD locus assembly as a contrast to dDocent
 
 #Tutorial
 *dDocent must be properly installed for this tutorial to work*
