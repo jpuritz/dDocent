@@ -388,7 +388,7 @@ Take a look at the script ReferenceOpt.sh.
 This script uses  different loops to assemble references from an interval of cutoff values and c values from 0.8-0.98.  It take as a while to run, so I have pasted the output below for you.
 I have pasted the output below though.
 ```bash
-ReferenceOpt.sh 4 8 4 8 PE 16
+bash ReferenceOpt.sh 4 8 4 8 PE 16
 ```
 ```bash
                                           Histogram of number of reference contigs
