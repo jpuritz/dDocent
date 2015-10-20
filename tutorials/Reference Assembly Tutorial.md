@@ -433,6 +433,229 @@ X	Contig number
 ```
 You can see that the most common number of contigs across all iteration is 1000, but also that the top three occuring and the average are all within 1% of the true value
 Again, this is simulated data and with real data, the number of exact reference contigs is unknown and you will ultimately have to make a judgement call.
-Congrats!  You've finished the reference assembly tutorial.
+Congrats!  You've finished the reference assembly tutorial for dDocent.  Let's try pyRAD
+
+#pyRAD assembly tutorial
+
+Now, let's take a look at another way to assemble RAD data from the software package pyRAD.  Please note that many of these steps have been altered from Deren Eaton's tutorial
+See http://nbviewer.ipython.org/gist/dereneaton/dc6241083c912519064e/tutorial_pairddRAD_3.0.ipynb for more details
+First let's make a new directory and move into it
+```bash 
+mkdir pyrad
+cd pyrad
+```
+Next, let's make a symoblic link to the original fastq.gz data files and barcodes
+```bash 
+ln -s ../SimRAD.barcodes .
+ln -s ../SimRAD_R1.fastq.gz SimRAD_R1_.fastq.gz
+ln -s ../SimRAD_R2.fastq.gz SimRAD_R2_.fastq.gz
+```
+THE FORMATTING HERE IS CRITICAL.  The pyRAD package requires the files to have the _R1_ and _R2_ in the names.  
+In case you weren't aware, this makes a virtual link (like one on a desktop) to a file and saves disk space by not recopying the files
+
+Now, let's create a parameters file
+```bash 
+pyRAD -n
+```	
+	
+This creates a file (params.txt) that we can edit to adjust the settings of pyRAD
+
+We will need to edit a few values.  You can do this in a text editor like nano or emacs, but for this exercise it is easier just to use sed
+First let's change the restriction sites to match our data
+```bash 
+sed -i '/## 6. /c\AATT,CCG                 ## 6. cutsites... ' ./params.txt
+```	
+Next, let's change the number of processors to use in parallel to 8
+```bash 
+sed -i '/## 7. /c\8\t                 ## 7. N processors... ' ./params.txt
+```
+Change the datatype to paired ddRAD
+```bash 
+sed -i '/## 11. /c\pairddrad                 ## 11. datatype... ' ./params.txt
+```
+Now, we are ready to proceed with the pyRAD pipeline.  First step is demultiplexing files
+```bash 
+pyRAD -p params.txt -s 1
+```
+You should see:
+```
+  ------------------------------------------------------------
+   pyRAD : RADseq for phylogenetics & introgression analyses
+  ------------------------------------------------------------
 
 
+  step 1: sorting reads by barcode
+	 .
+```
+This now created demultiplexed files with the proper pyRAD naming convention.  There are stats about the demultiplexing in the ./stats directory
+
+The next step is quality filtering.  This is basic filtering, removing any reads with Illumina adapters in them, and replacing low quality bases with Ns.
+
+
+```bash 
+pyRAD -p params.txt -s 2
+```
+ You should see
+  ------------------------------------------------------------
+   pyRAD : RADseq for phylogenetics & introgression analyses
+  ------------------------------------------------------------
+
+
+  step 2: quality filtering 
+  ........................................
+	Stats about the filtering can be found in the ./stats directory.  For the simulated data set, no reads are filtered.
+	Unlike the previous method, pyRAD first clusters reads together within individuals for assembly
+```bash pyRAD -p params.txt -s 3
+	The output should look like:
+   ------------------------------------------------------------
+    pyRAD : RADseq for phylogenetics & introgression analyses
+   ------------------------------------------------------------
+
+
+	de-replicating files for clustering...
+
+	step 3: within-sample clustering of 40 samples at 
+        '.88' similarity. Running 8 parallel jobs
+ 		with up to 6 threads per job. If needed, 
+			adjust to avoid CPU and MEM limits
+
+	sample PopA_08 finished, 865 loci
+	sample PopB_10 finished, 847 loci
+	sample PopA_20 finished, 863 loci
+	sample PopB_08 finished, 863 loci
+	sample PopB_12 finished, 862 loci
+	This will continue through all 40 samples
+
+ When the clustering step completes we can examine the results by looking at the file s3.clusters.txt in the /stats directory
+```bash head -50 ./stats/s3.clusters.txt
+	taxa	total	dpt.me	dpt.sd	d>5.tot	d>5.me	d>5.sd	badpairs
+	PopA_01	869		19.824	9.084	823		20.747	8.424	78
+	PopA_02	867		19.722	8.822	824		20.576	8.193	95
+	PopA_03	870		20.322	9.59	828		21.176	9.026	88
+	PopA_04	899	1	9.339	9.081	860		20.076	8.582	75
+
+	This output shows us the total number of clusters for each individual, along with some information about mean depth and standard deviation of depth.
+	It also shows us the number of bad pairs, or mismatched 1st and 2nd reads.  In this example, we are seeing a large number ~10% of mismatched forward and reverse reads.
+	Considering this simulated data does NOT have any paralogs in it, there should be a very low percentage of mismatched reads.
+ Let's examine some good and bad clusters
+	The clusters are in the ./clust88 directory.  Let's look at a bad one first.
+```bash zcat ./clust.88/PopA_01.badpairs.gz | head -12
+	>PopA_01_9392_pair;size=9;
+	AATTTGTGGGTTTCTCCTTAAAAGATTACCAAATTCTAGTATCAATCATCCTCCTCCCAATGCATGGAGACTGGCAACACCGTGCAGTAGCCT---nnnnTCTCGGCGGATTTGTTTACCCGCGAAGTCGTAA-CTA--CCACCACTCGACCCAACCGGTCCTAGATGACTGCTGTCATACAAT-GTCGTACCGATGA-AGA---CGG
+	>PopA_01_9402_pair;size=6;+
+	AATTTGTGGGTTTCTCCT--AAAGATTACCAAATTCTAGTATCAATCATCCTCCTCCCAATGCATGGAGA-TGGCAACACCGTGCGGTAGCCTAGAnnnn-------CGATTTGTTTACCC-CGAAGTCGTAAGCTGACCAACCACTCTACCCAACCGGTCCTAGATGACTGGTGTCATACAATCGTCGTACCGATGATAGACTGCGG
+	>PopA_01_9401_pair;size=1;+
+	AATTTGTGGGTTTCTCCT--AAAGATTACCAAATTCTAGTATCAATCATCCTCCTCCCAATGCATGGAGA-TGGCAACACCGTGCGGTAGCCTAGAnnnn-------CGATTTGTTTACCC-CGAAGTCATAAGCTGACCAACCACTCTACCCAACCGGTCCTAGATGACTGGTGTCATACAATCGTCGTACCGATGATAGACTGCGG
+	>PopA_01_9409_pair;size=1;+
+	AATTTGTGGGTTTCTCCT--AAAGATTACTAAATTCTAGTATCAATCATCCTCCTCCCAATGCATGGAGA-TGGCAACACCGTGCGGTAGCCTAGAnnnn-------CGATTTGTTTACCC-CGAAGTCGTAAGCTGACCAACCACTCTACCCAACCGGTCCTAGATGACTGGTGTCATACAATCGTCGTACCGATGATAGACTGCGG
+	>PopA_01_9408_pair;size=1;+
+	AATTTGTGGGTTTCTCCT--AAAGATTACCAAATTCTAGTATCAATCATCCTCCTCCCAATGCATGGAGA-TGGCCACACCGTGCGGTAGCCTAGAnnnn-------CGATTTGTTTACCC-CGAAGTCGTAAGCTGACCAACCACTCTACCCAACCGGTCCTAGATGACTGGTGTCATACAATCGTCGTACCGATGATAGACTGCGG
+ This cluster has 5 different unique sequences in it.  Three of them are only one copy (shown by the size=1 flag in the header).
+ The first two sequences are the only one with any high numbers.  With the current settings, pyRAD is treating this as a paralog because the PE reads have 7 gaps in the alignment.  The default setting is to only allow
+ 3 indels.  To improve this assembly, we will likely need to increase the setting.  Let's change it to 10.
+
+```bash sed -i '/## 27./c\10,99                     ## 27. maxIndels: within-clust,across-clust (def. 3,99) ' ./params.txt
+
+ Now, let's delete all the initial cluster files and redo this step
+```bash rm ./clust.88/* && mv ./stats/s3.clusters.txt ./stats/s3.clusters.txt.old
+```bash pyRAD -p params.txt -s 3
+	Let's check the results
+```bash head -50 ./stats/s3.clusters.txt
+	taxa	total	dpt.me	dpt.sd	d>5.tot	d>5.me	d>5.sd	badpairs
+	PopA_01	901		19.829	9.083	852		20.782	8.396	46
+	PopA_02	901		19.91	8.81	860		20.702	8.214	61
+	PopA_03	903		20.474	9.506	862		21.283	8.956	55
+	PopA_04	925		19.564	9.085	887		20.268	8.599	49
+
+	This looks better, but still not ideal.  I leave it to you to experiment further.  With real data, you will again have to make a judgement call.  Keeping looking at the alignments in the clust88 directory and let them be your guide.
+ You can also alter the percentage of similarity parameter to cluster by as well.  It's option  in the params.txt file.  Another option to consider is the minimum number of read pairs to form a cluster.  The default is 6. and controlled
+ by option #8 in the params.txt.  For the rest of this example, I am going to use a minimum coverage of 3 and a gap limit of 20.
+```bash sed -i '/## 27./c\20,99                     ## 27. maxIndels: within-clust,across-clust (def. 3,99) ' ./params.txt
+```bash sed -i '/## 8./c\3                     ## 8. Mindepth: min coverage for a cluster ' ./params.txt
+	
+	The next step of the pyRAD assembly calls the consensus sequence for each within-individual cluster.  It also applies filters aiming to remove potential paralogs.
+ It does this by estimating the error rate and level of heterozygosity in the data set and filters clusters that have too many heterozygous sits, more than 2 haplotypes, and too many low quality bases
+```bash pyRAD -p params.txt -s 45
+	The output should be like this:
+ ------------------------------------------------------------
+   pyRAD : RADseq for phylogenetics & introgression analyses
+ ------------------------------------------------------------
+
+
+	step 4: estimating error rate and heterozygosity
+	........................................
+	step 5: created consensus seqs for 40 samples, using H=0.00662 E=0.00099
+	........................................
+	The next step is to cluster between samples
+```bash pyRAD -p params.txt -s 6
+	The output on the screen should look like:
+     ------------------------------------------------------------
+      pyRAD : RADseq for phylogenetics & introgression analyses
+     ------------------------------------------------------------
+
+
+	step 6: clustering across 40 samples at '.88' similarity 
+
+	vsearch v1.1.0_linux_x86_64, 883.4GB RAM, 160 cores
+	https://github.com/torognes/vsearch
+
+	Reading file /gdc_home4/jpuritz/DATA/test2/pyrad/clust.88/cat.firsts_ 100%  
+	3258238 nt in 35004 seqs, min 91, max 100, avg 93
+	Indexing sequences 100%  
+	Counting unique k-mers 100%  
+	Clustering 100%  
+	Writing clusters 100%  
+	Clusters: 1049 Size min 1, max 47, avg 33.4
+	Singletons: 22, 0.1% of seqs, 2.1% of clusters
+
+ We can see that pyRAD (via the program vsearch) found 1049 different shared reference sequences
+
+	Next we call the last step of pyRAD to produce usable outputs of all the data
+```bash pyRAD -p params.txt -s 7
+ The screen should look like:
+	  	------------------------------------------------------------
+    	pyRAD : RADseq for phylogenetics & introgression analyses
+   	------------------------------------------------------------
+
+		ingroup PopA_01,PopA_02,PopA_03,PopA_04,PopA_05,PopA_06,PopA_07,PopA_08,PopA_09,PopA_10,PopA_11,PopA_12,PopA_13,PopA_14,PopA_15,PopA_16,PopA_17,PopA_18,PopA_19,PopA_20,PopB_00,PopB_01,PopB_02,PopB_03,PopB_04,PopB_05,PopB_06,PopB_07,PopB_08,PopB_09,PopB_10,PopB_11,PopB_12,PopB_13,PopB_14,PopB_15,PopB_16,PopB_17,PopB_18,PopB_19
+		addon 
+		exclude 
+		................................................................
+		final stats written to:
+	 	/gdc_home4/jpuritz/DATA/test2/pyrad/stats/c88d6m4p3.stats
+		output files being written to:
+	 	/gdc_home4/jpuritz/DATA/test2/pyrad/outfiles/ directory
+
+	Let's take a look at the stats.
+```bash head ./stats/c88d6m4p3.stats 
+	1009        ## loci with > minsp containing data
+	77          ## loci with > minsp containing data & paralogs removed
+	77          ## loci with > minsp containing data & paralogs removed & final filtering
+
+	## number of loci recovered in final data set for each taxon.
+	taxon	nloci
+	PopA_01	56
+	PopA_02	56
+
+ What the heck happened to all our data?  We went from 1009 RAD fragments to 77???????
+ It looks like pyRAD is inferring that almost all of the loci are paralogs
+ Remember, pyRAD is designed to generate phylogenetic data sets and is not default configured to deal with highly polymorphic populations.
+ Setting number 13 sets the maximum number of individuals with a shared heterozygous site.  The default configuration is only 3.  
+ In a population we expect that heterozygosity maxes out at 50%.  In this simulated data, we have two populations of 20 individuals each, and 
+ with little genetic structure between them.  Let's try setting this to 20 and rerunning step 7.
+```bash sed -i '/## 13./c\20                     ## 13. MaxSH: max inds with shared hetero site ' ./params.txt
+```bash rm ./outfiles/* && pyRAD -p params.txt -s 7
+	
+	Let's see if that helped.
+	head ./stats/c88d6m4p3.stats
+	1009        ## loci with > minsp containing data
+	956         ## loci with > minsp containing data & paralogs removed
+	956         ## loci with > minsp containing data & paralogs removed & final filtering
+	
+	That looks much better! 956 is very close to the actual value!
+	Now that you know how to manipulate the different parameters in pyRAD, experiment on your own to see if you can find the right settings to get to 
+	the correct number of loci!
+######################################
+ Bonus
+ Want to play with PyRAD more?  Try adding more outputs via line # in the params.txt file
+	Check out the general use tutorial and paired ddRAD tutorial here http://dereneaton.com/software/pyrad/
