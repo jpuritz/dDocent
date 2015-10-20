@@ -1,7 +1,7 @@
 #RADseq Reference Assembly Tutorial
 Designed by Jon Puritz
 
-#BEFORE STARTING MAKE SURE TO `cd` INTO THE `D1W` DIRECTORY IN YOUR ~/GROUP/USER account!  PLEASE ASK IF YOU ARE UNSURE!
+#BEFORE STARTING MAKE SURE TO `cd` INTO THE `D1W` DIRECTORY IN YOUR ~/GROUP/USER DIRECTORY!  PLEASE ASK IF YOU ARE UNSURE!
 
 ##GOALS
 1. To demultiplex samples with process_radtags and rename samples 
