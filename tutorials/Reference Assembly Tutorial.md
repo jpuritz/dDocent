@@ -69,7 +69,7 @@ Now we can run process_radtags
 ```
 process_radtags -1 SimRAD_R1.fastq.gz -2 SimRAD_R2.fastq.gz -b barcodes -e ecoRI --renz_2 mspI -r -i gzfastq
 ```
-The option -e specifies the 5' restriction site and `--renze_2` species the 3' restriction site.  `-i` states the format of the input 
+The option -e specifies the 5' restriction site and `--renze_2` specifes the 3' restriction site.  `-i` states the format of the input 
 sequences.The `-r` option tells the program to fix cut sites and barcodes that have up to 1-2 mutations in them.  This can be changed 
 with the `--barcode_dist flag`.  
 
@@ -133,7 +133,7 @@ cat pfile | parallel --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniq.
 rm pfile
 
 ```
-This is another example of a BASH for loop.  It uses mawk to query the firt column and
+This is another example of a BASH for loop.  It uses mawk to query the first column and
 select data above a certain copy number (from 2-20) and prints that to a file.
 
 Take a look at the contents of uniqseq.data
