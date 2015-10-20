@@ -7,8 +7,7 @@ Designed by Jon Puritz
 3. To learn how optimize a de novo reference assembly
 4. To learn how to utilize pyRAD for RAD locus assembly as a contrast to dDocent
 
-#Before starting please change to the D1W directory within your user directory
-#This is CRITICAL!!  Please ask if you are unsure
+#Before starting please change to the D1W directory within your user directory. This is CRITICAL!!  Please ask if you are unsure!
 
 ##Tutorial
 *dDocent must be properly installed for this tutorial to work*
