@@ -532,7 +532,7 @@ The output should look like:
 This will continue through all 40 samples
 When the clustering step completes we can examine the results by looking at the file s3.clusters.txt in the /stats directory
 ```bash 
-head -50 ./stats/s3.clusters.txt
+head -5 ./stats/s3.clusters.txt
 ```
 ```
 taxa	total	dpt.me	dpt.sd	d>5.tot	d>5.me	d>5.sd	badpairs
