@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ -z "$4" ]]; then
+if [[ -z "$5" ]]; then
 echo "Usage is sh ReferenceOpt.sh K1 K2 similarity% Assembly_Type Number_of_Processors"
 exit 1
 fi
@@ -19,8 +19,8 @@ if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru
     NUMDEP=$((NUMDEP + 1))
     fi
 
-ATYPE=$5
-NUMProc=$6
+ATYPE=$4
+NUMProc=$5
 NAMES=( `cat "namelist" `)
 
 AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
