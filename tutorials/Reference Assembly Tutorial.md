@@ -465,9 +465,9 @@ First let's change the restriction sites to match our data
 ```bash 
 sed -i '/## 6. /c\AATT,CCG                 ## 6. cutsites... ' ./params.txt
 ```	
-Next, let's change the number of processors to use in parallel to 8
+Next, let's change the number of processors to use in parallel to 3
 ```bash 
-sed -i '/## 7. /c\8\t                 ## 7. N processors... ' ./params.txt
+sed -i '/## 7. /c\3\t                 ## 7. N processors... ' ./params.txt
 ```
 Change the datatype to paired ddRAD
 ```bash 
