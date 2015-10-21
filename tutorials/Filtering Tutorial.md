@@ -82,25 +82,22 @@ Don't believe me do you?  I've made a script to help evaluate the potential erro
 ```bash
 curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/ErrorCount.sh
 chmod +x ErrorCount.sh 
-ErrorCount.sh raw.g5mac3dp3.recode.vcf 
+./ErrorCount.sh raw.g5mac3dp3.recode.vcf 
 ```
 ```bash
 This script counts the number of potential genotyping errors due to low read depth
 It report a low range, based on a 50% binomial probability of observing the second allele in a heterozygote and a high range based on a 25% probability.
-Potential genotyping errors from genotypes with only 1 read range from 0 to 0.0
-Potential genotyping errors from genotypes with only 2 reads range from 0 to 0.0
-Potential genotyping errors from genotypes with only 3 reads range from 15982 to 53700.36
-Potential genotyping errors from genotypes with only 4 reads range from 6230 to 31502.04
-Potential genotyping errors from genotypes with only 5 reads range from 2493 to 18914
+Potential genotyping errors from genotypes from only 1 read range from 0 to 0.0
+Potential genotyping errors from genotypes from only 2 reads range from 0 to 0.0
+Potential genotyping errors from genotypes from only 3 reads range from 15986 to 53714.22
+Potential genotyping errors from genotypes from only 4 reads range from 6230 to 31502.04
+Potential genotyping errors from genotypes from only 5 reads range from 2493 to 18914
 40 number of individuals and 78434 equals 3137360 total genotypes
 Total genotypes not counting missing data 2380094
-Total potential error rate is between 0.0103798421407 and 0.0437446588244
-
-
-
+Total potential error rate is between 0.0103815227466 and 0.0437504821238
 SCORCHED EARTH SCENARIO
 WHAT IF ALL LOW DEPTH HOMOZYGOTE GENOTYPES ARE ERRORS?????
-The total SCORCHED EARTH error rate is 0.129135235835.
+The total SCORCHED EARTH error rate is 0.129149100834.
 ```
 Right now, the maximum error rate for our VCF file because of genotypes less than 5 reads is less than 5%.  See, nothing to worry about.
 
