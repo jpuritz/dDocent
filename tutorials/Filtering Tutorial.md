@@ -221,7 +221,7 @@ I've included a script called filter_missing_ind.sh that will automate this proc
 ```bash
 curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/filter_missing_ind.sh
 chmod +x filter_missing_ind.sh
-filter_missing_ind.sh raw.g5mac3dp3.recode.vcf DP3g95maf05
+./filter_missing_ind.sh raw.g5mac3dp3.recode.vcf DP3g95maf05
 ```
 The command always follows the structure of filter_missing_ind.sh vcf_to_filter name_prefix_for_new_vcf
 The script prints out a histogram like the one above and also calculates the 85% for missing data.
