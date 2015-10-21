@@ -298,9 +298,9 @@ They follow this format
 head -3 1.lmiss
 ```
 ```bash
-CHR	    POS	N_DATA	N_GENOTYPE_FILTERED	N_MISS	F_MISS
-E1_L101	9	  34		  0					          0		    0
-E1_L101	15	34		  0					          0		    0
+CHR     POS     N_DATA  N_GENOTYPE_FILTERED     N_MISS  F_MISS
+E1_L101 9       34      0       0       0
+E1_L101 15      34      0       0       0
 ```
 I added extra tabs to make this easier to read, but what we are interested in is that last column with is the percentage of missing data for that locus.
 We can combine the two files and make a list of loci about the threshold of 10% missing data to remove.  Note this is double the overall rate of missing data.
