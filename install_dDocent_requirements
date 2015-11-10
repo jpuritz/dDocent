@@ -16,18 +16,16 @@ echo "Checking for required software"
 
 echo "Checking for cmake"
 if which cmake &>/dev/null; then
-    echo "make is already installed"
+    echo "cmake is already installed"
 else
 	echo "Downloading and installing cmake"
-	curl -O https://cmake.org/files/v3.4/cmake-3.4.0-rc1-Linux-x86_64.tar.gz
-	tar xvzf cmake-3.4.0-rc1-Linux-x86_64.tar.gz
-	cd cmake-3.4.0-rc1-Linux-x86_64
-	./configure
+	curl -O https://cmake.org/files/v3.4/cmake-3.4.0-rc3.tar.gz
+	tar xvzf cmake-3.4.0-rc3.tar.gz
+	cd cmake-3.4.0-rc3
+	./bootstrap --prefix=$INSTALL_PATH
 	make
-	cd bin
-	chmod +x *
-	cp -f * $INSTALL_PATH
-	cd ..
+	make install
+	ln -s $INSTALL_PATH/bin/* $INSTALL_PATH
 	cd ..
 fi
 
@@ -53,9 +51,9 @@ else
 fi
 echo "Checking for vcflib"
 if which vcfcombine &>/dev/null; then
-    echo "FreeBayes is already installed"
+    echo "vcflib is already installed"
 else
-        echo "Downloading and installing FreeBayes"
+        echo "Downloading and installing vcflib"
 	git clone --recursive git://github.com/ekg/freebayes.git
         cd freebayes
 	cd ./vcflib/
