@@ -79,7 +79,7 @@ VCFTV=$(vcftools | grep VCF | sed -e 's/VCFtools (v//' | sed -e 's/)//')
 BTC=$( bedtools --version | mawk '{print $2}' | sed 's/v//g' | cut -f1,2 -d"." )
 	if [ "$BTC" != "2.23" ]; then
 		echo "The version of bedtools installed in your" '$PATH' "is not optimized for dDocent."
-		wcho "Please install only version 2.23.0"
+		echo "Please install only version 2.23.0"
 		exit 1
 		fi
 
