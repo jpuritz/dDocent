@@ -1,21 +1,21 @@
 #!/bin/bash
 
-##########dDocent 2.18##########
+##########dDocent 2.01##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
-#It requires that your raw data are split up by tagged individual and follow the naming convention of:
+#It requires that your raw data are split up by tagged individual and follow the naming convenction of:
 
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.18 \n"
+echo -e "dDocent 2.01 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
 ###Code to check for the required software for dDocent
 
 echo "Checking for required software"
-DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot gawk seqtk cd-hit-est bamToBed bedtools coverageBed parallel vcfcombine bamtools pearRM)
+DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools coverageBed parallel vcfcombine bamtools pearRM)
 NUMDEP=0
 for i in "${DEP[@]}"
 do
@@ -52,7 +52,7 @@ SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d 
         fi
 
 RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
-	if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
+	if [ "$RAINV" != "2.0.2" ]; then
         	echo "The version of Rainbow installed in your" '$PATH' "is not optimized for dDocent."
         	echo -en "\007"
 			echo -en "\007"
@@ -64,25 +64,18 @@ RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)
         		exit 1
         	fi
         fi
-FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed 's/v//' `)	
-	if [ "$FREEB" != "1" ]; then
+FREEB=(`freebayes | grep -oh 'v[0-9].*' | sed 's/-.*//g' `)	
+	if [ "$FREEB" != "v0.9.20" ]; then
         	echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
-        	echo "Please install at least version 1.0.0"
+        	echo "Please install a version 0.9.20"
         	exit 1
         fi         	
-VCFTV=$(vcftools | grep VCF | sed -e 's/VCFtools (v//' | sed -e 's/)//')   
+VCFTV=$(vcftools | grep VCF | sed -e 's/VCFtools\s(v//' | sed -e 's/)//')   
 	if [ "$VCFTV" != "0.1.11" ]; then
         	echo "The version of VCFtools installed in your" '$PATH' "is not optimized for dDocent."
         	echo "Please install only version 0.1.11"
         	exit 1 
 		fi
-BTC=$( bedtools --version | mawk '{print $2}' | sed 's/v//g' | cut -f1,2 -d"." )
-	if [ "$BTC" != "2.23" ]; then
-		echo "The version of bedtools installed in your" '$PATH' "is not optimized for dDocent."
-		echo "Please install only version 2.23.0"
-		exit 1
-		fi
-
 
 if [ $NUMDEP -gt 0 ]; then
 	echo -e "\nPlease install all required software before running dDocent again."
@@ -130,7 +123,6 @@ main(){
 if [ -n "$1" ]; then
 	CONFIG=$1
 	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
-    MAXMemory=$(grep -A1 Memory $CONFIG | tail -1)
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
 	ATYPE=$(grep -A1 Type $CONFIG | tail -1)
@@ -143,7 +135,7 @@ if [ -n "$1" ]; then
 	MAIL=$(grep -A1 Email $CONFIG | tail -1)
 	if [ "$ASSEMBLY" == "no" ]; then
 		#Prints instructions on how to move analysis to background and disown process
-		echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
+		echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
 		echo "It is recommended that you move this script to a background operation and disable terminal input and output."
 		echo "All data and logfiles will still be recorded."
 		echo "To do this:"
@@ -167,7 +159,7 @@ STARTTIME=$(date)
 #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
 #This functionality is now parallelized and will run if only SE sequences are used.
 
-STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | head -1" | mawk '!/\/1/' | wc -l)
+STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | head -1" | mawk '/_1$/' | wc -l)
 FB1=$(( $NUMProc / 2 ))
 if [ $STACKS -gt 0 ]; then
 	echo "Removing the _1 character and replacing with /1 in the name of every sequence"
@@ -178,7 +170,7 @@ fi
 
 if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
 	
-	STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.R.fq.gz | head -1" | mawk '!/\/2/' | wc -l)
+	STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.R.fq.gz | head -1" | mawk '/_2$/' | wc -l)
 
 	if [ $STACKS -gt 0 ]; then
 		echo "Removing the _2 character and replacing with /2 in the name of every sequence"
@@ -191,7 +183,7 @@ fi
 ##Section of logic statements that dictates the order and function of processing the pipeline
 
 if [[ "$TRIM" == "yes" && "$ASSEMBLY" == "yes" ]]; then
-        echo "Trimming reads and simultaneously assembling reference sequences"        
+        echo "Trimming reads and simultaneously assemblying reference sequences"        
         TrimReads & 2> trim.log
         Assemble
         #setupRainbow 2> rainbow.log
@@ -217,7 +209,7 @@ echo "Using BWA to map reads."
 	fi
 #dDocent now checks for trimmed read files before attempting mapping
         if [[ "$MAP" != "no" && ! -f "${NAMES[@]:(-1)}".R1.fq.gz ]]; then
-        	echo "dDocent cannot locate trimmed reads files"
+        	echo "dDocent cannot located trimmed reads files"
         	echo "Please rerun dDocent with quality trimming"
         	exit 1
         fi
@@ -227,17 +219,13 @@ echo "Using BWA to map reads."
         	rm lengths.txt &> /dev/null
         	for i in "${NAMES[@]}";
         		do
-        		if [ -f "$i.R.fq.gz" ]; then
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
-        		fi
         		done	
-        	if [ -f "lengths.txt" ]; then
         	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
         	INSERT=$(($MaxLen * 2 ))
         	INSERTH=$(($INSERT + 100 ))
         	INSERTL=$(($INSERT - 100 ))
         	SD=$(($INSERT / 5))
-        	fi
 #BWA for mapping for all samples.  As of version 2.0 can handle SE or PE reads by checking for PE read files
         	for i in "${NAMES[@]}"
         	do
@@ -293,8 +281,8 @@ if [ "$SNP" != "no" ]; then
 	if [ "cat-RRG.bam" -nt "cov.stats" ]; then
 		coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
 	fi
-	DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.005;@l=<>;print $l[int($d*@l)]')
-	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/1000}')
+	DP=$(mawk '{print $4}' cov.stats |mawk '$1 > 10' | sort -rn | perl -e '$d=.005;@l=<>;print $l[int($d*$#l)]')
+	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/500}')
 	
 		 
 	mawk -v x=$DP '$4 < x' cov.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
@@ -314,7 +302,7 @@ if [ "$SNP" != "no" ]; then
 	paste namelist p > popmap
 	rm p
 	
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel -j $FB1 --noswap --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --experimental-gls --min-repeat-entropy 1 -V -n 8 --pooled-continuous 
 
 
 	rm mapped.*.bed 
@@ -329,7 +317,7 @@ if [ "$SNP" != "no" ]; then
 	mv raw.8.vcf raw.08.vcf
 	mv raw.9.vcf raw.09.vcf
 
-	vcfcombine raw.*.vcf | sed -e 's/	\.\:/	\.\/\.\:/g' > TotalRawSNPs.vcf
+	vcfcombine raw.*.vcf | sed -e 's/\t\.\:/\t\.\/\.\:/g' > TotalRawSNPs.vcf
 
 	if [ ! -d "raw.vcf" ]; then
 		mkdir raw.vcf
@@ -337,7 +325,7 @@ if [ "$SNP" != "no" ]; then
 
 	mv raw.*.vcf ./raw.vcf
 
-	echo "Using VCFtools to parse SNPS.vcf for SNPs that are called in at least 90% of individuals"
+	echo "Using VCFtools to parse SNPS.vcf for SNPS that are called in at least 90% of individuals"
 	vcftools --vcf TotalRawSNPs.vcf --geno 0.9 --out Final --counts --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
 fi
 
@@ -368,8 +356,6 @@ fi
 echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
 echo $NUMProc >> dDocent.runs
-echo "Maximum Memory" >> dDocent.runs
-echo $MAXMemory >> dDocent.runs
 echo "Trimming" >> dDocent.runs
 echo $TRIM >> dDocent.runs
 echo "Assembly?" >> dDocent.runs
@@ -425,20 +411,12 @@ AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 AWK2='!/>/'
 AWK3='!/NNN/'
 PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
-SED1='s/^[ 	]*//'
-SED2='s/ /	/g'
-FRL=$(zcat ${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
-
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
-	if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
+	if [ "$ATYPE" == "PE" ]; then
 	#If PE assembly, creates a concatenated file of every unique for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
-		if [ "$ATYPE" = "RPE" ]; then
-			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | sort | uniq -c -w $FRL| sed -e '$SED1' | sed -e '$SED2' > {}.uniq.seqs"
-		else
-			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
-		fi
+		cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
 		rm *.forward
 		rm *.reverse
 	fi
@@ -489,7 +467,7 @@ rm pfile
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale
-set xrange [1:10] 
+set xrange [0:10] 
 unset label
 set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
 set xlabel "Coverage"
@@ -502,19 +480,13 @@ EOF
 echo -en "\007"
 echo -en "\007"
 echo -en "\007"
-echo -e "Please choose data cutoff.  In essence, you are picking a minimum (within individual) coverage level for a read (allele) to be used in the reference assembly"
+echo -e "Please choose data cutoff.  In essence, you are picking a minimum (within individual) coverage level for an read (allele) to be used in the reference assembly"
 
 read CUTOFF
-if [ "$ATYPE" == "RPE" ]; then
-	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | sort | uniq -c -w $FRL | sed -e 's/^[ 	]*//' | sed -e 's/ /	/g' > uniqCperindv
-else
-	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
-fi
-if [ "$NumInd" -gt 10 ]; then
-	NUM=$(($NumInd / 2))
-else
-	NUM=$NumInd
-fi
+
+parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
+
+NUM=$(($NumInd / 2))
 
 for ((i = 2; i <= $NUM; i++));
 do
@@ -546,7 +518,7 @@ echo -e "Please choose data cutoff.  Pick point right before the assymptote. A g
 read CUTOFF2
 
 #Prints instructions on how to move analysis to background and disown process
-echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
+echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
 echo "It is recommended that you move this script to a background operation and disable terminal input and output."
 echo "All data and logfiles will still be recorded."
 echo "To do this:"
@@ -561,7 +533,7 @@ echo "Now sit back, relax, and wait for your analysis to finish."
 
 mawk -v x=$CUTOFF2 '$1 >= x' uniqCperindv > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
 cut -f2 uniq.k.$CUTOFF.c.$CUTOFF2.seqs > totaluniqseq
-mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
+mawk '{c= c + 1; print ">Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
 awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' uniq.full.fasta > uniq.fq
@@ -571,14 +543,13 @@ mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
 #If this is a PE assebmle
-if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
+if [ "$ATYPE" == "PE" ]; then
 	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
-	sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
-	CDHIT=$(python -c "print max("$simC" - 0.1,0.8)")
-	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 -d 100 &>cdhit.log
-	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDococent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
+	sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
+	cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1
+	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
-	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/	/g' > rcluster
+	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
 	#CD-hit output is converted to rainbow format
 	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
 	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
@@ -594,14 +565,14 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 		else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
 		else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
 		else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
-        }' > rainbow.fasta
+		}' > rainbow.fasta
 
 	seqtk seq -r rainbow.fasta > rainbow.RC.fasta
 	mv rainbow.RC.fasta rainbow.fasta
 
 	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
-	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f1 | gawk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
-	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f2 | gawk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
+	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
+	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
 
 	seqtk seq -r ref.R.fq > ref.RC.fq
 	mv ref.RC.fq ref.R.fq
@@ -617,13 +588,13 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	mawk '/>/' overlap.fasta > overlap.loci.names
 	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
 	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
-	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
+	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/\t/NNNNNNNNNN/g' > other.FR
 
 	cat other.FR overlap.fasta > totalover.fasta
 
 	rm *.F *.R
 fi
-if [[ "$ATYPE" != "PE" && "$ATYPE" != "RPE" ]]; then
+if [ "$ATYPE" != "PE" ]; then
 	cp uniq.fasta totalover.fasta
 fi
 cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $simC
@@ -638,7 +609,7 @@ bwa index reference.fasta
 
 ##Create alignment intervals
 ##This takes advantage of the fact that RAD loci are very discrete.  Instead of calculating intervals for every BAM file,
-##this function merges all BAM files together and removes duplicates.  This overall BAM file 
+##this function merges all bam files together and removes duplicates.  This overall BAM file 
 ##is used to create a single list of intervals, saving a large amount of computational time.
 
 CreateIntervals()
@@ -652,7 +623,7 @@ bedtools merge -i map.bed > mapped.bed
 
 #This checks that dDocent has detected the proper number of individuals and exits if incorrect
 GetInfo(){
-echo "$NumInd individuals are detected. Is this correct? Enter yes or no and press [ENTER]"
+echo "$NumInd individuals are detected is this correct? Enter yes or no and press [ENTER]"
 
 read Indcorrect
 
@@ -683,24 +654,6 @@ if [ $NUMProc -lt 1 ]; then
         exit 1
 fi
 
-#Tries to get maximum system memory, if not asks user
-MAXMemory=$(($(grep -Po '(?<=^MemTotal:)\s*[0-9]+' /proc/meminfo | tr -d " ") / 1048576))G
-
-echo "dDocent detects $MAXMemory maximum memory available on this system."
-echo "Please enter the maximum memory to use for this analysis. The size can be postfixed with 
-K, M, G, T, P, k, m, g, t, or p which would multiply the size with 1024, 1048576, 1073741824, 
-1099511627776, 1125899906842624, 1000, 1000000, 1000000000, 1000000000000, or 1000000000000000 respectively."
-echo "For example, to limit dDocent to ten gigabytes, enter 10G or 10g"
-        read MAXMemory
-
-while [[ -z $MAXMemory ]];
-	do
-	echo "Incorrect input"
-	echo -e "Please enter the maximum memory to use for this analysis. The size can be postfixed with K, M, G, T, P, k, m, g, t, or p which would multiply the size with 1024, 1048576, 1073741824, 1099511627776, 1125899906842624, 1000, 1000000, 1000000000, 1000000000000, or 1000000000000000 respectively."
-	echo -e "This option does not work with all distributions of Linux.  If runs are hanging at variant calling, enter 0"
-	echo -e "Then press [ENTER]"
-	read MAXMemory
-	done
 
 #Asks if user wants to trim reads.  This allows this part of the pipeline to be skipped during subsequent analyses
 echo -e "\nDo you want to quality trim your reads?" 
@@ -719,14 +672,14 @@ if [ "$ASSEMBLY" == "no" ]; then
         echo -e "\nReference contigs need to be in a file named reference.fasta\n"
         sleep 1
 else
-	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, RPE for paired-end sequencing for RAD protocols with random shearing, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
 	echo -e "Then press [ENTER]"
 	read ATYPE
 
-	while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" && $ATYPE != "RPE" ]];
+	while [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" ]];
 	do
 	echo "Incorrect input"
-	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, RPE for paired-end sequencing for RAD protocols with random shearing, or OL for paired-end sequencing that has substantial overlap."
+	echo -e "What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, or OL for paired-end sequencing that has substantial overlap."
 	echo -e "Then press [ENTER]"
 	read ATYPE
 	done
@@ -802,7 +755,7 @@ echo ""
 
 if [ "$ASSEMBLY" == "no" ]; then
 #Prints instructions on how to move analysis to background and disown process
-echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
+echo "At this point, all configuration information has been enter and dDocent may take several hours to run." 
 echo "It is recommended that you move this script to a background operation and disable terminal input and output."
 echo "All data and logfiles will still be recorded."
 echo "To do this:"
@@ -827,5 +780,6 @@ fi
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
+
 
 
