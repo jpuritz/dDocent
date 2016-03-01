@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #This script can quickly rename filess within the dDocent naming convention. It needs to be passed a tab delimited
 #file with the old name in one column and the new name in the other

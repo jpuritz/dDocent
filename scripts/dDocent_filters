@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "This script will automatically filter a FreeBayes generated VCF file using criteria related to site depth," 
 echo "quality versus depth, strand representation, allelic balance at heterzygous individuals, and paired read representation."

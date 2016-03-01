@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 vcftools --vcf $1 --missing --out $2
 

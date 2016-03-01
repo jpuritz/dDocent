@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ -z "$5" ]]; then
 echo "Usage is sh ReferenceOpt.sh K1 K2 similarity% Assembly_Type Number_of_Processors"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ -z "$2" ]]; then
 echo "Usage is pop_missing_filter vcffile popmap percent_missing_per_pop number_of_pops_for_cutoff name_for_output"

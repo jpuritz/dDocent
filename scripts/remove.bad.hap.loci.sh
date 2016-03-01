@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 if [ -z "$2" ]; then
 echo "Correct usage is sh remove.bad.hap.loci.sh file_with_bad_Loci vcf_file"
 exit 1
