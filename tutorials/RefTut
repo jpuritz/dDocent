@@ -24,7 +24,7 @@
 
 #3 Now let's get the test data I created for the course.
 
-#c#3    $curl -L -o data.zip https://www.dropbox.com/s/t09xjuudev4de72/data.zip?dl=0
+#c#3	$curl -L -o data.zip https://www.dropbox.com/s/t09xjuudev4de72/data.zip?dl=0
 
 #4 Let's check that everything went well.
 
