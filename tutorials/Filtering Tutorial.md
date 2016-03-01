@@ -50,7 +50,7 @@ This raw.vcf file is going to have a lot of erroneous variant calls and a lot of
 To make this file more manageable.  Let's start by a three step filter.  We are going to only keep variants that have been successfully genotyped in 
 50% of individuals, a minimum quality score of 30, and a minor allele count of 3.
 ```
-vcftools --gzvcf raw.vcf.gz --geno 0.5 --mac 3 --recode --recode-INFO-all --out raw.g5mac3
+vcftools --gzvcf raw.vcf.gz --geno 0.5 --mac 3 --minQ 30 --recode --recode-INFO-all --out raw.g5mac3
 ```
 In this code, we call vcftools, feed it a vcf file after the `--vcf` flag, `--geno 0.5` tells it to filter genotypes called below 50% (across all individuals)
 the `--mac 3` flag tells it to filter SNPs that have a minor allele count less than 3.  
@@ -225,6 +225,7 @@ chmod +x filter_missing_ind.sh
 ```
 The command always follows the structure of filter_missing_ind.sh vcf_to_filter name_prefix_for_new_vcf
 The script prints out a histogram like the one above and also calculates the 85% for missing data.
+Enter "no"
 Now that we have removed poor coverage individuals, we can restrict the data to variants called in a high percentage of individuals and filter by mean depth of genotypes
 ```bash
 vcftools --vcf raw.g5mac3dplm.recode.vcf --geno 0.95 --maf 0.05 --recode --recode-INFO-all --out DP3g95maf05 --min-meanDP 20
@@ -305,7 +306,7 @@ E1_L101 15      34      0                       0       0
 I added extra tabs to make this easier to read, but what we are interested in is that last column with is the percentage of missing data for that locus.
 We can combine the two files and make a list of loci about the threshold of 10% missing data to remove.  Note this is double the overall rate of missing data.
 ```bash
-cat 1.lmiss 2.lmiss | mawk '!/CHROM/' | mawk '$6 > 0.1' | cut -f1,2 >> badloci
+cat 1.lmiss 2.lmiss | mawk '!/CHR/' | mawk '$6 > 0.1' | cut -f1,2 >> badloci
 ```
 Who can walk us through that line of code?
 
@@ -366,6 +367,8 @@ We can use the vcffilter program from vcflib.  (https://github.com/ekg/vcflib)
 Typing it with no parameters will give you the usage.
 ```bash
 vcffilter
+```
+```
 usage: vcffilter [options] <vcf file>
 
 options:
@@ -659,36 +662,37 @@ chmod +x filter_hwe_by_pop.pl
              X.recode.vcf)
 ```
 Let's filter our SNPs by population specific HWE
-```bash
-./filter_hwe_by_pop.pl -v DP3g95p5maf05.FIL.recode.vcf -p popmap -o DP3g95p5maf05.HWE -h 0.01
-```
-```bash
-Processing population: 1 (20 inds)
-Processing population: 2 (20 inds)
-Outputting results of HWE test for filtered loci to 'filtered.hwe'
-Kept 8232 of a possible 8417 loci (filtered 185 loci)
-```
-*Note, I would not normally use such a high `-h` value.  It's purely for this example.  Typically, errors would have a low p-vaule and would be present in many populations.*
-
-We have now created a thoroughly filtered VCF.  There's not much more we can do with it in this format.  To filter further, we need to convert the file to SNPs only.
+First, we need to convert our variant calls to SNPs
 To do this we will use another command from vcflib called vcfallelicprimatives
 ```bash
-vcfallelicprimitives DP3g95p5maf05.HWE.recode.vcf --keep-info --keep-geno > DP3g95p5maf05.HWE.prim.vcf
+vcfallelicprimitives DP3g95p5maf05.FIL.recode.vcf --keep-info --keep-geno > DP3g95p5maf05.prim.vcf
 ```
 This will decompose complex variant calls into phased SNP and INDEL genotypes and keep the INFO flags for loci and genotypes.
 Next, we can feed this VCF file into VCFtools to remove indels.
 ```bash
-vcftools --vcf DP3g95p5maf05.HWE.prim.vcf --remove-indels --recode --recode-INFO-all --out SNP.DP3g95p5maf05.HWE
+vcftools --vcf DP3g95p5maf05.prim.vcf --remove-indels --recode --recode-INFO-all --out SNP.DP3g95p5maf05
 ```
-We now have 8179 SNP calls in our new VCF.
-That's a lot of filtering, and we should have confidence in these SNP calls.  
+We now have 8379 SNP calls in our new VCF.
+Now, let's apply the HWE filter
+```bash
+./filter_hwe_by_pop.pl -v SNP.DP3g95p5maf05.recode.vcf -p popmap -o SNP.DP3g95p5maf05.HWE -h 0.01
+```
+```bash
+Processing population: BR (20 inds)
+Processing population: WL (20 inds)
+Outputting results of HWE test for filtered loci to 'filtered.hwe'
+Kept 8176 of a possible 8379 loci (filtered 203 loci)
+```
+*Note, I would not normally use such a high `-h` value.  It's purely for this example.  Typically, errors would have a low p-vaule and would be present in many populations.*
+
+We have now created a thoroughly filtered VCF, and we should have confidence in these SNP calls.  
 However, our lab is currently developing one more script, called rad_haplotyper.  
 This tool takes a VCF file of SNPs and will parse through BAM files looking to link SNPs into haplotypes along paired reads.
 ```bash
-curl -L -O https://github.com/chollenbeck/rad_haplotyper/raw/master/rad_haplotyper.pl
+curl -L -O https://raw.githubusercontent.com/jpuritz/WinterSchool.2016/master/rad_haplotyper.pl
 chmod +x rad_haplotyper.pl
 ```
-Note, this script requires several Perl libraries.  See the README at https://github.com/chollenbeck/rad_haplotyper
+Note, this script requires several Perl libraries.  See the README [here](https://github.com/jpuritz/NTU-Workshop/blob/master/scripts/README.md)
 It has a lot of options, let's take a look
 ```bash
 perl rad_haplotyper.pl
@@ -887,8 +891,8 @@ This produces a FINAL FINAL FINAL filtered VCF file	SNP.DP3g95p5maf05.HWE.filter
 ```bash
 mawk '!/#/' SNP.DP3g95p5maf05.HWE.filtered.vcf | wc -l
 ```
-We're left with 7,765 SNPs!
-How man possible errors?
+We're left with 7,666 SNPs!
+How many possible errors?
 ```bash
 ./ErrorCount.sh SNP.DP3g95p5maf05.HWE.filtered.vcf
 ```
@@ -897,15 +901,16 @@ This script counts the number of potential genotyping errors due to low read dep
 It report a low range, based on a 50% binomial probability of observing the second allele in a heterozygote and a high range based on a 25% probability.
 Potential genotyping errors from genotypes from only 1 read range from 0 to 0.0
 Potential genotyping errors from genotypes from only 2 reads range from 0 to 0.0
-Potential genotyping errors from genotypes from only 3 reads range from 301 to 1011.36
-Potential genotyping errors from genotypes from only 4 reads range from 162 to 820.652
+Potential genotyping errors from genotypes from only 3 reads range from 302 to 1014.72
+Potential genotyping errors from genotypes from only 4 reads range from 162 to 822.232
 Potential genotyping errors from genotypes from only 5 reads range from 88 to 669
-31 number of individuals and 7665 equals 237615 total genotypes
-Total genotypes not counting missing data 237050
-Total potential error rate is between 0.00232440413415 and 0.0105505673908
+31 number of individuals and 7666 equals 237646 total genotypes
+Total genotypes not counting missing data 237081
+Total potential error rate is between 0.00232831816974 and 0.0105700245908
 SCORCHED EARTH SCENARIO
 WHAT IF ALL LOW DEPTH HOMOZYGOTE GENOTYPES ARE ERRORS?????
-The total SCORCHED EARTH error rate is 0.0330310061169.
+The total SCORCHED EARTH error rate is 0.0330857386294.
+
 ```
 
 **Congrats!  You've finished the Filtering Tutorial**

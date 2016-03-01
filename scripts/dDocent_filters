@@ -8,7 +8,7 @@ echo -e "Contact Jon Puritz (jpuritz@gmail.com) for questions and see script com
 #Checks for correct ususage
 
 if [[ -z "$2" ]]; then
-echo "Usage is sh FB_filters.sh VCF_file Output_prefix"
+echo "Usage is sh dDocent_filters.sh VCF_file Output_prefix"
 exit 1
 fi
 
