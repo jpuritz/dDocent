@@ -343,7 +343,8 @@ rainbow merge -o rbasm.out -a -i rbdiv.out -r 2
 ```
 The rbasm output lists optimal and suboptimal contigs.  Previous versions of dDocent used rainbow's included perl scripts to retrieve optimal contigs.  However, as of version 2.0, dDocent uses customized AWK code to extract optimal contigs for RAD sequencing.  
 ```bash
-cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
+echo "E" > endfile
+cat rbasm.out endfile |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 if (NR == 1) e=$2;
 else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
 else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
