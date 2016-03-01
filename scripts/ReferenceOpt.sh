@@ -5,6 +5,13 @@ echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_o
 exit 1
 fi
 
+if ! awk --version | fgrep -v GNU &>/dev/null; then
+         awk=gawk
+    else
+         awk=awk
+fi
+
+
 if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'trim' ; then
 	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
 	else
@@ -78,7 +85,7 @@ cut -f2 uniq.k.$1.c.$2.seqs > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
-awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' uniq.full.fasta > uniq.fq
+$awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' uniq.full.fasta > uniq.fq
 java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
 mawk '!/>/' uniq.fasta > totaluniqseq
@@ -114,8 +121,8 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	mv rainbow.RC.fasta rainbow.fasta
 
 	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
-	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
-	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
+	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
+	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
 
 	seqtk seq -r ref.R.fq > ref.RC.fq
 	mv ref.RC.fq ref.R.fq
