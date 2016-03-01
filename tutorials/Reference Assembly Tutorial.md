@@ -17,7 +17,7 @@ Designed by Jon Puritz
 
 Start by downloading a small test dataset
 ```
-curl -L -o data.zip https://www.dropbox.com/sh/nh2km7n2k8egmge/AABWKxCXww4BKMZIcQXV6Vxma?dl=1
+curl -L -o data.zip https://www.dropbox.com/s/t09xjuudev4de72/data.zip?dl=0
 ```
 Let's check that everything went well.
 ```bash
@@ -26,12 +26,17 @@ ll
 ```
 You should see something like this:
 ```
-     total 4612
-    -rwxr--r--. 1 jpuritz users 600 Feb 23 03:36 SimRAD.barcodes
-    -rwxr--r--. 1 jpuritz users 2574784 Feb 23 03:36 SimRAD_R1.fastq.gz
-    -rwxr--r--. 1 jpuritz users 2124644 Feb 23 03:36 SimRAD_R2.fastq.gz
-    -rwxr--r--. 1 jpuritz users 12272 Feb 23 03:36 simRRLs2.py
-```
+Archive:  data.zip
+  inflating: SimRAD.barcodes         
+  inflating: SimRAD_R1.fastq.gz      
+  inflating: SimRAD_R2.fastq.gz      
+  inflating: simRRLs2.py             
+total 7664
+-rw-rw-r--. 1 j.puritz j.puritz 3127907 Mar  1 10:26 data.zip
+-rwxr--r--. 1 j.puritz j.puritz     600 Mar  6  2015 SimRAD.barcodes
+-rwxr--r--. 1 j.puritz j.puritz 2574784 Mar  6  2015 SimRAD_R1.fastq.gz
+-rwxr--r--. 1 j.puritz j.puritz 2124644 Mar  6  2015 SimRAD_R2.fastq.gz
+-rwxr--r--. 1 j.puritz j.puritz   12272 Mar  6  2015 simRRLs2.py```
 The data that we are going to use was simulated using the simRRLs2.py script that I modified from the one published by Deren Eaton.  You can find the original version here (http://dereneaton.com/software/simrrls/).  Basically, the script simulated ddRAD 1000 loci shared across an ancestral population and two extant populations.  Each population had 180,000 individuals, and the two extant 
 population split from the ancestral population 576,000 generations ago and split from each other 288,000 generation ago.  The two populations exchanged 4N*0.001 migrants per generation until about 2,000 generations ago.  4Nu equaled 0.00504 and mutations had a 10% chance of being an INDEL polymorphism.  Finally, reads for each locus were simulated on a per individual basis at a mean of 20X coverage (coming from a normaldistribution with a SD 8) and had an inherent sequencing error rate of 0.001. 
 
@@ -43,8 +48,6 @@ My favorite software for this task is process_radtags from the Stacks package (h
 barcodes (barcodes in the actual sequence), Illumina Index, or any combination of the two.  Check out the manual at this website (http://creskolab.uoregon.edu/stacks/comp/process_radtags.php)
 
 Let's start by making a list of barcodes.  The SimRAD.barcodes file actually has the sample name and barcode listed.  See for yourself.
-```
-head SimRAD.barcodes
 ```
 You should see:
 ```
@@ -109,7 +112,7 @@ Now we are ready to rock!
 
 Let's start by examining how the dDocent pipeline assembles RAD data.
 
-First, we are going to create a set of uniq reads with counts for each individuals
+First, we are going to create a set of unique reads with counts for each individual
 ```bash
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
@@ -265,7 +268,7 @@ Let's try 4.
 mawk -v x=4 '$1 >= x' uniqCperindv > uniq.k.4.c.4.seqs
 wc -l uniq.k.4.c.4.seqs
 ```
-No we have reduced the data down to only 3840 sequences!
+Now we have reduced the data down to only 3840 sequences!
 
 Let's quickly convert these sequences back into fasta format
 We can do this with two quick lines of code:
@@ -323,7 +326,7 @@ rainbow div -i rcluster -o rbdiv.out
 The output of the div process is similar to the previous output with the exception that the second column is now the new divided cluster_ID
 (this value is numbered sequentially) and there was a column added to the end of the file that holds the original first cluster ID
 The parameter -f can be set to control what is the minimum frequency of an allele necessary to divide it into its own cluster
-Since this is pooled data, we want to lower this from the default of 0.2.
+Since this is from multiple individuals, we want to lower this from the default of 0.2.
 ```
 rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
 ```
@@ -343,8 +346,7 @@ rainbow merge -o rbasm.out -a -i rbdiv.out -r 2
 ```
 The rbasm output lists optimal and suboptimal contigs.  Previous versions of dDocent used rainbow's included perl scripts to retrieve optimal contigs.  However, as of version 2.0, dDocent uses customized AWK code to extract optimal contigs for RAD sequencing.  
 ```bash
-echo "E" > endfile
-cat rbasm.out endfile |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
+cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 if (NR == 1) e=$2;
 else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
 else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
@@ -391,53 +393,138 @@ curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/ReferenceOpt.sh
 ```
 Take a look at the script ReferenceOpt.sh.  
 This script uses  different loops to assemble references from an interval of cutoff values and c values from 0.8-0.98.  It take as a while to run, so I have pasted the output below for you.
-I have pasted the output below though.
 ```bash
-bash ReferenceOpt.sh 4 8 4 8 PE 16
+#bash ReferenceOpt.sh 4 8 4 8 PE 16
 ```
 ```bash
                                           Histogram of number of reference contigs
   Number of Occurrences
-    200 ++----------------+-----------------+------------------+-----------------+-----------------+----------------++
-        +                 +                 +                 'plot.kopt.data' using (bin($1,binwidth)):(1.0)*********
-    180 ++                                                                                         *                +*
-        |                                                                                          *                 *
-        |                                                                                          *                 *
-    160 ++                                                                                         *                +*
-        |                                                                                          *                 *
-    140 ++                                                                                         *                +*
-        |                                                                                          *                 *
-        |                                                                                          *                 *
-    120 ++                                                                                         *                +*
-        |                                                                                          *                 *
-    100 ++                                                                                         *                +*
-        |                                                                                          *                 *
-     80 ++                                                                                         *                +*
-        |                                                                                          *                 *
-        |                                                                                          *                 *
-     60 ++                                                                                         *                +*
-        |                                   ********************************************************                 *
-     40 ++                                  *                                                      *                +*
-        |                                   *                                                      *                 *
-        |                                   *                                                      *                 *
-     20 ++                                  *                                                      *                +*
-        *************************************                  +                 +                 *                 *
+    200 ++--------------+--------------+---------------+--------------+---------------+--------------+--------------++
+        +               +              +               +      'plot.kopt.data' using (bin($1,binwidth)):(1.0)*********
+    180 ++                                                                                           *              +*
+        |                                                                                            *               *
+        |                                                                                            *               *
+    160 ++                                                                                           *              +*
+        |                                                                                            *               *
+    140 ++                                                                                           *              +*
+        |                                                                                            *               *
+        |                                                                                            *               *
+    120 ++                                                                                           *              +*
+        |                                                                                            *               *
+    100 ++                                                                                           *              +*
+        |                                                                                            *               *
+     80 ++                                                                                           *              +*
+        |                                                                                            *               *
+        |                                                                                            *               *
+     60 ++                                                                                           *              +*
+        |                                             ************************************************               *
+     40 ++                                            *                                              *              +*
+        |                                             *                                              *               *
+        |                                             *                                              *               *
+     20 ++                                            *                                              *              +*
+        ***********************************************+              +               +              *               *
       0 **************************************************************************************************************
-       990               992               994                996               998               1000              1002
+       988             990            992             994            996             998            1000            1002
                                                  Number of reference contigs
 
-Average contig number = 999.2
+Average contig number = 999.452
 The top three most common number of contigs
 X	Contig number
-190	1000
-20	999
-20	998
+164	1000
+19	998
+18	999
 The top three most common number of contigs (with values rounded)
 X	Contig number
 250	1000.0
 ```
 You can see that the most common number of contigs across all iteration is 1000, but also that the top three occuring and the average are all within 1% of the true value
 Again, this is simulated data and with real data, the number of exact reference contigs is unknown and you will ultimately have to make a judgement call.
+
+Let's examine the reference a bit.
+```bash
+bash remake_reference.sh 4 4 0.90 PE 2
+head reference.fasta
+```
+```
+>dDocent_Contig_1
+NAATTCCTCCGACATTGTCGGCTTTAAATAGCTCATAACTTGAGCCCAGGTAAAGACTTTAGTATACTCGCACCTTCCGCTTATCCCCCGGCCGCNNNNNNNNNNATTCAACCGCGGGACCTGAACTAACATAGCGTTGTGTATACCATCCGAGGTAACCTTATAACTCTCTGCCATTCGGACAGGTAACACGGCATATCGTCCGN
+>dDocent_Contig_2
+NAATTCAGAATGGTCATACAGGGCGGTAGAATGGAATCCTGAATCGAATGGCGGTTGCATTGAGAACCTGGTACCAGATAGGATCTGGATTAAATNNNNNNNNNNGTCGGGTACTAATTATCTATTGGGTCCAAACCCTCCGCCCCGTTTACTGCCCACCCGGCATGCAGTCATGAGAATTCCAAGGAACTAAGATAAGAGACCGN
+>dDocent_Contig_3
+NAATTCGGGCTCCTTGGAGAGATTCTTTCAATTATGCCCCCTACGTGGGAAACAGGGTCGGAAGTGGTCGGCTGAGAATTACTCGAAAGCCGCTCNNNNNNNNNNCCACCAGCATGATAGGACTTCAAGCTTGCCGTTTGTTGGGAGGACCGGTCGCTACGGAGCTGACGCTATCTCCCGCATCGGACCTCGTGGACAAAAACCGN
+>dDocent_Contig_4
+NAATTCAAAAGTCGCCCATAGGTACGTGATGAATTAGGTCAAGCGGGGACGTCGCATAGATGCGTGACGTCTGGAGCATGATGTTGTTTCTAACCNNNNNNNNNNAATCACTCGGTCAACGTGGTCCGTGCTCTGCAACGAAAAAAACTTCGCATGTGAACGATGATGCCTATAGGTGCGACCGCCGTCAGAGGCCCGTTGACCGN
+>dDocent_Contig_5
+NAATTCATACGGATATGATACTTCGTCTGGCAGGGTGGCTAGCGAGTTTAAGGATTCTTGGATAAAGGTAGGTAAAATTCTCGAGATTCTGATCTNNNNNNNNNNTAGAGGTGCTGGCGGGGCCTAGACGTGTTTCTACGCTTACTGATCAAATTAGCTAGCTTAGGTTCCTATAGTCTACGCTGGATTGTCCTTAGATGCACCGN
+```
+You can now see that we have complete RAD fragments starting with our EcoRI restriction site (AATT), followed by R1, then a filler of 10Ns,
+and then R2 ending with the mspI restriction site (CCG). The start and end of the sequence are buffered with a single N
+
+We can use simple shell commands to query this data.
+Find out how many lines in the file (this is double the number of sequences)
+```bash
+wc -l reference.fasta
+```
+Find out how many sequences there are directly by counting lines that only start with the header character ">"
+```bash
+mawk '/>/' reference.fasta | wc -l 
+```
+We can test that all sequences follow the expected format.
+```bash
+mawk '/^NAATT.*N*.*CCGN$/' reference.fasta | wc -l
+grep '^NAATT.*N*.*CCGN$' reference.fasta | wc -l
+```
+No surprises here from our simulated data, butI highly recommend familiarizing yourself with grep, awk, and regular expressions to help evaluate de novo references.
+
+#Bonus Section
+
+Here, I am going to let you in on an experimental script I have been using to help optimize reference assemblies.
+```bash
+curl -L -O https://raw.githubusercontent.com/jpuritz/WinterSchool.2016/master/RefMapOpt.sh
+```
+This script assembles references across cutoff values and then maps 20 random samples and evaluates mappings to the reference, along with number of contigs and coverage.  
+It takes a long time to run, but here's a sample command and output
+```bash
+#RefMapOpt.sh 4 8 4 8 0.9 64 PE
+```
+This would loop across cutoffs of 4-8 using a similarity of 90% for clustering, parellized across 64 processors, using PE assembly technique.
+
+The output is stored in a file called `mapping.results`
+```bash
+curl -L -o mapping.results https://www.dropbox.com/s/x7p7j1xn1hjltzv/mapping.results?dl=0
+cat mapping.results
+```
+```
+Cov		Non0Cov	Contigs	MeanContigsMapped	K1	K2	SUM Mapped	SUM Properly	Mean Mapped	Mean Properly	MisMatched
+37.3382	39.6684	1000	942.25				4	4	747510		747342			37375.5		37367.1			0
+37.4003	39.7343	1000	942.25				4	5	748753		748546			37437.7		37427.3			0
+37.4625	39.7919	1000	942.45				4	6	749999		749874			37499.9		37493.7			0
+37.4967	39.8282	1000	942.45				4	7	750685		750541			37534.2		37527.1			0
+37.486	39.8169	1000	942.45				4	8	750469		750205			37523.4		37510.2			0
+37.3517	39.6785	1000	942.35				5	4	747780		747612			37389		37380.6			0
+37.4147	39.7454	1000	942.35				5	5	749042		748835			37452.1		37441.8			0
+37.4701	39.7999	1000	942.45				5	6	750151		750009			37507.6		37500.4			0
+37.4852	39.8161	1000	942.45				5	7	750453		750210			37522.7		37510.5			0
+37.4551	39.7824	999		941.55				5	8	749102		748837			37455.1		37441.8			0
+37.3561	39.6833	1000	942.35				6	4	747870		747731			37393.5		37386.6			0
+37.453	39.7776	1000	942.55				6	5	749809		749734			37490.4		37486.7			0
+37.4923	39.8193	1000	942.55				6	6	750595		750376			37529.8		37518.8			0
+37.4784	39.8089	1000	942.45				6	7	750318		750075			37515.9		37503.8			0
+37.4437	39.766	999		941.65				6	8	748874		748616			37443.7		37430.8			0
+37.4013	39.7312	1000	942.35				7	4	748774		748698			37438.7		37434.9			0
+37.4592	39.7907	1000	942.4				7	5	749934		749835			37496.7		37491.8			0
+37.4682	39.7981	1000	942.45				7	6	750114		749897			37505.7		37494.8			0
+37.4239	39.7468	1000	942.55				7	7	749227		748993			37461.3		37449.7			0
+37.417	39.736	998		940.75				7	8	747591		747320			37379.6		37366			0
+37.4413	39.761	1000	942.65				8	4	749575		749499			37478.8		37474.9			0
+37.4492	39.7843	1000	942.3				8	5	749733		749562			37486.7		37478.1			0
+37.4441	39.7711	998		940.6				8	6	748133		747888			37406.7		37394.4			0
+37.4274	39.7517	997		939.7				8	7	747052		746779			37352.6		37338.9			0
+37.5014	39.8269	989		932.25				8	8	742528		742279			37126.4		37113.9			0```
+I have added extra tabs for readability.  The output contains the average coverage per contig, the average coverage per contig not counting zero coverage contigs, the number of contigs, the mean number of contigs mapped, the two cutoff values used, the sum of all mapped reads, the sum of all properly mapped reads, the mean number of mapped reads, the mean number of properly mapped reads, and the number of reads that are mapped to mismatching contigs.
+Here, we are looking to values that maximize properly mapped reads, the mean number of contigs mapped, and the coverage.  In this example, it's easy.  Values 4,7 produce the highes number of properly mapped reads, coverage, and contigs.  
+Real data will involve a judgement call.  Again, I haven't finished vetting this script, so use at your own risk.
+
 Congrats!  You've finished the reference assembly tutorial for dDocent.
 
 
