@@ -47,7 +47,7 @@ To start, we are going to use the program VCFtools (http://vcftools.sourceforge.
 and has several perl scripts as well that are useful for filtering. 
 I find it much more useful to use version 0.1.11, since it has more useful filtering commands (I think).  Let's load that version
 This raw.vcf file is going to have a lot of erroneous variant calls and a lot of variants that are only present in one individual.  
-To make this file more manageable.  Let's start by a three step filter.  We are going to only keep variants that have been successfully genotyped in 
+To make this file more manageable, let's start by applying three step filter.  We are going to only keep variants that have been successfully genotyped in 
 50% of individuals, a minimum quality score of 30, and a minor allele count of 3.
 ```
 vcftools --gzvcf raw.vcf.gz --geno 0.5 --mac 3 --minQ 30 --recode --recode-INFO-all --out raw.g5mac3
@@ -683,7 +683,7 @@ Processing population: WL (20 inds)
 Outputting results of HWE test for filtered loci to 'filtered.hwe'
 Kept 8176 of a possible 8379 loci (filtered 203 loci)
 ```
-*Note, I would not normally use such a high `-h` value.  It's purely for this example.  Typically, errors would have a low p-vaule and would be present in many populations.*
+*Note, I would not normally use such a high `-h` value.  It's purely for this example.  Typically, errors would have a low p-value and would be present in many populations.*
 
 We have now created a thoroughly filtered VCF, and we should have confidence in these SNP calls.  
 However, our lab is currently developing one more script, called rad_haplotyper.  

@@ -46,7 +46,7 @@
 #4	and has several perl scripts as well that are useful for filtering. 
 #4	I find it much more useful to use version 0.1.11, since it has more useful filtering commands (I think).  Let's load that version
 #4	This raw.vcf file is going to have a lot of erroneous variant calls and a lot of variants that are only present in one individual.  
-#4	To make this file more manageable.  Let's start by a three step filter.  We are going to only keep variants that have been successfully genotyped in 
+#4	To make this file more manageable, let's start by applying three step filter.  We are going to only keep variants that have been successfully genotyped in 
 #4	50% of individuals, a minimum quality score of 30, and a minor allele count of 3.
 #c#4	$vcftools --gzvcf raw.vcf.gz --geno 0.5 --minQ 30 --mac 3 --recode --recode-INFO-all --out raw.g5mac3
 #4
