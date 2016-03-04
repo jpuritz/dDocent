@@ -14,7 +14,7 @@ fi
 
 #Filteres out sites with that on average have heterzygotes with less than a 0.28 allele balance between reads from each allele and Quality / Depth < 0.5 and ratio of mapping quality for reference and alternate alleles
 
-vcffilter -f "AB > 0.25 | AB < 0.01" -s -g "QR > 0 | QA > 0 " $1 | vcffilter -s -f "QUAL / DP > 0.2" | vcffilter -s -f "MQM / MQMR > 0.25 & MQM / MQMR < 1.75" > $2
+vcffilter -s -f "AB > 0.2 & AB < 0.8 | AB < 0.01 | AB > 0.99" -s -g "QR > 0 | QA > 0 " $1 | vcffilter -s -f "QUAL / DP > 0.2" | vcffilter -s -f "MQM / MQMR > 0.25 & MQM / MQMR < 1.75" > $2
 FILTERED=$(mawk '!/#/' $2 | wc -l)
 OLD=$(mawk '!/#/' $1 | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
