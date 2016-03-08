@@ -1,0 +1,54 @@
+#!/bin/bash
+
+echo "This script will automatically filter a FreeBayes generated VCF file using criteria related to site depth," 
+echo "quality versus depth, strand representation, allelic balance at heterzygous individuals, and paired read representation."
+echo "The script assumes that loci and individuals with low call rates (or depth) have already been removed."
+
+echo "Contact Jon Puritz (jpuritz@gmail.com) for questions and see script comments for more details on particular filters"
+
+#Checks for correct ususage
+
+if [[ -z "$2" ]]; then
+echo "Usage is sh FB_filters.sh VCF_file Output_prefix"
+exit 1
+fi
+
+#Filteres out sites with that on average have heterzygotes with less than a 0.28 allele balance between reads from each allele and Quality / Depth < 0.5
+vcffilter -f "AB > 0.28" -s -g "QR > 0 | QA > 0 " $1 | vcffilter -f "QUAL / DP > 0.5" > $2
+#Filters out loci that have reads from both strands, with some leeway for a bad individual or two
+vcffilter -f "SAF / SAR > 100 & SRF / SRR > 100 | SAR / SAF > 100 & SRR / SRF > 50" $2 > $2.filAB.vcf
+#Filters out loci that have reads from both paired and unpaired reads
+vcffilter -f "PAIRED > 0.05 & PAIREDR > 0.05 & PAIREDR / PAIRED < 1.75 & PAIREDR / PAIRED > 0.25 | PAIRED < 0.05 & PAIREDR < 0.05" $2.filAB.vcf > $2.fil.vcf
+
+
+#Uses the VCF file to estimate the original number of individuals in the VCF file
+#This is important because the INFO flags are based on this number
+IND=$(grep -o -e 'NS=[0-9]*' $1 | sed s/NS=//g | sort | tail -1)
+IND=$(($IND - 0 ))
+
+#Creates a file with the original site depth and qual for each locus
+cut -f8 $1 | grep -oe "DP=[0-9]*" | sed -s 's/DP=//g' > $1.DEPTH
+mawk '!/#/' $1 | cut -f1,2,6 > $1.loci.qual
+
+#Calculates the average depth and standard deviation
+DEPTH=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $1.DEPTH)
+SD=$(mawk '{delta = $1 - avg; avg += delta / NR; mean2 += delta * ($1 - avg); } END { print sqrt(mean2 / NR); }' $1.DEPTH)
+DEPTH=$(python -c "print int("$DEPTH") + int("$SD")")
+
+#Filters loci above the mean depth + 1 standard deviation that have quality scores that are less than 2*DEPTH
+paste $1.loci.qual $1.DEPTH | mawk -v x=$DEPTH '$4 > x'| mawk '$3 < 2 * $4' > $1.lowQDloci
+
+#Recalculates site depth for sites that have not been previously filtered
+vcftools --vcf $2.fil.vcf --remove-filtered NP --site-depth --exclude-positions $1.lowQDloci --out $1 
+cut -f3 $1.ldepth > $1.site.depth
+DP=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $1.site.depth)
+SD=$(mawk '{delta = $1 - avg; avg += delta / NR; mean2 += delta * ($1 - avg); } END { print sqrt(mean2 / NR); }' $1.site.depth)
+#Calculates actual number of individuals in VCF file
+#This is important because loci will now be filtered by mean depth calculated with individuals present in VCF
+IND=$(mawk '/#/' $1 | tail -1 | wc -w)
+IND=$(($IND - 9))
+#Calculates a mean depth cutoff to use for filtering
+DP=$(python -c "print ($DP+ 1.5*$SD) / $IND")
+#Combines all filters to create a final filtered VCF file
+vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $DP --exclude-positions $1.lowQDloci --recode 
+echo "Filtered VCF file is called Output_prefix.FIL.recode.vcf"
