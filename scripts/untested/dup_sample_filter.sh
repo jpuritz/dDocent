@@ -41,6 +41,6 @@ rm ${NAMES[$i]}.recode.vcf ${NAM[$i]}.recode.vcf keep.${NAMES[$i]} keep.${NAM[$i
 
 done
 
-sort total.bad.loci | uniq -c > mismatched.loci
+cat total.bad.loci | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > mismatched.loci
 rm total.bad.loci
 
