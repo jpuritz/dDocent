@@ -16,7 +16,11 @@ echo ${BARCODES[0]}
 
 for ((i = 0; i <= $LEN; i++));
 do
+if [ -f sample_${BARCODES[$i]}.2.fq.gz ]; then
 mv sample_${BARCODES[$i]}.1.fq.gz ${NAMES[$i]}.F.fq.gz
 mv sample_${BARCODES[$i]}.2.fq.gz ${NAMES[$i]}.R.fq.gz
+else
+mv sample_${BARCODES[$i]}.fq.gz ${NAMES[$i]}.F.fq.gz
+fi
 done
 fi
