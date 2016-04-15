@@ -107,6 +107,8 @@ The file can be named anything, but must follow the format below:
 ```bash
 Number of Processors
 24
+Maximum Memory
+0
 Trimming
 no
 Assembly?
