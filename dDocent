@@ -99,7 +99,7 @@ fi
 
 #This code checks for individual fastq files follow the correct naming convention and are gziped
 TEST=$(ls *.fq 2> /dev/null | wc -l )
-if [ "$TEST" != "0" ]; then
+if [ "$TEST" -gt 0 ]; then
 echo -e "\ndDocent is now configured to work on compressed sequence files.  Please run gzip to compress your files."
 echo "This is as simple as 'gzip *.fq'"
 echo "Please rerun dDocent after compressing files."
