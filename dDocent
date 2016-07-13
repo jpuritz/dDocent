@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-##########dDocent 2.18##########
+##########dDocent 2.2##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
@@ -8,7 +8,7 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.18 \n"
+echo -e "dDocent 2.2 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
@@ -320,10 +320,29 @@ if [ "$SNP" != "no" ]; then
 	paste namelist p > popmap
 	rm p
 	
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
+###New implementation of SNP calling here to save on memory	
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice "paste <(head -1 mapped.{}.bed | cut -f1,2) <(tail -1 mapped.{}.bed | cut -f1,3) | sed 's/\t/:/' | sed 's/\t/../' | sed 's/\t/:/' > {}.region"
+	
+	get_region(){  bamtools merge -list bamlist.list -region `cat $1.region` ; }
+	export -f get_region
+	
+	
+	call_genos(){
+	bamtools merge -list bamlist.list -region `cat $1.region` -out split.$1.bam
+	samtools index split.$1.bam
+	freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
+	rm split.$1.bam
+	}
+	export -f call_genos
+
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice call_genos {}
+####	
+	#ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
+	#ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice "get_region {}| freebayes -c -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10"
 
 
 	rm mapped.*.bed 
+	rm *.region
 
 	mv raw.1.vcf raw.01.vcf
 	mv raw.2.vcf raw.02.vcf
@@ -364,9 +383,9 @@ mv *.txt *.log log ./logfiles 2> /dev/null
 #Sending a completion email
 
 if [ $ERRORS -gt 0 ]; then
-        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.0 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
+        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.2 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
 else
-        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.0 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
+        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.2 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
 fi
 
 
