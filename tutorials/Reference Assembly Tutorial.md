@@ -36,7 +36,8 @@ total 7664
 -rwxr--r--. 1 j.puritz j.puritz     600 Mar  6  2015 SimRAD.barcodes
 -rwxr--r--. 1 j.puritz j.puritz 2574784 Mar  6  2015 SimRAD_R1.fastq.gz
 -rwxr--r--. 1 j.puritz j.puritz 2124644 Mar  6  2015 SimRAD_R2.fastq.gz
--rwxr--r--. 1 j.puritz j.puritz   12272 Mar  6  2015 simRRLs2.py```
+-rwxr--r--. 1 j.puritz j.puritz   12272 Mar  6  2015 simRRLs2.py
+```
 The data that we are going to use was simulated using the simRRLs2.py script that I modified from the one published by Deren Eaton.  You can find the original version here (http://dereneaton.com/software/simrrls/).  Basically, the script simulated ddRAD 1000 loci shared across an ancestral population and two extant populations.  Each population had 180,000 individuals, and the two extant 
 population split from the ancestral population 576,000 generations ago and split from each other 288,000 generation ago.  The two populations exchanged 4N*0.001 migrants per generation until about 2,000 generations ago.  4Nu equaled 0.00504 and mutations had a 10% chance of being an INDEL polymorphism.  Finally, reads for each locus were simulated on a per individual basis at a mean of 20X coverage (coming from a normaldistribution with a SD 8) and had an inherent sequencing error rate of 0.001. 
 
