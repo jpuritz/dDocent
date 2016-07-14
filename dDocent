@@ -41,15 +41,24 @@ if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru
     NUMDEP=$((NUMDEP + 1))
     fi
 
-SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//')
-	if [ "$SAMV" != "0.1.19" ]; then
+SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
+SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
+	if [ "$SAMV1"  -ge "1" ]; then
+		if [ "$SAMV2"  -lt "3" ]; then
         	echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
-        	echo -en "\007"
+        	echo "Please install at least version 1.3.0"
 			echo -en "\007"
 			echo -en "\007"
-        		echo "Please install a version 0.1.19"
-        		exit 1
-        fi
+			exit 1
+		fi
+	
+	else
+		    echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.3.0"
+			echo -en "\007"
+			echo -en "\007"
+			exit 1
+	fi
 
 RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
 	if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
@@ -310,7 +319,7 @@ if [ "$SNP" != "no" ]; then
 	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 	}' 
 	
-	FB1=$(( $NUMProc / 2 ))
+	FB2=$(( $NUMProc / 4 ))
 
 	echo "Using FreeBayes to call SNPs"
 
@@ -320,29 +329,24 @@ if [ "$SNP" != "no" ]; then
 	paste namelist p > popmap
 	rm p
 	
+
+
 ###New implementation of SNP calling here to save on memory	
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice "paste <(head -1 mapped.{}.bed | cut -f1,2) <(tail -1 mapped.{}.bed | cut -f1,3) | sed 's/\t/:/' | sed 's/\t/../' | sed 's/\t/:/' > {}.region"
-	
-	get_region(){  bamtools merge -list bamlist.list -region `cat $1.region` ; }
-	export -f get_region
-	
-	
 	call_genos(){
-	bamtools merge -list bamlist.list -region `cat $1.region` -out split.$1.bam
+	samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
 	samtools index split.$1.bam
 	freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
-	rm split.$1.bam
+	rm split.$1.bam*
 	}
 	export -f call_genos
 
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice call_genos {}
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $NUMProc --no-notice call_genos {}
 ####	
 	#ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
-	#ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice "get_region {}| freebayes -c -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10"
+	#ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice "samtools view -b -L mapped.{}.bed | freebayes -c -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10"
 
 
 	rm mapped.*.bed 
-	rm *.region
 
 	mv raw.1.vcf raw.01.vcf
 	mv raw.2.vcf raw.02.vcf
@@ -668,7 +672,7 @@ bwa index reference.fasta
 
 CreateIntervals()
 {
-bamtools merge -list bamlist.list | samtools rmdup - cat-RRG.bam &>/dev/null
+samtools merge -b bamlist.list -f cat-RRG.bam &>/dev/null
 samtools index cat-RRG.bam 
 wait
 bamToBed -i cat-RRG.bam > map.bed
