@@ -1,3 +1,8 @@
+#As of version 2.2, if rerunning an analysis from a previous version of dDocent.
+
+Enter the following command before proceeding: `rm cat-RRG.bam*`
+
+
 #Why should you use dDocent?  Simply put, it's the most accurate RADseq bioinformatic pipeline.  
 See for yourself:
 ![alt tag](https://raw.githubusercontent.com/jpuritz/dDocent/master/Sample%20Comparsion.png)
