@@ -677,7 +677,7 @@ bwa index reference.fasta
 
 CreateIntervals()
 {
-samtools merge -b bamlist.list -f cat-RRG.bam &>/dev/null
+samtools merge -@$NUMProc -b bamlist.list -f cat-RRG.bam &>/dev/null
 samtools index cat-RRG.bam 
 wait
 bamToBed -i cat-RRG.bam > map.bed
