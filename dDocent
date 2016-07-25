@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-##########dDocent 2.23##########
+##########dDocent 2.24##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
@@ -8,7 +8,7 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.23 \n"
+echo -e "dDocent 2.24 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
@@ -313,10 +313,15 @@ if [ "$SNP" != "no" ]; then
 	if [ "cat-RRG.bam" -nt "cov.stats" ]; then
 		coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
 	fi
-	DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.005;@l=<>;print $l[int($d*@l)]')
-	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$NUMProc'"}')
 	
-		 
+	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
+	
+		DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
+		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$NUMProc'"}')
+	else
+		DP=$(mawk '{print $4}' cov.stats | sort -rn | perl -e '$d=.00005;@l=<>;print $l[int($d*@l)]')
+		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$NUMProc'"}')
+	fi
 	mawk -v x=$DP '$4 < x' cov.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
 	{
 	len=$3-$2;lc=len*$4;cov = cov + lc
@@ -392,9 +397,9 @@ mv *.txt *.log log ./logfiles 2> /dev/null
 #Sending a completion email
 
 if [ $ERRORS -gt 0 ]; then
-        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.23 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
+        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.24 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
 else
-        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.23 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
+        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/Final.log` "\n\ndDocent 2.24 \nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
 fi
 
 
