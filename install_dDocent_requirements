@@ -154,7 +154,7 @@ if which rainbow &>/dev/null; then
         	echo "Rainbow is already installed"
 	else
 		echo "Downloading and installing Rainbow"
-        	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+        	curl -L -o rainbow.x.tar.gz "http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files"
         	tar xvzf rainbow.x.tar.gz
         	cd rainbow_*
         	make
@@ -164,7 +164,7 @@ if which rainbow &>/dev/null; then
 	fi
 else
 	echo "Downloading and installing Rainbow"
-	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+	curl -L -o rainbow.x.tar.gz "http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files"
 	tar xvzf rainbow.x.tar.gz
 	cd rainbow_*
 	make
@@ -178,7 +178,7 @@ if which gnuplot &>/dev/null; then
 	echo "gnuplot is already installed"
 else
 	echo "Downliading and installing gnuplot"
-	curl -L -o gnuplot.x.tar.gz http://sourceforge.net/projects/gnuplot/files/latest/download?source=files
+	curl -L -o gnuplot.x.tar.gz "http://sourceforge.net/projects/gnuplot/files/latest/download?source=files"
 	tar xvzf gnuplot.x.tar.gz 
 	cd gnuplot-* 
 	current=`pwd` 
