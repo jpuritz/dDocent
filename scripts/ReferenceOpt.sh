@@ -94,12 +94,12 @@ rm uniq.fq*
 #If this is a PE assebmle
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
-	sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
+	sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
 	CDHIT=$(python -c "print max("$3" - 0.1,0.8)")
 	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 -d 100 &>cdhit.log
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
-	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
+	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	#CD-hit output is converted to rainbow format
 	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
 	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
@@ -121,8 +121,8 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	mv rainbow.RC.fasta rainbow.fasta
 
 	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
-	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f1 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
-	sed -e 's/NNNNNNNNNN/\t/g' rainbow.fasta | cut -f2 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f1 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f2 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
 
 	seqtk seq -r ref.R.fq > ref.RC.fq
 	mv ref.RC.fq ref.R.fq
@@ -137,7 +137,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	mawk '/>/' overlap.fasta > overlap.loci.names
 	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
 	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
-	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/\t/NNNNNNNNNN/g' > other.FR
+	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
 
 	cat other.FR overlap.fasta > totalover.fasta
 
