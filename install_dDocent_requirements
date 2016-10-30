@@ -207,9 +207,9 @@ if which cd-hit-est &>/dev/null; then
     echo "cd-hit is already installed"
 else
 	echo "Downloading and installing cd-hit"
-	curl -L -O https://cdhit.googlecode.com/files/cd-hit-v4.6.1-2012-08-27.tgz
-	tar xvzf cd-hit-v4.6.1-2012-08-27.tgz 
-	cd cd-hit-v4.6.1-2012-08-27
+	curl -L -O https://github.com/weizhongli/cdhit/releases/download/V4.6.6/cd-hit-v4.6.6-2016-0711.tar.gz
+	tar xvzf cd-hit-v4.6.6-2016-0711.tar.gz
+	cd cd-hit-v4.6.6-2016-0711
 	make openmp=yes
 	chmod +x cd-hit-est cd-hit-est-2d
 	cp -f cd-hit-est cd-hit-est-2d $INSTALL_PATH
