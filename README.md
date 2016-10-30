@@ -67,6 +67,38 @@ Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your
 
 #Installation
 
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ddocent/README.html)
+
+### Easy local install with bioconda
+
+Install Miniconda: http://conda.pydata.org/miniconda.html
+
+Add the bioconda channel:
+```
+conda config --add channels bioconda
+```
+
+Create a dDocent conda environment:
+```
+conda create -n ddocent_env ddocent=2.1
+```
+
+Activate the dDocent environment:
+```
+source activate ddocent_env
+```
+
+Run dDocent:
+```
+dDocent ...
+```
+
+Close the environment when you're done:
+```
+source deactivate
+```
+### Manual installation.
+
 dDocent is designed to run on a multicore, high memory capacity linux based computer.  As stated above, dDocent depends on several other software packages and assumes that they will be installed in your $PATH directory and that all dDocent dependencies are in a single directory.  The easiest way to do this, for all users of your machine is to install everything into the /usr/local/bin directory.  You will need administrator or "root" privileges to do this.
 
 If you don't have access to the /usr/local/bin directory, don't worry.  dDocent can be installed locally in your user account.  To do this, follow these simple commands:
