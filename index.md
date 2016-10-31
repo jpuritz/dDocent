@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: test
 title: dDocent
 tagline: Your guide to RAD bioinformatics
 description: Minimal tutorial on making a simple website with GitHub Pages
