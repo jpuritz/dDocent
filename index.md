@@ -1,8 +1,8 @@
 ---
 layout: page
 title: dDocent
-tagline: Easy websites with GitHub Pages
-description: Minimal tutorial on making a simple website with GitHub Pages
+tagline: simple, accurate RADseq bioinformatics
+description:
 ---
 
 [Github Pages](http://pages.github.com) provide a simple way to make a
