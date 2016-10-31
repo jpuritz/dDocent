@@ -7,6 +7,8 @@ description:
 
 <p><a href="https://github.com/jpuritz/dDocent" class="btn">View on GitHub</a></p>
 
+<a id="forkme_banner" href="https://github.com/jpuritz">View on GitHub</a>
+
 [Github Pages](http://pages.github.com) provide a simple way to make a
 website using
 [Markdown](https://daringfireball.net/projects/markdown/) and
