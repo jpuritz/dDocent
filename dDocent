@@ -8,7 +8,7 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.24 \n"
+echo -e "dDocent 2.2.5 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
 
 
