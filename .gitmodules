@@ -1,0 +1,3 @@
+[submodule "rad_haplotyper"]
+	path = rad_haplotyper
+	url = https://github.com/chollenbeck/rad_haplotyper.git
