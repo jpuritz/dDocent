@@ -1,2 +1,9 @@
+# project
 _site
-Gemfile.lock
+.sass-cache
+.vagrant
+
+# general
+.DS_Store
+Thumbs.db
+ehthumbs.db
