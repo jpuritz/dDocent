@@ -114,7 +114,7 @@ rm uniq.fq*
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 	sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
-	CDHIT=$(python -c "print max("$3" - 0.1,0.8)")
+	CDHIT=$(python -c "print(max("$3" - 0.1,0.8))")
 	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 -d 100 &>cdhit.log
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
@@ -178,7 +178,7 @@ if [[ "$ATYPE" == "HYB" ]];then
 		rm uniq.ua.fq*
 		#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 		sed -e 's/NNNNNNNNNN/	/g' uniq.ua.fasta | cut -f1 > uniq.F.ua.fasta
-		CDHIT=$(python -c "print max("$3" - 0.1,0.8)")
+		CDHIT=$(python -c "print(max("$3" - 0.1,0.8))")
 		cd-hit-est -i uniq.F.ua.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 -d 100 &>cdhit.log
 		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids.ua
 		paste sort.contig.cluster.ids.ua totaluniqseq.ua > contig.cluster.totaluniqseq.ua
@@ -266,4 +266,4 @@ echo -e "X\tContig number"
 perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' plot.kopt.data | sort -k1 -g -r | head -3
 echo "The top three most common number of contigs (with values rounded)"
 echo -e "X\tContig number"
-while read NAME; do python -c "print round($NAME,-2)"; done < plot.kopt.data | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | sort -g -r | head -3 | sed "s/^[ \t]*//"
+while read NAME; do python -c "print(round($NAME,-2))"; done < plot.kopt.data | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | sort -g -r | head -3 | sed "s/^[ \t]*//"
