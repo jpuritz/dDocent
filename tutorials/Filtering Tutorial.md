@@ -50,9 +50,9 @@ This raw.vcf file is going to have a lot of erroneous variant calls and a lot of
 To make this file more manageable, let's start by applying three step filter.  We are going to only keep variants that have been successfully genotyped in 
 50% of individuals, a minimum quality score of 30, and a minor allele count of 3.
 ```
-vcftools --gzvcf raw.vcf.gz --geno 0.5 --mac 3 --minQ 30 --recode --recode-INFO-all --out raw.g5mac3
+vcftools --gzvcf raw.vcf.gz --max-missing 0.5 --mac 3 --minQ 30 --recode --recode-INFO-all --out raw.g5mac3
 ```
-In this code, we call vcftools, feed it a vcf file after the `--vcf` flag, `--geno 0.5` tells it to filter genotypes called below 50% (across all individuals)
+In this code, we call vcftools, feed it a vcf file after the `--vcf` flag, `--max-missing 0.5` tells it to filter genotypes called below 50% (across all individuals)
 the `--mac 3` flag tells it to filter SNPs that have a minor allele count less than 3.  
 This is relative to genotypes, so it has to be called in at least 1 homozygote and 1 heterozygote or 3 heterozygotes. 
 The `--recode` flag tells the program to write a new vcf file with the filters, `--recode-INFO-all` keeps all the INFO flags from the old vcf file in the new one.
@@ -228,7 +228,7 @@ The script prints out a histogram like the one above and also calculates the 85%
 Enter "no"
 Now that we have removed poor coverage individuals, we can restrict the data to variants called in a high percentage of individuals and filter by mean depth of genotypes
 ```bash
-vcftools --vcf raw.g5mac3dplm.recode.vcf --geno 0.95 --maf 0.05 --recode --recode-INFO-all --out DP3g95maf05 --min-meanDP 20
+vcftools --vcf raw.g5mac3dplm.recode.vcf --max-missing 0.95 --maf 0.05 --recode --recode-INFO-all --out DP3g95maf05 --min-meanDP 20
 ```
 This leaves us with about 12,754 loci in our filtered vcf file.
 
@@ -289,8 +289,8 @@ The above line demonstrates the use of && to simultaneous execute two tasks.
 
 Next, we use VCFtools to estimate missing data for loci in each population
 ```bash
-vcftools --vcf DP3g95maf05.recode.vcf --keep 1.keep --missing --out 1
-vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing --out 2 
+vcftools --vcf DP3g95maf05.recode.vcf --keep 1.keep --missing-indv --out 1
+vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing-indv --out 2 
 ```
 This will generate files named 1.lmiss and 2.lmiss
 
