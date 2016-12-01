@@ -28,18 +28,19 @@ do
 done
 
 if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'trim' ; then
-	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
-	else
+    TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
+    TRIMMOMATIC_DIR=`dirname $TRIMMOMATIC`
+else
     echo "The dependency trimmomatic is not installed or is not in your" '$PATH'"."
     NUMDEP=$((NUMDEP + 1))
-	fi
-	
-if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru' ; then
-	ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
-	else
+fi
+
+if find ${TRIMMOMATIC_DIR}/adapters -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru' ; then
+    ADAPTERS=$(find ${TRIMMOMATIC_DIR}/adapters -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
+else
     echo "The file listing adapters (included with trimmomatic) is not installed or is not in your" '$PATH'"."
     NUMDEP=$((NUMDEP + 1))
-    fi
+fi
 
 SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
 SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
