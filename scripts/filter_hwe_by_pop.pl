@@ -20,7 +20,7 @@ GetOptions(	'vcf|v=s' => \$vcffile,
 			'hwe|h=s' => \$hwe,
 			'cutoff|c=s' => \$cutoff,
 			);
-			
+
 unless ($vcffile) {
 	print "\nNeed to specify a VCF file (-v) for input\n\n";
 	pod2usage(-verbose => 1);
@@ -30,7 +30,7 @@ unless ($popmap) {
 	print "\nNeed to specify a population map (-p) for input\n\n";
 	pod2usage(-verbose => 1);
 }
-			
+
 
 open(POP, "<", $popmap) or die $!;
 my %pops;
@@ -50,24 +50,25 @@ foreach my $pop (sort keys %pops) {
 		print INDO $ind, "\n";
 	}
 	close INDO;
-	
+
 	my $indfile = $pop . '.inds';
-	
+
 	print "Processing population: $pop (" , scalar(@{$pops{$pop}}) , " inds)", "\n";
-	
-	my $ouput = `vcftools --vcf $vcffile --keep $indfile --hardy --out $pop`;
-	
+
+	my $ouput = `vcftools --vcf $vcffile --keep $indfile --hardy --out $pop 2>&1`;
+
 	open(HWEI, "<", $pop . '.hwe') or die $!;
-	
+
 	<HWEI>; 	# process the header
 	while(<HWEI>) {
 		last if $_ =~ /^\s/;
 		chomp;
-		my ($locus, $pos, $obs, $exp, $chisq, $pvalue) = split;
+		my ($locus, $pos, $obs, $exp, $chisq, $pvalue, @rest) = split;
 		$exclude_count{"$locus-$pos"}++ if $pvalue < $hwe;
+
 	}
 	close HWEI;
-	
+
 }
 
 open(HWEO, ">", 'exclude.hwe') or die $!;
@@ -79,8 +80,8 @@ foreach my $snp (keys %exclude_count) {
 }
 close HWEO;
 
-my $output = `vcftools --vcf $vcffile --exclude-positions exclude.hwe --recode --recode-INFO-all --out $outfile`;
-my $filt_output = `vcftools --vcf $vcffile --positions exclude.hwe --hardy --out filtered`;
+my $output = `vcftools --vcf $vcffile --exclude-positions exclude.hwe --recode --recode-INFO-all --out $outfile 2>&1`;
+my $filt_output = `vcftools --vcf $vcffile --positions exclude.hwe --hardy --out filtered 2>&1`;
 
 print "Outputting results of HWE test for filtered loci to 'filtered.hwe'\n";
 
@@ -107,9 +108,9 @@ Options:
      -v     <vcffile>	input vcf file
      -p		<popmap>	tab-separated file of samples and population designations
 	 -h		[hwe]	minimum Hardy-Weinberg p-value cutoff for SNPs
-	 -c		[cutoff]	proportion of all populations that a locus can be below HWE cutoff without being filtered  
+	 -c		[cutoff]	proportion of all populations that a locus can be below HWE cutoff without being filtered
      -o		[out]	name of outfile
-	 
+
 
 =head1 OPTIONS
 
@@ -129,7 +130,7 @@ Minimum cutoff for Hardy-Weinberg p-value (for test as implemented in vcftools) 
 
 =item B<-c, --cutoff>
 
-Proportion of all populations that a locus can be below HWE cutoff without being filtered. For example, choosing 0.5 will filter SNPs that are below the p-value threshold in 50% or more of the populations. [Default: 0.25] 
+Proportion of all populations that a locus can be below HWE cutoff without being filtered. For example, choosing 0.5 will filter SNPs that are below the p-value threshold in 50% or more of the populations. [Default: 0.25]
 
 =item B<-o, --out>
 
