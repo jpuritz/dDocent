@@ -22,13 +22,25 @@ echo -e "Number of sites filtered based on allele balance at heterozygous loci, 
 echo -e "Number of sites filtered based on allele balance at heterozygous loci, locus quality, and mapping quality / Depth\n" $NUMFIL "of" $OLD "\n" > $2.filterstats
 
 #Filters out loci that have reads from both strands, with some leeway for a bad individual or two
+#Only valid for libraries with non-overlapping reads
 
+if [[ -z "$4" ]]; then
+echo -e "Is this from libraries with overlapping ends? Enter yes or no."
+read OL
+else
+OL=$4
+fi
+
+if [ "$OL" != "yes" ]; then
 vcffilter -f "SAF / SAR > 100 & SRF / SRR > 100 | SAR / SAF > 100 & SRR / SRF > 50" -s $2 > $2.filAB.vcf
 FILTERED=$(mawk '!/#/' $2.filAB.vcf | wc -l)
 OLD=$(mawk '!/#/' $2 | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of additional sites filtered based on overlapping forward and reverse reads\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of additional sites filtered based on overlapping forward and reverse reads\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
+else
+cp -l $2 $2.filAB.vcf
+fi
 
 #Filters out loci that have reads from both paired and unpaired reads
 
