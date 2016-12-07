@@ -94,7 +94,7 @@
 #6	Right now, the maximum error rate for our VCF file because of genotypes less than 5 reads is less than 5%.  See, nothing to worry about.
 #7
 #7	The next step is to get rid of individuals that did not sequence well.  We can do this by assessing individual levels of missing data.
-#c#7	$vcftools --vcf raw.g5mac3dp3.recode.vcf --missing
+#c#7	$vcftools --vcf raw.g5mac3dp3.recode.vcf --missing-indv
 #7	This will create an output called out.imiss.  Let's examine it.
 #c#8	$cat out.imiss
 #8	
@@ -260,8 +260,8 @@
 #15	The above line demonstrates the use of && to simultaneous execute two tasks.
 #16
 #16	Next, we use VCFtools to estimate missing data for loci in each population
-#c#16	$vcftools --vcf DP3g95maf05.recode.vcf --keep 1.keep --missing-indv --out 1
-#c#16	$vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing-indv --out 2 
+#c#16	$vcftools --vcf DP3g95maf05.recode.vcf --keep 1.keep --missing-site --out 1
+#c#16	$vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing-site --out 2 
 #16	This will generate files named 1.lmiss and 2.lmiss
 #17	
 #17	They follow this format
