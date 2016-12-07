@@ -183,7 +183,8 @@ NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
 
-vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL1 --max-meanDP $PP --exclude-positions $1.lowQDloci --recode --site-depth 2> /dev/null
+vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL1 --max-meanDP $PP --exclude-positions $1.lowQDloci --recode 2> /dev/null
+vcftools --vcf $2.FIL1.recode.vcf --site-depth --out $2.FIL1 2> /dev/null
 mawk '!/CHR/' $2.FIL1.ldepth | mawk '{
 if (NR == 1) {chrom=$1;i=1;pos[i]=$2;dp[i]=$3}
 else if ($1 == chrom) {i++;pos[i]=$2;dp[i]=$3}
