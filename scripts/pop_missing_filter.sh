@@ -13,7 +13,7 @@ VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
         fi
 
 if [[ -z "$2" ]]; then
-echo "Usage is pop_missing_filter vcffile popmap percent_missing_per_pop number_of_pops_for_cutoff name_for_output"
+echo "Usage is pop_missing_filter vcffile popmap proportion_missing_per_pop number_of_pops_for_cutoff name_for_output"
 exit 1
 fi
 
