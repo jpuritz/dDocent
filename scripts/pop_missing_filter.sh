@@ -9,7 +9,7 @@ VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
         elif [ "$VCFTV" -lt "13" ]; then
                 VCFMISSINGFLAG="--missing"
         elif [ "$VCFTV" -ge "13" ]; then
-                VCFMISSINGFLAG="--missing-indv"
+                VCFMISSINGFLAG="--missing-site"
         fi
 
 if [[ -z "$2" ]]; then
