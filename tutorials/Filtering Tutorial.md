@@ -103,7 +103,7 @@ Right now, the maximum error rate for our VCF file because of genotypes less tha
 
 The next step is to get rid of individuals that did not sequence well.  We can do this by assessing individual levels of missing data.
 ```bash
-vcftools --vcf raw.g5mac3dp3.recode.vcf --missing
+vcftools --vcf raw.g5mac3dp3.recode.vcf --missing-indv
 ```
 This will create an output called out.imiss.  Let's examine it.
 ```bash
@@ -289,8 +289,8 @@ The above line demonstrates the use of && to simultaneous execute two tasks.
 
 Next, we use VCFtools to estimate missing data for loci in each population
 ```bash
-vcftools --vcf DP3g95maf05.recode.vcf --keep 1.keep --missing-indv --out 1
-vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing-indv --out 2 
+vcftools --vcf DP3g95maf05.recode.vcf --keep 1.keep --missing-site --out 1
+vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing-site --out 2 
 ```
 This will generate files named 1.lmiss and 2.lmiss
 
