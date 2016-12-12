@@ -52,7 +52,7 @@ author:
   facebook: yourname  # eg. daattali
   github: jpuritz    # eg. daattali
   twitter: jonpuritz   # eg. daattali
-  reddit: yourname    # eg. daattali
+  reddit: "http://MarineEvoEco.com"   # eg. daattali
   google-plus: +yourname   # eg. +DeanAttali or 109424658772469020925
   linkedin: yourname  # eg. daattali
   xing: yourname      # eg. daattali
@@ -70,7 +70,7 @@ footer-links-active:
   twitter: true
   google-plus: false
   github: true
-  reddit: false
+  reddit: true
   linkedin: false
   xing: false
   stackoverflow: false
@@ -193,5 +193,3 @@ prose:
 gems:
   - jekyll-paginate
 
-# Beautiful Jekyll / Dean Attali
-# 2fc73a3a967e97599c9763d05e564189
