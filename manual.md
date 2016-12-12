@@ -4,6 +4,7 @@ title: Manual Installation Instructions
 subtitle: THESE HAVE CHANGED AS OF VERSION 2.0
 ---
 
+# Requirements
 Instead of reinventing the wheel, dDocent relies almost entirely on third party software to complete every step of the 
 analysis pipeline, and users are encouraged to familiarize themselves with several of these programs, especially Rainbow, 
 BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of dDocent and websites to reference the software:
@@ -31,7 +32,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
 **PEAR neads to be installed as pearRM in your $PATH
 
-### Manual installation.
+# Manual installation.
 
 dDocent is designed to run on a multicore, high memory capacity linux based computer.  As stated above, dDocent depends on several other software packages and assumes that they will be installed in your $PATH directory and that all dDocent dependencies are in a single directory.  The easiest way to do this, for all users of your machine is to install everything into the /usr/local/bin directory.  You will need administrator or "root" privileges to do this.
 
