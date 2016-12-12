@@ -10,17 +10,17 @@ Click here to download: <a class="btn btn-success" href="https://github.com/jpur
 
 Alternatively:
 
-```bash
- curl -L -O https://github.com/jpuritz/dDocent/archive/v2.2.4.tar.gz
- tar xvzf v2.2.4.tar.gz
- ```
+```
+curl -L -O https://github.com/jpuritz/dDocent/archive/v2.2.4.tar.gz
+tar xvzf v2.2.4.tar.gz
+```
  
- or 
+or 
  
- ```bash
- wget https://github.com/jpuritz/dDocent/archive/v2.2.4.tar.gz
- tar xvzf v2.2.4.tar.gz
- ```
+```bash 
+wget https://github.com/jpuritz/dDocent/archive/v2.2.4.tar.gz
+tar xvzf v2.2.4.tar.gz
+```
  
 
 #Requirements
