@@ -23,7 +23,6 @@ description: A virtual proof that name is awesome!
 
 # List of links in the navigation bar
 navbar-links:
-  Download: "downloads"
   Installation:
     - Bioconda Install: "bioconda"
     - Manual Install: "manual"
@@ -34,6 +33,10 @@ navbar-links:
     - GitHub Pages: "https://pages.github.com/"
   Quick Start Guide:
     - Who needs to understand things first?: "quick start"
+  Code:
+    - Download: "downloads"
+    - Github: "https://github.com/jpuritz/dDocent"
+  Help: "https://groups.google.com/forum/#!forum/ddocent"
   Author's home: "http://MarineEvoEco.com"
 
 # Image to show in the navigation bar - image must be a square (width = height)
