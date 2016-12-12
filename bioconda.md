@@ -31,7 +31,7 @@ source activate ddocent_env
 
 Run dDocent:
 ```
-dDocent ...
+dDocent
 ```
 
 Close the environment when you're done:
