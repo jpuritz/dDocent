@@ -31,8 +31,8 @@ navbar-links:
     - Beautiful Jekyll: "http://deanattali.com/beautiful-jekyll/"
     - Learn markdown: "http://www.markdowntutorial.com/"
     - GitHub Pages: "https://pages.github.com/"
-  Quick Start Guide:
     - Who needs to understand things first?: "quick start"
+  News: "Blog/blog"
   Code:
     - Download: "downloads"
     - Github: "https://github.com/jpuritz/dDocent"
