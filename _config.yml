@@ -23,10 +23,10 @@ description: A virtual proof that name is awesome!
 
 # List of links in the navigation bar
 navbar-links:
+  Why dDocent?: "why"
   Installation:
     - Bioconda Install: "bioconda"
     - Manual Install: "manual"
-  Why dDocent?: "why"
   Tutorials:
     - Beautiful Jekyll: "http://deanattali.com/beautiful-jekyll/"
     - Learn markdown: "http://www.markdowntutorial.com/"
@@ -37,7 +37,6 @@ navbar-links:
     - Download: "downloads"
     - Github: "https://github.com/jpuritz/dDocent"
   Help: "https://groups.google.com/forum/#!forum/ddocent"
-  Author's home: "http://MarineEvoEco.com"
 
 # Image to show in the navigation bar - image must be a square (width = height)
 # Remove this parameter if you don't want an image in the navbar
@@ -62,6 +61,7 @@ author:
   instagram: yourname # eg. daattali
   youtube: yourlink   # eg. user/daattali or channel/daattali
   spotify: yourname   # eg. daattali
+  website: MarineEvoEco.com
 
 # Select which links to show in the footer
 footer-links-active:
