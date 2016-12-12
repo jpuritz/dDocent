@@ -22,7 +22,8 @@ Alternatively:
  tar xvzf v2.2.4.tar.gz
  ```
  
- #Requirements
+
+#Requirements
 **THESE HAVE CHANGED AS OF VERSION 2.0**
 
 Instead of reinventing the wheel, dDocent relies almost entirely on third party software to complete every step of the 
