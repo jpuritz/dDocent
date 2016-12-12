@@ -29,7 +29,8 @@ subtitle: RADSeq Bioinformatics and Beyond
 <!-- site body --> 
 
 
-{% markdown test.md %}
+{% capture my-include %}{% include test.md %}{% endcapture %}
+{{ my-include | markdownify }}
 
 
 
