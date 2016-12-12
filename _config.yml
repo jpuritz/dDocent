@@ -23,9 +23,8 @@ description: A virtual proof that name is awesome!
 
 # List of links in the navigation bar
 navbar-links:
-  Home: "https://jpuritz.github.io/dDocent/"
-  Why dDocent?: "why"
   Download: "releases"
+  Why dDocent?: "why"
   Tutorials:
     - Beautiful Jekyll: "http://deanattali.com/beautiful-jekyll/"
     - Learn markdown: "http://www.markdowntutorial.com/"
