@@ -1,8 +1,8 @@
-
-
-
-# Requirements
-**THESE HAVE CHANGED AS OF VERSION 2.0**
+---
+layout: page
+title: Requirements
+subtitle: THESE HAVE CHANGED AS OF VERSION 2.0
+---
 
 Instead of reinventing the wheel, dDocent relies almost entirely on third party software to complete every step of the 
 analysis pipeline, and users are encouraged to familiarize themselves with several of these programs, especially Rainbow, 
