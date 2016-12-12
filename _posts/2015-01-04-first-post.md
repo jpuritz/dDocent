@@ -1,7 +1,7 @@
 ---
 layout: post
-title: First post!
-tags: [random, exciting-stuff]
+title: Let's call this a beta
+tags: [new, cool beans]
 ---
 
-This is my first post, how exciting!
+Welcome to the revamped dDocent webpage and user guide.  
