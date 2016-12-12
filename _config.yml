@@ -32,7 +32,7 @@ navbar-links:
     - Learn markdown: "http://www.markdowntutorial.com/"
     - GitHub Pages: "https://pages.github.com/"
     - Who needs to understand things first?: "quick start"
-  News: "Blog/blog"
+  News: "blog"
   Code:
     - Download: "downloads"
     - Github: "https://github.com/jpuritz/dDocent"
