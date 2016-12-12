@@ -1,6 +1,10 @@
 ---
+layout: page
+title: What's New!
 ---
-
+<div style="text-align:center">
+  <p style="font-size=x-large; font-weight:bold; font-style:italic;"><a href="tags.html">Tags Used in Posts</a> | <a href="http://www.r-bloggers.com/">R-bloggers</a></p>
+</div>
 
 <div class="posts-list">
   {% for post in paginator.posts %}
@@ -20,10 +24,11 @@
     </p>
 
     <div class="post-entry">
-      {{ post.content | strip_html | xml_escape | truncatewords: 50 }}
+      {{ post.content | strip_html | xml_escape | truncatewords: 30}}
 	  <a href="{{ post.url | prepend: site.baseurl }}" class="post-read-more">[Read&nbsp;More]</a>
     </div>
-  </article>
+
+   </article>
   {% endfor %}
 </div>
 
