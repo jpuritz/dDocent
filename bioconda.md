@@ -42,3 +42,4 @@ Close the environment when you're done:
 
 ```
 source deactivate
+```
