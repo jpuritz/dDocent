@@ -621,6 +621,9 @@ td.gutter {
   padding-top: 3px;
 }
 
+code {
+    white-space: pre;
+}
 /* --- Social media sharing section --- */
 
 #social-share-section {
