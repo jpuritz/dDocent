@@ -97,6 +97,10 @@ img {
   .disqus-comments {
     margin-top: 40px;
   }
+     pre, code {
+    word-wrap:normal;
+  }
+
 }
 
 /* --- Navbar --- */
