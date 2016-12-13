@@ -100,7 +100,7 @@ hr {
           box-sizing: content-box;
 }
 pre {
-  overflow: auto;
+  white-space: pre;
 }
 
 pre code{
@@ -1567,6 +1567,17 @@ pre code {
   white-space: pre;
   background-color: transparent;
   border-radius: 0;
+}
+code {
+  white-space: pre;
+}
+
+pre code{
+  white-space: pre;
+}
+
+code {
+    white-space: pre;
 }
 .pre-scrollable {
   max-height: 340px;
