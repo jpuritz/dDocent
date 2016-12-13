@@ -1,33 +1,38 @@
 ---
 ---
 
-#dDocent Reference Assembly Tutorial
+# dDocent Reference Assembly Tutorial
 Designed by Jon Puritz
 
 **NOTE: You can download the RefTut file from the repository and run this tutorial from the command line**
 
-#GOALS
+# GOALS
 1. To demultiplex samples with process_radtags and rename samples 
 2. To use the methods of dDocent (via rainbow) to assemble reference contigs
 3. To learn how optimize a de novo reference assembly
 
-#Tutorial
+# Tutorial
 *dDocent must be properly installed for this tutorial to work*
 
 
-##Tutorial
+## Tutorial
 *dDocent must be properly installed for this tutorial to work*
 
 Start by downloading a small test dataset
+
 ```
 curl -L -o data.zip https://www.dropbox.com/s/t09xjuudev4de72/data.zip?dl=0
 ```
+
 Let's check that everything went well.
+
 ```bash
 unzip data.zip
 ll
 ```
+
 You should see something like this:
+
 ```
 Archive:  data.zip
   inflating: SimRAD.barcodes         
