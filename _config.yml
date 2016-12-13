@@ -108,7 +108,7 @@ excerpt_length: 50
 
 # Output options (more information on Jekyll's site)
 timezone: "America/NewYork"
-markdown: redcarpet
+markdown: kramdown
 highlighter: rouge
 permalink: /:year-:month-:day-:title/
 # --- Pagination options --- #
