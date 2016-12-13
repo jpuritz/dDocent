@@ -219,7 +219,7 @@ hr {
  */
 
 pre {
-  white-space: pre;
+  white-space: pre; overflow-x: scroll;
 }
 
 /**
@@ -227,11 +227,11 @@ pre {
  */
 
 pre code{
-  white-space: pre;
+  white-space: pre; overflow-x: scroll;
 }
 
 code {
-    white-space: pre;
+    white-space: pre; overflow-x: scroll;
 }
 
 code,
