@@ -118,10 +118,7 @@ Take a look at this simple script
 cat Rename_for_dDocent.sh
 ```
 
-Bash scripts are a wonderful tool to automate simple tasks.  This script begins with an If statement to see if a file was provided as 
-input.  If the file is not it exits and says why.  The file it requires is a two column list with the sample name in the first column 
-and sample barcode in the second column.  The script reads all the names into an array and all the barcodes into a second array, and 
-then gets the length of both arrays.  It then iterates with a for loop the task of renaming the samples.  
+Bash scripts are a wonderful tool to automate simple tasks.  This script begins with an If statement to see if a file was provided as input.  If the file is not it exits and says why.  The file it requires is a two column list with the sample name in the first column and sample barcode in the second column.  The script reads all the names into an array and all the barcodes into a second array, and then gets the length of both arrays.  It then iterates with a for loop the task of renaming the samples.  
 
 Now run the script to rename your samples and take a look at the output
 
@@ -315,7 +312,7 @@ mawk '{c= c + 1; print ">Contig_" c "\n" $1}' totaluniqseq > uniq.fasta
 ```
 This simple script reads the totaluniqseq file line by line and add a sequence header of >Contig X
 
-### At this point, dDocent also checks for reads that have a substantial amount of Illumina adapter in them.  Our data is simulated and does not contain adapter, so we'll skip that step for the time being.###
+### At this point, dDocent also checks for reads that have a substantial amount of Illumina adapter in them. Our data is simulated and does not contain adapter, so we'll skip that step for the time being.
 
 With this, we have created our reduced data set and are ready to start assembling reference contigs.
 
