@@ -612,6 +612,12 @@ td.gutter {
   white-space: pre; overflow-x: scroll;
 }
 
+@media print {
+  pre {
+    white-space: pre-wrap !important;
+  }
+}
+
 /* --- Social media sharing section --- */
 
 #social-share-section {
