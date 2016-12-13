@@ -66,3 +66,17 @@ pre { white-space: pre; overflow: auto; }
 .highlight .vi { color: teal; }
 .highlight .il { color: #009999; }
 .highlight .gc { color: #999; background-color: #EAF2F5; }
+
+.highlight pre code * {
+  white-space: nowrap;    // this sets all children inside to nowrap
+}
+
+.highlight pre {
+  overflow-x: auto;       // this sets the scrolling in x
+}
+
+.highlight pre code {
+  white-space: pre;       // forces <code> to respect <pre> formatting
+}
+
+
