@@ -11,11 +11,6 @@ subtitle: Designed by Jon Puritz
 2. To use the methods of dDocent (via rainbow) to assemble reference contigs
 3. To learn how optimize a de novo reference assembly
 
-# Tutorial
-*dDocent must be properly installed for this tutorial to work*
-
-
-## Tutorial
 *dDocent must be properly installed for this tutorial to work*
 
 Start by downloading a small test dataset
