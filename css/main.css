@@ -606,7 +606,8 @@ td.gutter pre {
   white-space: pre;
 }
 td.code pre {
-  white-space: pre;}
+  white-space: pre;
+}
 td.gutter {
   white-space: pre;
 }
