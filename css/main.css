@@ -52,6 +52,9 @@ hr.small {
   .main-content {
     padding-top: 130px;
   }
+   pre, code {
+    word-wrap:normal;
+  }
 }
 
 .main-explain-area {
