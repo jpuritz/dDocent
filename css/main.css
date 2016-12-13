@@ -592,7 +592,7 @@ pre {
   line-height: 1.5em;
 }
 pre code {
-  white-space: pre;
+  white-space: pre-wrap;
 }
 pre.highlight, .highlight > pre, td.code pre {
   background: #FAFAFA;
