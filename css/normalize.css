@@ -226,6 +226,14 @@ pre {
  * Address odd `em`-unit font size rendering in all browsers.
  */
 
+pre code{
+  white-space: pre;
+}
+
+code {
+    white-space: pre;
+}
+
 code,
 kbd,
 pre,
