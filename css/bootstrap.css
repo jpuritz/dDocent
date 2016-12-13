@@ -100,15 +100,15 @@ hr {
           box-sizing: content-box;
 }
 pre {
-  white-space: pre;
+  white-space: pre;overflow: auto;
 }
 
 pre code{
-  white-space: pre;
+  white-space: pre;overflow: auto;
 }
 
 code {
-    white-space: pre;
+    white-space: pre;overflow: auto;
 }
 
 code,
@@ -1548,17 +1548,19 @@ kbd kbd {
           box-shadow: none;
 }
 pre {
-white-space: pre;
+white-space: pre;overflow: auto;
 }
 pre code {
-white-space: pre;}
+white-space: pre;overflow: auto;
+}
 code {
-  white-space: pre;
+  white-space: pre;overflow: auto;
 }
 
 .pre-scrollable {
   max-height: 340px;
   overflow-y: scroll;
+  overflow-x: scroll;
 }
 .container {
   padding-right: 15px;
