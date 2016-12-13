@@ -102,9 +102,7 @@ hr {
 pre {
   overflow: auto;
 }
-code {
-    white-space: pre;
-}
+code,
 kbd,
 pre,
 samp {
