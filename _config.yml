@@ -118,6 +118,12 @@ paginate_path: "/blog/page:num/"
 kramdown:
   input: GFM
   hard_wrap: false
+  auto_ids: true
+  syntax_highlighter: rouge
+  
+
+
+
 
 # Default YAML values (more information on Jekyll's site)
 defaults:
