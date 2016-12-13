@@ -596,11 +596,11 @@ pre code {
   white-space: pre; overflow: auto;
 }
 pre.highlight, .highlight > pre, td.code pre {
-    white-space: pre; overflow: auto;;
+    white-space: pre; overflow: auto;
 }
 code table, code table td, code table th, code table tbody, code table tr,
 td.gutter pre {
-  white-space: pre;
+  white-space: pre;overflow: auto;
 }
 .highlight > pre {
   white-space: pre; overflow: auto;
