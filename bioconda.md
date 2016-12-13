@@ -12,6 +12,7 @@ subtitle: Using bioconda
 Install Miniconda: http://conda.pydata.org/miniconda.html
 
 Add the bioconda channel:
+
 ```
 conda config --add channels conda-forge
 conda config --add channels defaults
@@ -20,20 +21,24 @@ conda config --add channels bioconda
 ```
 
 Create a dDocent conda environment:
+
 ```
 conda create -n ddocent_env ddocent=2.2.4
 ```
 
 Activate the dDocent environment:
+
 ```
 source activate ddocent_env
 ```
 
 Run dDocent:
+
 ```
 dDocent
 ```
 
 Close the environment when you're done:
+
 ```
 source deactivate
