@@ -28,11 +28,11 @@ navbar-links:
     - Bioconda Install: "bioconda"
     - Manual Install: "manual"
   Tutorials:
-    - Beautiful Jekyll: "http://deanattali.com/beautiful-jekyll/"
-    - Learn markdown: "http://www.markdowntutorial.com/"
-    - GitHub Pages: "https://pages.github.com/"
-    - Who needs to understand things first?: "quick start"
-  Blog: "/blog"
+    - Quick Start Guide: "quick"
+    - Assembly: "assembly"
+    - Read Mapping: "mapping"
+    - SNP Filtering: "filtering"
+  Blog: "blog"
   Code:
     - Download: "downloads"
     - Github: "https://github.com/jpuritz/dDocent"
