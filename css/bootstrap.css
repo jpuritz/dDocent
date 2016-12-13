@@ -104,11 +104,11 @@ pre {
 }
 
 pre code{
-  white-space: pre;overflow: scroll;
+  white-space: pre; overflow-x: scroll;
 }
 
 code {
-    white-space: pre;overflow: scroll;
+    white-space: pre; overflow-x: scroll;
 }
 
 code,
@@ -1548,13 +1548,13 @@ kbd kbd {
           box-shadow: none;
 }
 pre {
-white-space: pre;overflow: scroll;
+white-space: pre; overflow-x: scroll;
 }
 pre code {
-white-space: pre;overflow: scroll;
+white-space: pre; overflow-x: scroll;
 }
 code {
-  white-space: pre;overflow: scroll;
+white-space: pre; overflow-x: scroll;
 }
 
 .pre-scrollable {
