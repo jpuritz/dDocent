@@ -4,17 +4,11 @@
  */
 /* Make code block overflow */
 
-.highlight pre code * {
-  white-space: nowrap;    // this sets all children inside to nowrap
-}
+.highlight pre code * { white-space: nowrap; }
 
-.highlight pre {
-  overflow-x: auto;       // this sets the scrolling in x
-}
+.highlight pre {overflow-x: auto; }
 
-.highlight pre code {
-  white-space: pre;       // forces <code> to respect <pre> formatting
-}
+.highlight pre code {white-space: pre;}
 
 
 
