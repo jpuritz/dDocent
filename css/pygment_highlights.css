@@ -68,9 +68,5 @@
 .highlight .gc { color: #999; background-color: #EAF2F5; }
 
 .highlight pre {
-    word-wrap: normal;
-}
-
-.highlight pre code {
-    white-space: pre;
+  display: inline-block;
 }
