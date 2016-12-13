@@ -1,9 +1,9 @@
 ---
+layout: page
+title: dDocent Reference Assembly Tutorial
+subtitle: Designed by Jon Puritz
 ---
-
-# dDocent Reference Assembly Tutorial
-Designed by Jon Puritz
-
+ 
 **NOTE: You can download the RefTut file from the repository and run this tutorial from the command line**
 
 # GOALS
