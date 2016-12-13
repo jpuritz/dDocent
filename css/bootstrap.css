@@ -102,6 +102,15 @@ hr {
 pre {
   overflow: auto;
 }
+
+pre code{
+  white-space: pre;
+}
+
+code {
+    white-space: pre;
+}
+
 code,
 kbd,
 pre,
@@ -1519,7 +1528,9 @@ code {
   color: #c7254e;
   background-color: #f9f2f4;
   border-radius: 4px;
+  white-space: pre;
 }
+
 kbd {
   padding: 2px 4px;
   font-size: 90%;
