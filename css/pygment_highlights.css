@@ -64,3 +64,5 @@
 .highlight .lineno {color:rgba(0,0,0,0.3);padding: 0 10px;-webkit-user-select: none;-moz-user-select: none; -o-user-select: none;} 
 .lineno::-moz-selection {background-color: transparent;} /* Mozilla specific */
 .lineno::selection {background-color: transparent;} /* Other major browsers */
+
+pre { white-space: pre; overflow: auto; }
