@@ -617,6 +617,7 @@ td.code pre {
   border-style: solid;
   border-color: #444;
   border-radius: 0;
+  white-space: pre;
 }
 td.gutter {
   padding-top: 3px;
@@ -626,6 +627,17 @@ code {
     white-space: pre;
 }
 
+.highlighter-rouge  code * {
+    white-space: nowrap;
+}
+
+.highlighter-rouge pre {
+    overflow-x: auto;
+}
+
+.highlighter-rouge pre code {
+    white-space: pre;
+}
 
 /* --- Social media sharing section --- */
 
