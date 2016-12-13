@@ -312,7 +312,11 @@ mawk '{c= c + 1; print ">Contig_" c "\n" $1}' totaluniqseq > uniq.fasta
 ```
 This simple script reads the totaluniqseq file line by line and add a sequence header of >Contig X
 
-### At this point, dDocent also checks for reads that have a substantial amount of Illumina adapter in them. Our data is simulated and does not contain adapter, so we'll skip that step for the time being.
+#### At this point, dDocent also checks for reads that have a substantial amount of Illumina adapter in them. 
+
+Our data is simulated and does not contain adapter, so we'll skip that step for the time being.
+
+---
 
 With this, we have created our reduced data set and are ready to start assembling reference contigs.
 
