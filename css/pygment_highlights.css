@@ -65,4 +65,3 @@
 .lineno::-moz-selection {background-color: transparent;} /* Mozilla specific */
 .lineno::selection {background-color: transparent;} /* Other major browsers */
 
-pre { white-space: pre; overflow: auto; }
