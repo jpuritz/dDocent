@@ -44,7 +44,9 @@ total 7664
 -rwxr--r--. 1 j.puritz j.puritz     600 Mar  6  2015 SimRAD.barcodes
 -rwxr--r--. 1 j.puritz j.puritz 2574784 Mar  6  2015 SimRAD_R1.fastq.gz
 -rwxr--r--. 1 j.puritz j.puritz 2124644 Mar  6  2015 SimRAD_R2.fastq.gz
--rwxr--r--. 1 j.puritz j.puritz   12272 Mar  6  2015 simRRLs2.py```
+-rwxr--r--. 1 j.puritz j.puritz   12272 Mar  6  2015 simRRLs2.py
+```
+
 The data that we are going to use was simulated using the simRRLs2.py script that I modified from the one published by Deren Eaton.  You can find the original version here (http://dereneaton.com/software/simrrls/).  Basically, the script simulated ddRAD 1000 loci shared across an ancestral population and two extant populations.  Each population had 180,000 individuals, and the two extant 
 population split from the ancestral population 576,000 generations ago and split from each other 288,000 generation ago.  The two populations exchanged 4N*0.001 migrants per generation until about 2,000 generations ago.  4Nu equaled 0.00504 and mutations had a 10% chance of being an INDEL polymorphism.  Finally, reads for each locus were simulated on a per individual basis at a mean of 20X coverage (coming from a normaldistribution with a SD 8) and had an inherent sequencing error rate of 0.001. 
 
@@ -56,8 +58,10 @@ My favorite software for this task is process_radtags from the Stacks package (h
 barcodes (barcodes in the actual sequence), Illumina Index, or any combination of the two.  Check out the manual at this website (http://creskolab.uoregon.edu/stacks/comp/process_radtags.php)
 
 Let's start by making a list of barcodes.  The SimRAD.barcodes file actually has the sample name and barcode listed.  See for yourself.
-```
+
+
 You should see:
+
 ```
 PopA_01 ATGGGG
 PopA_02 GGGTAA
@@ -70,17 +74,21 @@ PopA_08 ATAAGT
 PopA_09 AAGATA
 PopA_10 TGTGAG
 ```
+
 We need to turn this into a list of barcodes.  We can do this easily with the cut command.
+
 ```
 cut -f2 SimRAD.barcodes > barcodes
 ```
 
 Now we have a list of just barcodes.  The cut command let's you select a column of text with the -f (field command).  We used -f2 to get the second column.  
+
 ```
 head barcodes
 ```
 
 Now we can run process_radtags
+
 ```
 process_radtags -1 SimRAD_R1.fastq.gz -2 SimRAD_R2.fastq.gz -b barcodes -e ecoRI --renz_2 mspI -r -i gzfastq
 ```
