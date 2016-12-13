@@ -1,6 +1,6 @@
 ---
 layout: page
-title:  ## Reference Assembly Tutorial
+title:  Reference Assembly Tutorial
 subtitle: Designed by Jon Puritz
 ---
  
