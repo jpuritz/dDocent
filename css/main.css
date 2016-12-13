@@ -590,26 +590,26 @@ table tr td :last-child {
 pre {
   font-size: 16px;
   line-height: 1.5em;
-  white-space: pre;
+  white-space: pre; overflow: auto;
 }
 pre code {
-  white-space: pre;
+  white-space: pre; overflow: auto;
 }
 pre.highlight, .highlight > pre, td.code pre {
-    white-space: pre;
+    white-space: pre; overflow: auto;;
 }
 code table, code table td, code table th, code table tbody, code table tr,
 td.gutter pre {
   white-space: pre;
 }
 .highlight > pre {
-  white-space: pre;
+  white-space: pre; overflow: auto;
 }
 td.code pre {
-  white-space: pre;
+  white-space: pre; overflow: auto;
 }
 td.gutter {
-  white-space: pre;
+  white-space: pre; overflow: auto;
 }
 
 /* --- Social media sharing section --- */
