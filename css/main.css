@@ -601,7 +601,6 @@ pre.highlight, .highlight > pre, td.code pre {
   background-size: 3em 3em;
   background-position: 0px 10px;
   border-left: 7px solid #444;
-  white-space: pre;
 }
 code table, code table td, code table th, code table tbody, code table tr,
 td.gutter pre {
@@ -627,17 +626,6 @@ code {
     white-space: pre;
 }
 
-.highlighter-rouge  code * {
-    white-space: nowrap;
-}
-
-.highlighter-rouge pre {
-    overflow-x: auto;
-}
-
-.highlighter-rouge pre code {
-    white-space: pre;
-}
 
 /* --- Social media sharing section --- */
 
