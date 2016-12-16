@@ -24,8 +24,9 @@ description: A virtual proof that name is awesome!
 # List of links in the navigation bar
 navbar-links:
   Why dDocent?: "why"
-  Tutorials:
+  Documentation:
     - Quick Start Guide: "quick"
+    - Full User Guide: "UserGuide"
     - Assembly: "assembly"
     - SNP Filtering: "filtering"
   Download:
