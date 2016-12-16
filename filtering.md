@@ -11,6 +11,7 @@ subtitle: Learn the principles behind proper filtering
 4. How to decompose a VCF into SNPs and INDELs and
 5. How to use a haplotyping script to further filter SNPs for paralogs and genotyping errors.
 
+***
 
 ### Start of Tutorial
 Welcome to the SNP filtering exercise.  For the first part of the exercise, the filtering steps should work on almost any VCF file.  
@@ -88,15 +89,16 @@ This command will recode genotypes that have less than 3 reads.
 I'll give you a second to take a deep breath.
 Yes, we are keeping genotypes with as few as 3 reads.  We talked about this in the lecture portion of this course, but the short answer is that
 sophisticated multisample variant callers like FreeBayes and GATK can confidently call genotypes with few reads because variants are assessed across all
-samples simultaneously.  So, the genotype is based on three reads AND prior information from all reads from all individuals.  Relax.  We will do plenty
-of other filtering steps!
+samples simultaneously.  So, the genotype is based on three reads AND prior information from all reads from all individuals.  Relax.  We will do plenty of other filtering steps!
 
 Don't believe me do you?  I've made a script to help evaluate the potential errors.
+
 ```bash
 curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/ErrorCount.sh
 chmod +x ErrorCount.sh 
 ./ErrorCount.sh raw.g5mac3dp3.recode.vcf 
 ```
+
 ```bash
 This script counts the number of potential genotyping errors due to low read depth
 It report a low range, based on a 50% binomial probability of observing the second allele in a heterozygote and a high range based on a 25% probability.
@@ -115,10 +117,12 @@ The total SCORCHED EARTH error rate is 0.129149100834.
 Right now, the maximum error rate for our VCF file because of genotypes less than 5 reads is less than 5%.  See, nothing to worry about.
 
 The next step is to get rid of individuals that did not sequence well.  We can do this by assessing individual levels of missing data.
+
 ```bash
 vcftools --vcf raw.g5mac3dp3.recode.vcf --missing-indv
 ```
 This will create an output called out.imiss.  Let's examine it.
+
 ```bash
 cat out.imiss
 ```
@@ -166,6 +170,7 @@ WL_080	78434	0	30076	0.383456
 WL_081	78434	0	30334	0.386746
 ```
 You can see that some individuals have as high as 99.6% missing data.  We definitely want to filter those out.  Let's take a look at a histogram
+
 ```bash
 mawk '!/IN/' out.imiss | cut -f5 > totalmissing
 gnuplot << \EOF 
@@ -182,6 +187,7 @@ plot 'totalmissing' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 pause -1
 EOF
 ```
+
 ```bash
                                        Histogram of % missing data per individual
 Number of Occurrences
@@ -219,18 +225,21 @@ Now we need to create a list of individuals with more than 50% missing data.  An
 
 
 We can use mawk to do it.
+
 ```bash
 mawk '$5 > 0.5' out.imiss | cut -f1 > lowDP.indv
 ```
 Take a moment to think about what this code is doing.
 
 Now that we have a list of individuals to remove, we can feed that directly into VCFtools for filtering.
+
 ```bash
 vcftools --vcf raw.g5mac3dp3.recode.vcf --remove lowDP.indv --recode --recode-INFO-all --out raw.g5mac3dplm
 ```
 As you can see from the output, this removed 9 individuals.  
 
 I've included a script called filter_missing_ind.sh that will automate this process for you in the future.  Try it out.
+
 ```bash
 curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/filter_missing_ind.sh
 chmod +x filter_missing_ind.sh
@@ -240,6 +249,7 @@ The command always follows the structure of filter_missing_ind.sh vcf_to_filter 
 The script prints out a histogram like the one above and also calculates the 85% for missing data.
 Enter "no"
 Now that we have removed poor coverage individuals, we can restrict the data to variants called in a high percentage of individuals and filter by mean depth of genotypes
+
 ```bash
 vcftools --vcf raw.g5mac3dplm.recode.vcf --max-missing 0.95 --maf 0.05 --recode --recode-INFO-all --out DP3g95maf05 --min-meanDP 20
 ```
@@ -249,6 +259,7 @@ This applied a genotype call rate (95%) across all individuals.  With two locali
 You are also going to want to filter by a population specific call rate.  VCFtools won't calculate this directly, but it is an easy workaround.
 First we need a file to define localities (populations).  Most programs want the file to have two tab separated columns.  First with the sample name, second with population assignment.
 I've already made one for this exercise.
+
 ```
 cat popmap
 ```
@@ -295,12 +306,14 @@ WL_080	WL
 WL_081	WL
 ```
 Now we need to create two lists that have just the individual names for each population
+
 ```bash
 mawk '$2 == "BR"' popmap > 1.keep && mawk '$2 == "WL"' popmap > 2.keep
 ```
 The above line demonstrates the use of && to simultaneous execute two tasks.
 
 Next, we use VCFtools to estimate missing data for loci in each population
+
 ```bash
 vcftools --vcf DP3g95maf05.recode.vcf --keep 1.keep --missing-site --out 1
 vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing-site --out 2 
@@ -308,6 +321,7 @@ vcftools --vcf DP3g95maf05.recode.vcf --keep 2.keep --missing-site --out 2
 This will generate files named 1.lmiss and 2.lmiss
 
 They follow this format
+
 ```
 head -3 1.lmiss
 ```
@@ -318,23 +332,28 @@ E1_L101 15      34      0                       0       0
 ```
 I added extra tabs to make this easier to read, but what we are interested in is that last column with is the percentage of missing data for that locus.
 We can combine the two files and make a list of loci about the threshold of 10% missing data to remove.  Note this is double the overall rate of missing data.
+
 ```bash
 cat 1.lmiss 2.lmiss | mawk '!/CHR/' | mawk '$6 > 0.1' | cut -f1,2 >> badloci
 ```
 Who can walk us through that line of code?
 
 We then feed this file back into VCFtools to remove any of the loci
+
 ```bash
 vcftools --vcf DP3g95maf05.recode.vcf --exclude-positions badloci --recode --recode-INFO-all --out DP3g95p5maf05
 ```
+
 Again, we only had two populations so our overall filter caught all of these.  However, this will not be the case in multi-locality studies
 I also have made a script to automate this process as well.  It's called pop_missing_filter.sh
 Executing it with no parameters will give you the usage.
+
 ```bash
 curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/pop_missing_filter.sh
 chmod +x pop_missing_filter.sh
 ./pop_missing_filter.sh
 ```
+
 ```
 Usage is pop_missing_filter vcffile popmap percent_missing_per_pop number_of_pops_for_cutoff name_for_output
 ```
