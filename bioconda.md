@@ -1,12 +1,12 @@
 ---
 layout: page
-title: Install with Bioconda
-subtitle: easy peasy
+title: Bioconda Install
+subtitle: less than 10 lines of code
 ---
 
-# Procedure
+### Procedure
 
-Install Miniconda: http://conda.pydata.org/miniconda.html
+Install Miniconda: [http://conda.pydata.org/miniconda.html](http://conda.pydata.org/miniconda.html)
 
 Add the bioconda channel:
 
