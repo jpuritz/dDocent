@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Downloads
+title: Download Current Release and Manual Install
 subtitle: 
 ---
 
