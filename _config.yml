@@ -27,8 +27,8 @@ navbar-links:
   Documentation:
     - Quick Start Guide: "quick"
     - Full User Guide: "UserGuide"
-    - Assembly: "assembly"
-    - SNP Filtering: "filtering"
+    - Assembly Tutorial: "assembly"
+    - SNP Filtering Tutorial: "filtering"
   Download:
     - Bioconda Download and Install: "bioconda"
     - Current Release and Manual Install: "downloads"
@@ -90,7 +90,7 @@ share-links-active:
 
 # --- Misc --- #
 # Fill in your Disqus shortname (NOT the userid) if you want to support Disqus comments
-#disqus: ""
+disqus: "jpuritz"
 
 # Fill in your Google Analytics ID to track your website using GA
 #google_analytics: ""
