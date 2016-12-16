@@ -1,12 +1,10 @@
 ---
 layout: page
 title: Install with Bioconda
-subtitle: [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ddocent/README.html)
+subtitle: easy peasy
 ---
 
-
-
-### Easy local install 
+# Procedure
 
 Install Miniconda: http://conda.pydata.org/miniconda.html
 
