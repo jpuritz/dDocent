@@ -10,6 +10,8 @@ subtitle: Everything there is to know
 	* [Quality Filtering](#quality-filtering)
 	* [Assembly](#de-novo-assembly)
 	* [Mapping](#read-mapping)
+	* [SNP calling](#snp-calling)
+	* [SNP Filtering](#snp-filtering)
 
 
 # What does dDocent do?
@@ -28,9 +30,15 @@ After the user sets the data cutoff, dDocent removes the extraneous sequence rea
 
 Reads are mapped (aligned to reference sequences) using the MEM algorithm of BWA.  The user can choose to set alternative values for the match score value, mismatch score, and gap opening penalty.  According the the BWA manual, the sequence error rate is approximately: {.75 * exp[-log(4) * B/A]}.  Again, experimentation for finding the optimal values for a particular taxa is recommended.  The default settings are meant for mapping reads to the human genome and are fairly conservative.  BWA outputs SAM files which are then converted to BAM files using SAMtools.
 
+## SNP Calling
 
+dDocent uses a scatter gather technique to speed up SNP/INDEL calling.  In short, reference contigs are split up into a single file for each processing core.  FreeBayes then calls variants for each genomic interval simultaneously (changes to default parameters include setting a minimum mapping and base quality score to PHRED 10). FreeBayes is a Bayesian-based variant detection program that uses assembled haplotype sequences to simultaneously call SNPs, INDELS, multi-nucleotide polymorphisms (MNPs), and complex events (composite insertion and substitution events) from alignment files; FreeBayes has the added benefit for population genomics of using reads across multiple individuals to improve genotyping.  After all instances of FreeBayes finish, raw SNP/INDEL calls are concatenated into a single variant call file (VCF) using VCFtools.
 
+## SNP Filtering
 
+Final SNP data sets will depend on the individual project, so dDocent does only minimal filtering.  Using VCFtools, SNPs are filtered to only those that are called in 90% of all individuals.  They can be found in Final.recode.vcf; however, these are mainly for diagnostic purposes between runs.  VCFtools can be used to filter SNP and INDEL calls using a variety of criteria and it is recommended that users familiarize themselves with the program to produce a truly final call set.
+
+For more ideas on stringent filtering, I recommend checking out the [SNP Filtering Tutorial](/filtering)
 
 
 
