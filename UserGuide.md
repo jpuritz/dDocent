@@ -4,6 +4,38 @@ title: User Guide
 subtitle: Everything there is to know
 ---
 
+# Outline
+
+Basic Principles
+* [What does dDocent do?](#what-does-ddocent-do)
+	* [Quality Filtering](#quality-filtering)
+
+
+# What does dDocent do?
+
+## Quality Filtering
+dDocent first checks that files are named properly and then uses TrimGalore! to remove low quality bases from reads and remove reads that are primarily adapter sequence.  To perfom quality filtering, simple answer “yes” when dDocent asks “Do you want to quality trim your reads?”  After quality filtering has been performed once, it does not need to be performed again.  Files that have a .R1.fq and .R2.fq are the filtered FASTQ files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Running
 If dDocent is installed to your $PATH, change to the data directory and type:
 
@@ -44,6 +76,3 @@ Run:
 ```bash
 dDocent config.file
 ```
-#User Guide
-
-For a detailed user guide please see: http://ddocent.wordpress.com
