@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-##########dDocent 2.2.6##########
+##########dDocent 2.2.7##########
 
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
@@ -8,9 +8,8 @@
 #Pop_Sample1.F.fq and Pop_Sample1.R.fq
 
 #Prints out title and contact info
-echo -e "dDocent 2.2.6 \n"
+echo -e "dDocent 2.2.7 \n"
 echo -e "Contact jpuritz@gmail.com with any problems \n\n "
-
 
 ###Code to check for the required software for dDocent
 
@@ -145,12 +144,18 @@ main(){
 #This code gets input from the user and assigns variables
 ######################################
 
+#Sets a start time variable
+STARTTIME=$(date)
+
+echo "dDocent run started" $STARTTIME
+
+
 #dDocent can now accept a configuration file instead of running interactively
 #Checks if a configuration file is being used, if not asks for user input
 if [ -n "$1" ]; then
 	CONFIG=$1
 	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
-    MAXMemory=$(grep -A1 Memory $CONFIG | tail -1)
+    	MAXMemory=$(grep -A1 Memory $CONFIG | tail -1)
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
 	ATYPE=$(grep -A1 Type $CONFIG | tail -1)
@@ -179,10 +184,6 @@ if [ -n "$1" ]; then
 else
 	GetInfo 
 fi
-
-#Sets a start time variable
-STARTTIME=$(date)
-
 
 #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
 #This functionality is now parallelized and will run if only SE sequences are used.
@@ -865,9 +866,9 @@ fi
 
 #Actually starts program
 if [ -n "$1" ]; then
-	main $1
+	main $1 | tee -a dDocent_main.LOG #Log all output
 else
-	main
+	main | tee -a dDocent_main.LOG  #Log all output
 fi
 
 #Compress Large Leftover files
