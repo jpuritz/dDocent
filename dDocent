@@ -147,7 +147,8 @@ main(){
 #Sets a start time variable
 STARTTIME=$(date)
 
-echo "dDocent run started" $STARTTIME
+
+echo -e "\ndDocent run started" $STARTTIME "\n"
 
 
 #dDocent can now accept a configuration file instead of running interactively
