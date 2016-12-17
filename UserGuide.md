@@ -12,6 +12,8 @@ subtitle: Everything there is to know
 	* [Mapping](#read-mapping)
 	* [SNP calling](#snp-calling)
 	* [SNP Filtering](#snp-filtering)
+* [Getting Started](#getting-started)
+	* [Requirements](#requirements)
 
 
 # What does dDocent do?
@@ -39,6 +41,35 @@ dDocent uses a scatter gather technique to speed up SNP/INDEL calling.  In short
 Final SNP data sets will depend on the individual project, so dDocent does only minimal filtering.  Using VCFtools, SNPs are filtered to only those that are called in 90% of all individuals.  They can be found in Final.recode.vcf; however, these are mainly for diagnostic purposes between runs.  VCFtools can be used to filter SNP and INDEL calls using a variety of criteria and it is recommended that users familiarize themselves with the program to produce a truly final call set.
 
 For more ideas on stringent filtering, I recommend checking out the [SNP Filtering Tutorial](/filtering)
+
+
+# Getting Started
+
+This section of the user guide will walk you through using the pipeline.
+
+## Requirements
+
+After you have dDocent properly installed (see [Bioconda Install](/bioconda) and [Manual Install](/manual)), you need to create a working directory:
+
+```bash
+mkdir my_dDocent_working_dir
+```
+
+In this directory, you need to place **RAW** and **DEMULTIPLEXED** sequencing files.  
+
+**Trimmed reads will fail *de novo* assembly** 
+If performing *de novo* assembly, it's essential that no read trimming or adapter removal has taken place before the dDocent pipeline.  If a reference is being supplied, then trimmed reads may be used.
+
+dDocent requires that sequence files be gzipped FASTQ format and the files **MUST MUST MUST** follow a specific naming convention.File names must contain a locality/population identifier and an individual identifier, and these two identifiers must be separated by a single `_`
+
+For example:
+
+```
+Pop1_Sample1.F.fq.gz Pop1_Sample1.R.fq.gz
+```
+
+Please don't use `_` in either of the identifiers.  
+
 
 
 
