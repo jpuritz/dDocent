@@ -14,6 +14,8 @@ subtitle: Everything there is to know
 	* [SNP Filtering](#snp-filtering)
 * [Getting Started](#getting-started)
 	* [Requirements](#requirements)
+		* [Raw Sequences](#raw-sequences)
+		* [Naming convention](#naming-convention)
 
 
 # What does dDocent do?
@@ -55,11 +57,13 @@ After you have dDocent properly installed (see [Bioconda Install](/bioconda) and
 mkdir my_dDocent_working_dir
 ```
 
+### Raw Sequences
 In this directory, you need to place **RAW** and **DEMULTIPLEXED** sequencing files.  
 
 **Trimmed reads will fail *de novo* assembly** 
 If performing *de novo* assembly, it's essential that no read trimming or adapter removal has taken place before the dDocent pipeline.  If a reference is being supplied, then trimmed reads may be used.
 
+### Naming Convention
 dDocent requires that sequence files be gzipped FASTQ format and the files **MUST MUST MUST** follow a specific naming convention.File names must contain a locality/population identifier and an individual identifier, and these two identifiers must be separated by a single `_`
 
 For example:
