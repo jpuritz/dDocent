@@ -9,7 +9,7 @@ subtitle: Everything there is to know
 * [Basic Principles: What does dDocent do?](#what-does-ddocent-do)
 	* [Quality Filtering](#quality-filtering)
 	* [Assembly](#de-novo-assembly)
-	* [Mapping] (#read-mapping)
+	* [Mapping](#read-mapping)
 
 
 # What does dDocent do?
