@@ -390,9 +390,9 @@ fi
 ##Checking for possible errors
 
 if [ "$MAP" != "no" ]; then
-ERROR1=$(mawk '/developer/' bwa* | wc -l 2>/dev/null) 
+ERROR1=$(mawk '/developer/' bwa* 2>/dev/null | wc -l 2>/dev/null) 
 fi
-ERROR2=$(mawk '/error/' *.bam.log | wc -l 2>/dev/null)
+ERROR2=$(mawk '/error/' *.bam.log 2>/dev/null | wc -l 2>/dev/null)
 ERRORS=$(($ERROR1 + $ERROR2))
 
 #Move various log files to own directory
