@@ -7,6 +7,7 @@ subtitle: Everything there is to know
 # Outline
 
 Basic Principles
+
 * [What does dDocent do?](#what-does-ddocent-do)
 	* [Quality Filtering](#quality-filtering)
 
