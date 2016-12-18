@@ -1,7 +1,7 @@
 ---
 layout: post
 title: New Version of Pipeline **Important note for all previous versions**
-tags: [new, cool beans]
+tags: [From Old Website]
 ---
 
 A never version of the pipeline is now up at the repository.  This version helps with OS X compatibility and provides a workaround for a newly discovered bug in FreeBayes.
