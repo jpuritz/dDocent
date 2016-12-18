@@ -607,6 +607,12 @@ pre code {
 pre.highlight, .highlight > pre, td.code pre {
     white-space: pre; overflow-x: scroll;
 }
+
+code { 
+  color: #050505;
+  background-color: #c4c2c2;
+}
+
 code table, code table td, code table th, code table tbody, code table tr,
 td.gutter pre {
   white-space: pre;overflow-x: scroll;
