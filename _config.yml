@@ -17,7 +17,7 @@ baseurl: ""
 title: dDocent
 
 # Short description of your site
-description: A virtual proof that name is awesome!
+description: a bash pipeline for ddRAD sequencing
 
 # --- Navigation bar options --- #
 
