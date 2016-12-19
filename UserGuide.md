@@ -24,6 +24,11 @@ subtitle: Everything there is to know
 	* [Log Files](#log-files)
 	* [Temporary Files](#temporary-files)
 * [Customization](#Customizing-dDocent)
+	* [Quality Filtering](#read-trimming-customization)
+	* [Assembly](#assembly-customization)
+	* [Read Mapping](#read-mapping-customization)
+	* [SNP Calling](#snp/indel-calling-customization)
+	* [VCF Filtering](#vcf-filtering-customization)
 
 ---
 
@@ -416,9 +421,6 @@ dDocent will output several different files as part of the pipeline.
 
 ### Data outputs
 
-<br>
-<br />
-
 #### TotalRawSNPs.vcf
 This file, in the standard Variant Call Format, has the raw SNP, INDEL, MNP, and complex variant calls for every individual.  This is the file that will be used for further filtering (see VCFtools or vcflib) to produce the final data set.  It is important to note that FreeBayes combines SNP and INDEL calls that are in within a default 3bp window into haplotype calls of the complex variant calls.  To properly look at SNPs only, complex variants need to be decomposed with vcfallelicprimatives from the vcflib package (https://github.com/ekg/vcflib) and then INDELs can be filtered with VCFtools or vcflib.  See the [SNP Filtering Tutorial](/filtering) for more information on SNP filtering.
 
@@ -439,9 +441,6 @@ This file is a tab delimited file the level of coverage in the first column and 
 
 
 ### Log files
-
-<br>
-<br />
 
 #### dDocent_main.LOG
 This file captures all terminal output during the `dDocent` run and will be your goto file if you encounter any problems with `dDocent`
@@ -498,44 +497,38 @@ This file captures simply the run configuration parameters for every `dDocent` r
 |xxx.\*| files used during read clustering during assembly|
 
 
-
-
-
-
 For information on the other outputs, refer to the code comments in the dDocent file.  
 
-Customizing dDocent:
+---
+
+## Customizing dDocent
 
 Further customization of the pipeline can be achieved by modifying the script directly.  Any text editor can be used.  Below is a guide on how to modify specific sections of code:
 
-Read Trimming:
+### Read Trimming Customization
+By default, dDocent looks for Illumina TruSeq adapters and trims off basepairs with a quality score less than 20.  Both `BWA` and `FreeBayes` take base quality scores into account, so excessive trimming is not necessary nor recommended.  To modify this find line [458](https://github.com/jpuritz/dDocent/blob/master/dDocent#L458).  
 
-By default, dDocent looks for Illumina TruSeq adapters and trims off basepairs with a quality score less than 10.  Both BWA and FreeBayes take base quality scores into account, so excessive trimming is not necessary nor recommended.  To modify this find line 351.  Settings can be modified with the following parameters:
+Visit the Trimmomatic [website](http://www.usadellab.org/cms/?page=trimmomatic) for more information on settings.
 
--a          first read adapter sequence
+### Assembly Customization
 
--a2        second read adapter sequence
+Settings for `Rainbow` can be modified on lines [629](https://github.com/jpuritz/dDocent/blob/master/dDocent#L629) and [630](https://github.com/jpuritz/dDocent/blob/master/dDocent#L630).  Please see the `Rainbow` [documentation](https://sourceforge.net/projects/bio-rainbow/files/) for more information.  
 
--q         quality score for trimming
+### Read Mapping Customization
 
-Visit the trim galore website (http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) for more information on settings.
+Through the command line interface, `dDocent` users already are able to customize several read mapping parameters for BWA.  BWA does have additional options that can be added to line [267](https://github.com/jpuritz/dDocent/blob/master/dDocent#L267) for PE data with a `dDocent` made reference, line [[269](https://github.com/jpuritz/dDocent/blob/master/dDocent#L269) for SE data with a `dDocent` made reference,  line [[279](https://github.com/jpuritz/dDocent/blob/master/dDocent#L279)for PE data with a user supplied reference, and line [[281](https://github.com/jpuritz/dDocent/blob/master/dDocent#L281) for SE data with a user supplied reference.
 
-Assembly:
+If using `dDocent` for something other than RADseq, it may be advisable to remove the high clipping penalties (`-L` parameter) in all lines above as well as the `mawk` code that removes heavily clipped reads (`mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' `).
 
-By default, dDocent only alters one parameter from the defaults of rainbow for assembly, and that is to change the maximum number of mismatches to cluster reads together for assembly from 4 to 6.  This setting appears to work well with polymorphic marine species.  Users can change this value on line 506 by changing the number after the -m parameter.  Other parameters can be fine tuned in rainbow if necessary on lines 507 and 508.  Please see the rainbow documentation and paper for more information about fine tuning the assembly.
-
-Read mapping:
-
-Through the command line interface, dDocent users already are able to customize several read mapping parameters for BWA.  BWA does have additional options that can be added to line 237  and line 506 (Changes need to be made to both), though they shouldn't be necessary for most circumstances.  Please consult the BWA manual for more information.
-
-SNP/INDEL calling:
+### SNP/INDEL Calling Customization
 
 FreeBayes is a highly customizable variant calling program and can be adapted to many different needs.  To see all the different possible options of FreeBayes, simply type:
 
-freebayes -h
+`freebayes -h`
 
 This brings up the FreeBayes help menu that lists and explains all options.  Options that may be of interest are listed below:
 
+```
 --populations FILE     If you are expecting your data to be highly structured, you may consider using this option.  FreeBayes does do some population specific calculations for heterozygosity levels and mutation rates.  This allows you to partition the population model.  To do this, you must supply a file that lists the sample and it's population.  Note, you should only use this is you have a strong a priori reason to expect substantial population structure.
 
 -E      This parameter affects how haplotypes are called in the VCF file.  The default value is 3, meaning that variants within 3 bp of each other will be called as a single contiguous haplotype.   This represents the highest tradeoff between haplotype length and sensitivity.  See this discussion for more information.
@@ -545,9 +538,10 @@ This brings up the FreeBayes help menu that lists and explains all options.  Opt
 -q      This sets the minimum base quality score for a bp to be used for genotyping.  By default, dDocent sets this to PHRED 10 (or 90% probability of being true).
 
 -V     This parameter tells FreeBayes to ignore read placement bias and strand bias in the calculation of SNP site quality scores.  By default, dDocent leaves this parameter in because it, at worst, conservatively biases quality scores.  However, this may be too conservative because one would expect extreme strand bias in RAD sequencing.
+```
 
-To customize FreeBayes these parameters can be changed or altered on lines 287  and 297 (These lines of code must be identical).
+To customize FreeBayes these parameters can be changed or altered on line [355](https://github.com/jpuritz/dDocent/blob/master/dDocent#L355)
 
-VCF Filtering:
+### VCF Filtering Customization
 
-To customize the basic VCF filtering performed by dDocent, simply edit line 317. Please see the VCFtools documentation for a list of options.
+To customize the basic VCF filtering performed by dDocent, simply edit line [387](https://github.com/jpuritz/dDocent/blob/master/dDocent#L387). Please see the `VCFtools` [documentation](https://vcftools.github.io/examples.html) for a list of options.
