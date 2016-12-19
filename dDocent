@@ -758,7 +758,7 @@ read TRIM
 #Asks if user wants to perform an assembly.  This allows this part of the pipeline to be skipped during subsequent analyses
 
 echo -e "\nDo you want to perform an assembly?"
-echo "Type yes or no and press [ENTER]?"
+echo "Type yes or no and press [ENTER]."
 
 read ASSEMBLY
 
