@@ -30,6 +30,8 @@ subtitle: Everything there is to know
 	* [SNP Calling](#snp-calling-customization)
 	* [VCF Filtering](#vcf-filtering-customization)
 * [Citing dDocent](#citing-ddocent)
+* [Papers using dDocent](#papers-using-ddocent)
+
 ---
 
 # What does dDocent do?
@@ -554,6 +556,12 @@ To customize the basic VCF filtering performed by dDocent, simply edit line [387
 
 If you found this pipleine useful, please cite the following papers:
 
-Puritz, J. B., Hollenbeck, C. M., Gold, J. R.  dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms. PeerJ 2:e431 [LINK](http://dx.doi.org/10.7717/peerj.431)
+**Puritz, J. B., Hollenbeck, C. M., Gold, J. R.  dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms. PeerJ 2:e431** [LINK](http://dx.doi.org/10.7717/peerj.431)
 
-Puritz, J.B., Matz, M. V., Toonen, R. J., Weber, J. N., Bolnick, D. I., Bird, C. E. Comment: Demystifying the RAD fad.  Molecular Ecology 23: 5937–5942. doi: 10.1111/mec.12965 [LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.12965/abstract)
+**Puritz, J.B., Matz, M. V., Toonen, R. J., Weber, J. N., Bolnick, D. I., Bird, C. E. Comment: Demystifying the RAD fad.  Molecular Ecology 23: 5937–5942. doi: 10.1111/mec.12965** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.12965/abstract)
+
+## Papers Using dDocent
+
+**Puritz, J. B., Portnoy, D. S., Gold, J. R.  Fine-scale partitoning of genomic variation among recruits in an exploited fishery: causes and consequences.  Scientific Reports. DOI: 10.1038/srep36095** [LINK](http://www.nature.com/articles/srep36095)
+
+**Portnoy, D. S., Puritz, J. B., Hollenbeck, C. M., Gelsleichter, J., Chapman, D., Gold, J. R.  Selection and sex-biased dispersal in a coastal shark: the influence of philopatry on adaptive variation. Molecular Ecology 24: 5877–5885. doi: 10.1111/mec.13441**
