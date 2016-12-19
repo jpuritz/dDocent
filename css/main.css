@@ -224,7 +224,9 @@ img {
   .navbar-custom .nav .navlinks-container.show-children .navlinks-children {
     display: block;
   }  
-
+  .navbar-custom .avatar-container {
+  margin-top: -50px;
+  }
 }
 @media only screen and (min-width: 768px) {
   .navbar-custom .nav .navlinks-container {
@@ -270,7 +272,7 @@ img {
   }
  .navbar-custom .avatar-container {
   width: 100px;
-  margin-top: -10px;
+  margin-top: -20px;
   }
 }
 /* --- Footer --- */
