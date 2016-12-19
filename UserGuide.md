@@ -24,13 +24,19 @@ subtitle: Everything there is to know
 
 # What does dDocent do?
 
+
+
 ## Quality Filtering
 `dDocent` takes a minimalistic apporach to quality filtering, using the program [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic).  Low quality bases (below quality score of 20) are removed from the begining and end of reads, and an addiitional sliding 5bp window that will trim bases when the average qualtiy score drops below 10.  Additionally, Illumina adapters are detected and removed.  After quality filtering has been performed once, it does not need to be performed again.  Files that have a .R1.fq and .R2.fq are the filtered FASTQ files.  In theory, even more liberal parameters could be used because both read mapping and SNP calling incorporate base quality in evaluation.  
+
+---
 
 ## *De Novo* Assembly
 `dDocent` now has multiple different assembly algorithms for differing RADseq data types.  The `PE` option is for Paired-End  (PE) RADseq data that does not have a random shearing step (ddRAD and ezRAD).  The `RPE` option is for PE data that comes from the original RAD method with a random shearing step.  The `OL` alogrithm is PE data where the read length is long compared to the targeted insert and substantial overlap between forward and reverse reads are expect.  The `SE` algorithm can handle any type of RADseq methodology using single-end (SE) sequencing. 
 
 ![alt text](/ddassembly.png)
+
+---
 
 ### Data Reduction
 For all assembly methods, `dDocent` uses a novel data reduction approach to help ensure accuracy.  For PE methods, all reads are concatenated into single forward and reverse FASTA files, and for the SE method, only forward reads are used.  From here, the complete set of unique reads (loci) are tabulated, along with the number of occurrences of each unique sequence. Reads that do not have a high number of occurrences are likely to be either sequence errors or polymorphisms that are shared by only a few individuals.  This distribution usually follows the asymptotic relationship seen in the figure below:
@@ -59,13 +65,19 @@ For the `SE` method, the reduced data set is clustered based on overall sequence
 
 Alternatively, *de novo* assembly can be skipped and the user can provide a fasta file with reference sequences.  This file needs to be simply named `reference.fasta`
 
+---
+
 ## Read Mapping
 
 Reads are mapped (aligned to reference sequences) using the MEM algorithm of BWA.  The user can choose to set alternative values for the match score value, mismatch score, and gap opening penalty.  According the the BWA manual, the sequence error rate is approximately: `{.75 * exp[-log(4) * B/A]}`.  Again, experimentation for finding the optimal values for a particular taxa is recommended.  The default settings are meant for mapping reads to the human genome and are fairly conservative.  BWA outputs SAM files which are then converted to BAM files using SAMtools.
 
+---
+
 ## SNP Calling
 
 dDocent uses a scatter gather technique to speed up SNP/INDEL calling.  In short, reference contigs are split up into a single file for each processing core.  [FreeBayes](https://github.com/ekg/freebayes) then calls variants for each genomic interval simultaneously (changes to default parameters include setting a minimum mapping and base quality score to PHRED 10). FreeBayes is a Bayesian-based variant detection program that uses assembled haplotype sequences to simultaneously call SNPs, INDELS, multi-nucleotide polymorphisms (MNPs), and complex events (composite insertion and substitution events) from alignment files; FreeBayes has the added benefit for population genomics of using reads across multiple individuals to improve genotyping.  After all instances of FreeBayes finish, raw SNP/INDEL calls are concatenated into a single variant call file (VCF) using VCFtools.
+
+---
 
 ## SNP Filtering
 
