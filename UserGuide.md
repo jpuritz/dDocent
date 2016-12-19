@@ -5,6 +5,7 @@ subtitle: Everything there is to know
 ---
 
 # Outline
+---
 
 * [Basic Principles: What does dDocent do?](#what-does-ddocent-do)
 	* [Quality Filtering](#quality-filtering)
@@ -18,7 +19,7 @@ subtitle: Everything there is to know
 		* [Naming convention](#naming-convention)
 	* [Running](#running-dDocent)
 * [Customization](#Customizing-dDocent)
-
+---
 # What does dDocent do?
 
 ## Quality Filtering
