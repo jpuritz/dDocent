@@ -29,6 +29,8 @@ navbar-links:
     - Full User Guide: "UserGuide"
     - Assembly Tutorial: "assembly"
     - SNP Filtering Tutorial: "filtering"
+    - Citing dDocent: "citing"
+    - Papers using dDocent: "using"
   Download:
     - Bioconda Download and Install: "bioconda"
     - Current Release and Manual Install: "downloads"
