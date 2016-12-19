@@ -224,10 +224,6 @@ img {
   .navbar-custom .nav .navlinks-container.show-children .navlinks-children {
     display: block;
   }  
-  .navbar-custom .avatar-container {
-  width: 100px;
-  margin-top: -5px;
-  }
 
 }
 @media only screen and (min-width: 768px) {
