@@ -4,7 +4,7 @@ title: How to Cite dDocent
 subtitle: Pretty please!
 ---
 
-#### If you found this pipleine useful, please cite the following papers:
+If you found this pipleine useful, please cite the following papers:
 
 **Puritz, J. B., Hollenbeck, C. M., Gold, J. R.  dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms. PeerJ 2:e431** [LINK](http://dx.doi.org/10.7717/peerj.431)
 
