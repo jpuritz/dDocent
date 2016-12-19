@@ -455,7 +455,7 @@ footer .theme-by {
 }
 @media only screen and (min-width: 768px) {
   .intro-header {
-    margin-top: 130px;
+    margin-top: 160px;
   }
   .intro-header.big-img {
     margin-top: 91px;  /* Full navbar is small navbar + 20px padding on each side when expanded */
@@ -475,6 +475,27 @@ footer .theme-by {
   }
 }
 
+@media only screen and (min-width: 992px) {
+  .intro-header {
+    margin-top: 130px;
+  }
+  .intro-header.big-img {
+    margin-top: 91px;  /* Full navbar is small navbar + 20px padding on each side when expanded */
+  }	
+  .intro-header.big-img .page-heading,
+  .intro-header.big-img .post-heading  {
+    padding: 150px 0;
+  }  
+  .intro-header .page-heading h1 {
+    font-size: 70px;
+  }
+  .intro-header .post-heading h1 {
+    font-size: 50px;
+  }
+  .intro-header.big-img .img-desc {
+    font-size: 14px;
+  }
+}
 .header-section.has-img .no-img {
   margin-top: 0;
   background: #FCFCFC;
