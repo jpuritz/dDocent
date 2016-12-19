@@ -225,7 +225,7 @@ img {
     display: block;
   }  
   .navbar-custom .avatar-container {
-  margin-top: -50px;
+  margin-top: -40px;
   }
 }
 @media only screen and (min-width: 768px) {
@@ -572,6 +572,13 @@ footer .theme-by {
   .intro-header.big-img {
     height: 200px;
   }
+  .intro-header .page-heading h1 {
+  font-size: 70px;
+  }
+  .intro-header .post-heading h1 {
+  font-size: 50px;
+  }
+
 }
 
 .caption {
