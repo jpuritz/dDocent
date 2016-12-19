@@ -29,9 +29,7 @@ subtitle: Everything there is to know
 	* [Read Mapping](#read-mapping-customization)
 	* [SNP Calling](#snp-calling-customization)
 	* [VCF Filtering](#vcf-filtering-customization)
-* [Citing dDocent](#citing-ddocent)
-* [Papers using dDocent](#papers-using-ddocent)
-
+	
 ---
 
 # What does dDocent do?
@@ -553,23 +551,4 @@ To customize FreeBayes these parameters can be changed or altered on line [355](
 To customize the basic VCF filtering performed by dDocent, simply edit line [387](https://github.com/jpuritz/dDocent/blob/master/dDocent#L387). Please see the `VCFtools` [documentation](https://vcftools.github.io/examples.html) for a list of options.
 
 ---
-
-## Citing dDocent
-
-If you found this pipleine useful, please cite the following papers:
-
-**Puritz, J. B., Hollenbeck, C. M., Gold, J. R.  dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms. PeerJ 2:e431** [LINK](http://dx.doi.org/10.7717/peerj.431)
-
-**Puritz, J.B., Matz, M. V., Toonen, R. J., Weber, J. N., Bolnick, D. I., Bird, C. E. Comment: Demystifying the RAD fad.  Molecular Ecology 23: 5937–5942. doi: 10.1111/mec.12965** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.12965/abstract)
-
----
-
-## Papers Using dDocent
-
-**Puritz, J. B., Portnoy, D. S., Gold, J. R.  Fine-scale partitoning of genomic variation among recruits in an exploited fishery: causes and consequences.  Scientific Reports. DOI: 10.1038/srep36095** [LINK](http://www.nature.com/articles/srep36095)
-
-**Portnoy, D. S., Puritz, J. B., Hollenbeck, C. M., Gelsleichter, J., Chapman, D., Gold, J. R.  Selection and sex-biased dispersal in a coastal shark: the influence of philopatry on adaptive variation. Molecular Ecology 24: 5877–5885. doi: 10.1111/mec.13441** [LINK](https://www.researchgate.net/publication/283448154_Selection_and_sex-biased_dispersal_in_a_coastal_shark_The_influence_of_philopatry_on_adaptive_variation)
-
-**Brauer, C. J., Hammer, M. P., Beheregaray L. B. "Riverscape genomics of a threatened fish across a hydroclimatically heterogeneous river basin." Molecular Ecology 25.20 (2016): 5093-5113.** [LINK](http://www.molecularecology.flinders.edu.au/uploads/54834/ufiles/pdf/167_SPP_ME.pdf)
-
 
