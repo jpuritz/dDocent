@@ -535,7 +535,7 @@ rm pfile
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale
-set xrange [1:10] 
+set xrange [2:20] 
 unset label
 set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
 set xlabel "Coverage"
