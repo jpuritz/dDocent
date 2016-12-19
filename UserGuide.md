@@ -32,6 +32,7 @@ subtitle: Everything there is to know
 
 ![alt text](/ddassembly.png)
 
+### Data Reduction
 For all assembly methods, `dDocent` uses a novel data reduction approach to help ensure accuracy.  For PE methods, all reads are concatenated into single forward and reverse FASTA files, and for the SE method, only forward reads are used.  From here, the complete set of unique reads (loci) are tabulated, along with the number of occurrences of each unique sequence. Reads that do not have a high number of occurrences are likely to be either sequence errors or polymorphisms that are shared by only a few individuals.  This distribution usually follows the asymptotic relationship seen in the figure below:
 
 ![alt text](/k1.png)
@@ -44,7 +45,17 @@ After the first cutoff is chosen, `dDocent` then tabulates the remaining unique 
 
 Using the two cutoffs greatly simplifies the data and allows for much more accurate assembly.
 
-After data cutoffs are chosen, the `PE` and `RPE` methods go through a hybrid assembly method that combines the utlitiy of alignment-based read clustering via [CD-HIT](http://weizhongli-lab.org/cd-hit/download.php) with the RAD specific assembly program [Rainbow](https://sourceforge.net/projects/bio-rainbow/files/).  First, reads are clustered using only the forward reads with `CD-HIT` and `dDocent` converts the output to be ported directly into `Rainbow`.  `Rainbow` recursively divids clusters based on reverse reads into groups representing single alleles.  Reads in merged contigs are then assembled using a greedy algorithm.  `dDocent` then chooses the most frequent or longest contig as the representative reference sequence for that contig.  If the forward read does not overlap with the reverse read (almost always the case with ddRAD), the forward read is pasted to the reverse read with a ten N basepairs as padding.  `dDocent` then ports the forward and reverse parts of each contig into the program `PEAR` to again check for substantial overal between forward and reverse reads.  Finally, reference sequences are clustered based on overall sequence similarity using `CD-HIT`.  
+### PE and RPE methods
+After data cutoffs are chosen, the `PE` and `RPE` methods go through a hybrid assembly method that combines the utlitiy of alignment-based read clustering via [CD-HIT](http://weizhongli-lab.org/cd-hit/download.php) with the RAD specific assembly program [Rainbow](https://sourceforge.net/projects/bio-rainbow/files/).  First, reads are clustered using only the forward reads with `CD-HIT` and `dDocent` converts the output to be ported directly into `Rainbow`.  `Rainbow` recursively divids clusters based on reverse reads into groups representing single alleles.  Reads in merged contigs are then assembled using a greedy algorithm.  `dDocent` then chooses the most frequent or longest contig as the representative reference sequence for that contig.  If the forward read does not overlap with the reverse read (almost always the case with ddRAD), the forward read is pasted to the reverse read with a ten N basepairs as padding.  `dDocent` then ports the forward and reverse parts of each contig into the program [PEAR](http://sco.h-its.org/exelixis/web/software/pear/) to again check for substantial overal between forward and reverse reads.  Finally, reference sequences are clustered based on overall sequence similarity using `CD-HIT`.  
+
+### OL method
+For the `OL` method, the reduced data set is input into `PEAR` to merge overlapping forward and reverse reads.  Merged reads are then clustered based on overall sequence similarity using `CD-HIT`. 
+
+### SE method
+
+For the `SE` method, the reduced data set is clustered based on overall sequence similarity using `CD-HIT`. 
+
+### User supplied reference
 
 Alternatively, *de novo* assembly can be skipped and the user can provide a fasta file with reference sequences.  This file needs to be simply named `reference.fasta`
 
@@ -62,6 +73,8 @@ Final SNP data sets will depend on the individual project, so dDocent does only 
 
 The dDocent package includes various scripts for more advanced SNP filtering.  A thorough tutorial can be found in [SNP Filtering Tutorial](/filtering).
 
+
+---
 
 # Getting Started
 
