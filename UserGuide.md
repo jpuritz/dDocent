@@ -29,7 +29,8 @@ subtitle: Everything there is to know
 
 # What does dDocent do?
 
-
+<br>
+<br />
 
 ## Quality Filtering
 `dDocent` takes a minimalistic apporach to quality filtering, using the program [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic).  Low quality bases (below quality score of 20) are removed from the begining and end of reads, and an addiitional sliding 5bp window that will trim bases when the average qualtiy score drops below 10.  Additionally, Illumina adapters are detected and removed.  After quality filtering has been performed once, it does not need to be performed again.  Files that have a .R1.fq and .R2.fq are the filtered FASTQ files.  In theory, even more liberal parameters could be used because both read mapping and SNP calling incorporate base quality in evaluation.  
