@@ -38,12 +38,12 @@ subtitle: Everything there is to know
 <br />
 
 ## Quality Filtering
-`dDocent` takes a minimalistic apporach to quality filtering, using the program [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic).  Low quality bases (below quality score of 20) are removed from the begining and end of reads, and an addiitional sliding 5bp window that will trim bases when the average qualtiy score drops below 10.  Additionally, Illumina adapters are detected and removed.  After quality filtering has been performed once, it does not need to be performed again.  Files that have a .R1.fq and .R2.fq are the filtered FASTQ files.  In theory, even more liberal parameters could be used because both read mapping and SNP calling incorporate base quality in evaluation.  
+`dDocent` takes a minimalistic approach to quality filtering, using the program [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic).  Low quality bases (below quality score of 20) are removed from the beginning and end of reads, and an additional sliding 5bp window that will trim bases when the average quality score drops below 10.  Additionally, Illumina adapters are detected and removed.  After quality filtering has been performed once, it does not need to be performed again.  Files that have a .R1.fq and .R2.fq are the filtered FASTQ files.  In theory, even more liberal parameters could be used because both read mapping and SNP calling incorporate base quality in evaluation.  
 
 ---
 
 ## *De Novo* Assembly
-`dDocent` now has multiple different assembly algorithms for differing RADseq data types.  The `PE` option is for Paired-End  (PE) RADseq data that does not have a random shearing step (ddRAD and ezRAD).  The `RPE` option is for PE data that comes from the original RAD method with a random shearing step.  The `OL` alogrithm is PE data where the read length is long compared to the targeted insert and substantial overlap between forward and reverse reads are expect.  The `SE` algorithm can handle any type of RADseq methodology using single-end (SE) sequencing. 
+`dDocent` now has multiple different assembly algorithms for differing RADseq data types.  The `PE` option is for Paired-End  (PE) RADseq data that does not have a random shearing step (ddRAD and ezRAD).  The `RPE` option is for PE data that comes from the original RAD method with a random shearing step.  The `OL` algorithm is PE data where the read length is long compared to the targeted insert and substantial overlap between forward and reverse reads are expect.  The `SE` algorithm can handle any type of RADseq methodology using single-end (SE) sequencing. 
 
 ![alt text](/ddassembly.png)
 
@@ -54,16 +54,16 @@ For all assembly methods, `dDocent` uses a novel data reduction approach to help
 
 ![alt text](/k1.png)
 
-Where there are a large proportion of reads that only have one or two occurences, meaning they will not likely be informative on the population scale.  Even if a locus was polymorphic to the point that it was unique to the individual, one can expect that one unique allele would be present at least the level of coverage expected from the sequencing strategy, for example 10X or 20X coverage.  This is where we expect to see the slope of the distribution even out.  Experimentation for the best value will be needed for each taxa.  Set the cutoff too low, and extraneous reads will be included further down the pipeline and eat up valuable computational time and make it more likely that sequencing errors are included in the data.  Set the cutoff too high, and usuable polymorphic loci may be excluded from subsequent analyses.  
+Where there are a large proportion of reads that only have one or two occurrences, meaning they will not likely be informative on the population scale.  Even if a locus was polymorphic to the point that it was unique to the individual, one can expect that one unique allele would be present at least the level of coverage expected from the sequencing strategy, for example 10X or 20X coverage.  This is where we expect to see the slope of the distribution even out.  Experimentation for the best value will be needed for each taxa.  Set the cutoff too low, and extraneous reads will be included further down the pipeline and eat up valuable computational time and make it more likely that sequencing errors are included in the data.  Set the cutoff too high, and usable polymorphic loci may be excluded from subsequent analyses.  
 
-After the first cutoff is chosen, `dDocent` then tabulates the remaining unique reads across individuals.  The user again can input a cutoff value removing unique reads that appear in only a few individuals.  To illustrate the ultilty of this take a look at the haplotype networks from a simulated RAD locus.
+After the first cutoff is chosen, `dDocent` then tabulates the remaining unique reads across individuals.  The user again can input a cutoff value removing unique reads that appear in only a few individuals.  To illustrate the utility of this take a look at the haplotype networks from a simulated RAD locus.
 
 ![alt text](/k2.png)
 
 Using the two cutoffs greatly simplifies the data and allows for much more accurate assembly.
 
 ### PE and RPE methods
-After data cutoffs are chosen, the `PE` and `RPE` methods go through a hybrid assembly method that combines the utlitiy of alignment-based read clustering via [CD-HIT](http://weizhongli-lab.org/cd-hit/download.php) with the RAD specific assembly program [Rainbow](https://sourceforge.net/projects/bio-rainbow/files/).  First, reads are clustered using only the forward reads with `CD-HIT` and `dDocent` converts the output to be ported directly into `Rainbow`.  `Rainbow` recursively divids clusters based on reverse reads into groups representing single alleles.  Reads in merged contigs are then assembled using a greedy algorithm.  `dDocent` then chooses the most frequent or longest contig as the representative reference sequence for that contig.  If the forward read does not overlap with the reverse read (almost always the case with ddRAD), the forward read is pasted to the reverse read with a ten N basepairs as padding.  `dDocent` then ports the forward and reverse parts of each contig into the program [PEAR](http://sco.h-its.org/exelixis/web/software/pear/) to again check for substantial overal between forward and reverse reads.  Finally, reference sequences are clustered based on overall sequence similarity using `CD-HIT`.  
+After data cutoffs are chosen, the `PE` and `RPE` methods go through a hybrid assembly method that combines the utility of alignment-based read clustering via [CD-HIT](http://weizhongli-lab.org/cd-hit/download.php) with the RAD specific assembly program [Rainbow](https://sourceforge.net/projects/bio-rainbow/files/).  First, reads are clustered using only the forward reads with `CD-HIT` and `dDocent` converts the output to be ported directly into `Rainbow`.  `Rainbow` recursively divids clusters based on reverse reads into groups representing single alleles.  Reads in merged contigs are then assembled using a greedy algorithm.  `dDocent` then chooses the most frequent or longest contig as the representative reference sequence for that contig.  If the forward read does not overlap with the reverse read (almost always the case with ddRAD), the forward read is pasted to the reverse read with a ten N basepairs as padding.  `dDocent` then ports the forward and reverse parts of each contig into the program [PEAR](http://sco.h-its.org/exelixis/web/software/pear/) to again check for substantial overal between forward and reverse reads.  Finally, reference sequences are clustered based on overall sequence similarity using `CD-HIT`.  
 
 ### OL method
 For the `OL` method, the reduced data set is input into `PEAR` to merge overlapping forward and reverse reads.  Merged reads are then clustered based on overall sequence similarity using `CD-HIT`. 
@@ -80,19 +80,19 @@ Alternatively, *de novo* assembly can be skipped and the user can provide a fast
 
 ## Read Mapping
 
-Reads are mapped (aligned to reference sequences) using the MEM algorithm of BWA.  The user can choose to set alternative values for the match score value, mismatch score, and gap opening penalty.  According the the BWA manual, the sequence error rate is approximately: `{.75 * exp[-log(4) * B/A]}`.  Again, experimentation for finding the optimal values for a particular taxa is recommended.  The default settings are meant for mapping reads to the human genome and are fairly conservative.  BWA outputs SAM files which are then converted to BAM files using SAMtools.
+Reads are mapped (aligned to reference sequences) using the MEM algorithm of BWA.  The user can choose to set alternative values for the match score value, mismatch score, and gap opening penalty.  According the the BWA manual, the sequence error rate is approximately: `{.75 * exp[-log(4) * B/A]}`.  Again, experimentation for finding the optimal values for a particular taxa is recommended.  The default settings are meant for mapping reads to the human genome and are fairly conservative.  `BWA` outputs SAM files which are then converted to BAM files using `SAMtools`.
 
 ---
 
 ## SNP Calling
 
-dDocent uses a scatter gather technique to speed up SNP/INDEL calling.  In short, reference contigs are split up into a single file for each processing core.  [FreeBayes](https://github.com/ekg/freebayes) then calls variants for each genomic interval simultaneously (changes to default parameters include setting a minimum mapping and base quality score to PHRED 10). FreeBayes is a Bayesian-based variant detection program that uses assembled haplotype sequences to simultaneously call SNPs, INDELS, multi-nucleotide polymorphisms (MNPs), and complex events (composite insertion and substitution events) from alignment files; FreeBayes has the added benefit for population genomics of using reads across multiple individuals to improve genotyping.  After all instances of FreeBayes finish, raw SNP/INDEL calls are concatenated into a single variant call file (VCF) using VCFtools.
+`dDocent` uses a scatter gather technique to speed up SNP/INDEL calling.  In short, reference contigs are split up into a single file for each processing core.  [FreeBayes](https://github.com/ekg/freebayes) then calls variants for each genomic interval simultaneously (changes to default parameters include setting a minimum mapping and base quality score to PHRED 10). FreeBayes is a Bayesian-based variant detection program that uses assembled haplotype sequences to simultaneously call SNPs, INDELS, multi-nucleotide polymorphisms (MNPs), and complex events (composite insertion and substitution events) from alignment files; FreeBayes has the added benefit for population genomics of using reads across multiple individuals to improve genotyping.  After all instances of FreeBayes finish, raw SNP/INDEL calls are concatenated into a single variant call file (VCF) using VCFtools.
 
 ---
 
 ## SNP Filtering
 
-Final SNP data sets will depend on the individual project, so dDocent does only minimal filtering.  Using VCFtools, SNPs are filtered to only those that are called in 90% of all individuals.  They can be found in Final.recode.vcf; however, these are mainly for diagnostic purposes between runs.  VCFtools can be used to filter SNP and INDEL calls using a variety of criteria and it is recommended that users familiarize themselves with the program to produce a truly final call set.
+Final SNP data sets will depend on the individual project, so `dDocent` does only minimal filtering.  Using VCFtools, SNPs are filtered to only those that are called in 90% of all individuals.  They can be found in Final.recode.vcf; however, these are mainly for diagnostic purposes between runs.  VCFtools can be used to filter SNP and INDEL calls using a variety of criteria and it is recommended that users familiarize themselves with the program to produce a truly final call set.
 
 The dDocent package includes various scripts for more advanced SNP filtering.  A thorough tutorial can be found in [SNP Filtering Tutorial](/filtering).
 
@@ -185,7 +185,7 @@ For example, to limit dDocent to ten gigabytes, enter 10G or 10g
 `dDocent` tries to automatically detect the maximum amount of memory on your system.  It then lets you set a hard limit for the amount of memory that it will use.  This will only apply to SNP calling.
 
 #### This option does not work on all systems!!!!!
-`GNU-Parallel` implements this option and it unfortunately does not work properly on all `LINUX` distributions, and any value other than `0` may cause SNP calling to hold indefinately.  Unless this has ben tested on your system, I recommend entering:
+`GNU-Parallel` implements this option and it unfortunately does not work properly on all `LINUX` distributions, and any value other than `0` may cause SNP calling to hold indefinitely.  Unless this has ben tested on your system, I recommend entering:
 
 ```
 0
@@ -198,7 +198,7 @@ Do you want to quality trim your reads?
 Type yes or no and press [ENTER]?
 ```
 
-If this is the first time runnind `dDocent` on the data set, the raw sequence files **MUST** be trimmed.  However, trimming only needs to be performed once. Let's assume the answer is `yes` for this example.
+If this is the first time running `dDocent` on the data set, the raw sequence files **MUST** be trimmed.  However, trimming only needs to be performed once. Let's assume the answer is `yes` for this example.
 
 Next `dDocent` asks if you want to assemble your data:
 
@@ -214,7 +214,7 @@ What type of assembly would you like to perform?  Enter SE for single end, PE fo
 Then press [ENTER]
 ```
 
-Please see the [*De novo* Assembly](#de-novo-assembly) section above for an explanaition of the different choices.  Let's use `PE` for this walkthrough.
+Please see the [*De novo* Assembly](#de-novo-assembly) section above for an explanation of the different choices.  Let's use `PE` for this walkthrough.
 
 ```
 PE
@@ -287,7 +287,7 @@ This completes the configuration portion of `dDocent` and the program begins to 
 dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background.
 Trimming reads and simultaneously assembling reference sequences
 ```
-After a shortwile, `dDocent` will prompt you for input:
+After a short time, `dDocent` will prompt you for input:
 
 ```                                                                                                                     
                       Number of Unique Sequences with More than X Coverage (Counted within individuals)                 
@@ -353,10 +353,10 @@ This is generated from simulated data, so it may not look like your data.  You n
        2           4           6           8           10           12          14          16          18          20  
                                                    Number of Individuals                                                
                                                                                                                         
-Please choose data cutoff.  Pick point right before the assymptote. A good starting cutoff might be 10% of the total number of individuals
+Please choose data cutoff.  Pick point right before the asymptote. A good starting cutoff might be 10% of the total number of individuals
 
 ```
-This is from a simulated data set with 40 individuals, and a cutoff of `4` lines up well with the inflection in the curver.  Let's enter `4`.
+This is from a simulated data set with 40 individuals, and a cutoff of `4` lines up well with the inflection in the curve.  Let's enter `4`.
 
 `dDocent` now outputs:
 
@@ -422,7 +422,7 @@ dDocent will output several different files as part of the pipeline.
 ### Data outputs
 
 #### TotalRawSNPs.vcf
-This file, in the standard Variant Call Format, has the raw SNP, INDEL, MNP, and complex variant calls for every individual.  This is the file that will be used for further filtering (see VCFtools or vcflib) to produce the final data set.  It is important to note that FreeBayes combines SNP and INDEL calls that are in within a default 3bp window into haplotype calls of the complex variant calls.  To properly look at SNPs only, complex variants need to be decomposed with vcfallelicprimatives from the vcflib package (https://github.com/ekg/vcflib) and then INDELs can be filtered with VCFtools or vcflib.  See the [SNP Filtering Tutorial](/filtering) for more information on SNP filtering.
+This file, in the standard Variant Call Format, has the raw SNP, INDEL, MNP, and complex variant calls for every individual.  This is the file that will be used for further filtering (see VCFtools or vcflib) to produce the final data set.  It is important to note that FreeBayes combines SNP and INDEL calls that are in within a default 3bp window into haplotype calls of the complex variant calls.  To properly look at SNPs only, complex variants need to be decomposed with `vcfallelicprimatives` from the [vcflib package](https://github.com/ekg/vcflib) and then INDELs can be filtered with VCFtools or vcflib.  See the [SNP Filtering Tutorial](/filtering) for more information on SNP filtering.
 
 #### Final.recode.vcf
 This is the filtered VCF file from the very end of the pipeline.  It's useful for comparing different runs of the pipeline.
@@ -551,4 +551,3 @@ To customize FreeBayes these parameters can be changed or altered on line [355](
 To customize the basic VCF filtering performed by dDocent, simply edit line [387](https://github.com/jpuritz/dDocent/blob/master/dDocent#L387). Please see the `VCFtools` [documentation](https://vcftools.github.io/examples.html) for a list of options.
 
 ---
-
