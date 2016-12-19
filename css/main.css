@@ -225,7 +225,7 @@ img {
     display: block;
   }  
   .navbar-custom .avatar-container {
-  margin-top: -40px;
+  margin-top: -45px;
   }
 }
 @media only screen and (min-width: 768px) {
@@ -248,7 +248,7 @@ img {
   }
  .navbar-custom .avatar-container {
   width: 100px;
-  margin-top: -5px;
+  margin-top: -10px;
   }
 }
 
