@@ -473,6 +473,13 @@ footer .theme-by {
   .intro-header.big-img .img-desc {
     font-size: 14px;
   }
+  .header-section.has-img .no-img {
+  margin-top: 0;
+  background: #FCFCFC;
+  margin: 0 0 40px;
+  padding: 80px 0;
+  box-shadow: 0 0 5px #AAA;
+  }
 }
 
 @media only screen and (min-width: 992px) {
