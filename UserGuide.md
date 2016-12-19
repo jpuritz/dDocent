@@ -19,7 +19,9 @@ subtitle: Everything there is to know
 		* [Naming convention](#naming-convention)
 	* [Running](#running-dDocent)
 * [Customization](#Customizing-dDocent)
+
 ---
+
 # What does dDocent do?
 
 ## Quality Filtering
