@@ -27,7 +27,7 @@ subtitle: Everything there is to know
 	* [Quality Filtering](#read-trimming-customization)
 	* [Assembly](#assembly-customization)
 	* [Read Mapping](#read-mapping-customization)
-	* [SNP Calling](#snp/indel-calling-customization)
+	* [SNP Calling](#snp-calling-customization)
 	* [VCF Filtering](#vcf-filtering-customization)
 
 ---
@@ -520,7 +520,7 @@ Through the command line interface, `dDocent` users already are able to customiz
 
 If using `dDocent` for something other than RADseq, it may be advisable to remove the high clipping penalties (`-L` parameter) in all lines above as well as the `mawk` code that removes heavily clipped reads (`mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' `).
 
-### SNP/INDEL Calling Customization
+### SNP Calling Customization
 
 FreeBayes is a highly customizable variant calling program and can be adapted to many different needs.  To see all the different possible options of FreeBayes, simply type:
 
