@@ -18,6 +18,8 @@ subtitle: Everything there is to know
 		* [Raw Sequences](#raw-sequences)
 		* [Naming convention](#naming-convention)
 	* [Running](#running-dDocent)
+		* [Running with a configuration file](#running-with-configuration-file
+* [Outputs](#outputs)
 * [Customization](#Customizing-dDocent)
 
 ---
@@ -103,7 +105,7 @@ mkdir my_dDocent_working_dir
 ### Raw Sequences
 In this directory, you need to place **RAW** and **DEMULTIPLEXED** sequencing files.  
 
-**Trimmed reads will fail *de novo* assembly** 
+#### Trimmed reads will fail *de novo* assembly
 If performing *de novo* assembly, it's essential that no read trimming or adapter removal has taken place before the dDocent pipeline.  If a reference is being supplied, then trimmed reads may be used.
 
 ### Naming Convention
@@ -125,7 +127,7 @@ dDocent uses raw reads for reference assembly and trimmed reads for read mapping
 
 Where R1 are trimmed forward reads and R2 are trimmed paired-end reads (If PE sequencing is being used).
 
-
+---
 
 # Running
 
@@ -158,11 +160,8 @@ dDocent detects 72 processors available on this system.
 Please enter the maximum number of processors to use for this analysis.
 ```
 
-Next, dDocent tries to automatically detect the number of processors available on your system.  It then lets you set a hard limit for the number of processors to use simultaneously during a dDocent run.  Simply enter the number you want to continue.
+Next, dDocent tries to automatically detect the number of processors available on your system.  It then lets you set a hard limit for the number of processors to use simultaneously during a dDocent run.  Simply enter the number you want to continue.  Let's say `32` for this example.
 
-```
-32
-```
 ```
 dDocent detects 251G maximum memory available on this system.
 Please enter the maximum memory to use for this analysis. The size can be postfixed with 
@@ -171,7 +170,7 @@ K, M, G, T, P, k, m, g, t, or p which would multiply the size with 1024, 1048576
 For example, to limit dDocent to ten gigabytes, enter 10G or 10g
 ```
 
-dDocent tries to automatically detect the maximum amount of memory on your system.  It then lets you set a hard limit for the amount of memory that it will use.  This will only apply to SNP calling.
+`dDocent` tries to automatically detect the maximum amount of memory on your system.  It then lets you set a hard limit for the amount of memory that it will use.  This will only apply to SNP calling.
 
 #### This option does not work on all systems!!!!!
 `GNU-Parallel` implements this option and it unfortunately does not work properly on all `LINUX` distributions, and any value other than `0` may cause SNP calling to hold indefinately.  Unless this has ben tested on your system, I recommend entering:
@@ -180,14 +179,193 @@ dDocent tries to automatically detect the maximum amount of memory on your syste
 0
 ```
 
+Next `dDocent` asks about trimming:
+
+```
+Do you want to quality trim your reads?
+Type yes or no and press [ENTER]?
+```
+
+If this is the first time runnind `dDocent` on the data set, the raw sequence files **MUST** be trimmed.  However, trimming only needs to be performed once. Let's assume the answer is `yes` for this example.
+
+Next `dDocent` asks if you want to assemble your data:
+
+```
+Do you want to perform an assembly?
+Type yes or no and press [ENTER].
+```
+
+If you are supplying your own reference file or `dDocent` has already been used to create an assembly, then answer `no` to this question.  For this example, let's answer `yes`.
+
+```
+What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, RPE for paired-end sequencing for RAD protocols with random shearing, or OL for paired-end sequencing that has substantial overlap.
+Then press [ENTER]
+```
+
+Please see the [*De novo* Assembly](#de-novo-assembly) section above for an explanaition of the different choices.  Let's use `PE` for this walkthrough.
+
+```
+PE
+Reads will be assembled with Rainbow
+CD-HIT will cluster reference sequences by similarity. The -c parameter (% similarity to cluster) may need to be changed for your taxa.
+Would you like to enter a new c parameter now? Type yes or no and press [ENTER]
+```
+`dDocent` is asking for a percent similarity to cluster reads by, this number will be used in the final contig clustering using `CD-HIT`, and for the `PE` and `RPE` method, initial clustering of forward reads will be set to either `0.8` or `c parameter mins 0.1` which ever is higher.  Let's use `0.85`.
+
+```
+Would you like to enter a new c parameter now? Type yes or no and press [ENTER]
+yes 
+Please enter new value for c. Enter in decimal form (For 90%, enter 0.9)
+0.85
+```
+Next `dDocent` will ask if you want to map reads:
+
+```
+Do you want to map reads?  Type yes or no and press [ENTER]
+```
+Read mapping needs to be performed at least once before SNP calling, but does not need to be repeated if the reference and read trimming remains the same.  Assuming this is the first time running `dDocent`, let's answer `yes`.
+
+`dDocent` will now ask if you want to change some read mapping parameters.  Let's say `yes`.
+
+```
+BWA will be used to map reads.  You may need to adjust -A -B and -O parameters for your taxa.
+Would you like to enter a new parameters now? Type yes or no and press [ENTER]
+yes
+Please enter new value for A (match score).  It should be an integer.  Default is 1.
+```
+
+The first parameter is the match score.  See [Read Mapping](#read-mapping) above to see how this parameter is used in mapping.
+
+```
+Please enter new value for A (match score).  It should be an integer.  Default is 1.
+1
+Please enter new value for B (mismatch score).  It should be an integer.  Default is 4.
+```
+
+The second parameter is the mismatch score (penalty).  See [Read Mapping](#read-mapping) above to see how this parameter is used in mapping.  Let's use the default, 4.
+
+```
+Please enter new value for A (match score).  It should be an integer.  Default is 1.
+1
+Please enter new value for B (mismatch score).  It should be an integer.  Default is 4.
+4
+Please enter new value for O (gap penalty).  It should be an integer.  Default is 6.
+
+```
+
+The third parameter is the gap opening penalty.  See [Read Mapping](#read-mapping) above to see how this parameter is used in mapping.  Let's use the default, 6.
+
+```
+Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]
+```
+
+Unless you are using `dDocent` for some custom applications, this will likely always be `yes`
+
+Lastly, `dDocent` will ask for an email address to send a notification when it's finished running.  
+
+```
+Please enter your email address.  dDocent will email you when it is finished running.
+Don't worry; dDocent has no financial need to sell your email address to spammers.
+```
+This will only work on systems with `mailx` installed and with open internet connections, so it may not work on your system out of the box.  
+
+This completes the configuration portion of `dDocent` and the program begins to run.  You will immediately see this prompt:
+
+```
+dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background.
+Trimming reads and simultaneously assembling reference sequences
+```
+After a shortwile, `dDocent` will prompt you for input:
+```                                                                                                                     
+                      Number of Unique Sequences with More than X Coverage (Counted within individuals)                 
+                                                                                                                        
+  70000 +-+---------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+---------+-+   
+        +           +           +           +           +           +           +           +           +           +   
+        |                                                                                                           |   
+  60000 ******                                                                                                    +-+   
+        |     ******                                                                                                |   
+        |           ******                                                                                          |   
+        |                 ******                                                                                    |   
+  50000 +-+                     *****                                                                             +-+   
+        |                            *                                                                              |   
+        |                             ******                                                                        |   
+  40000 +-+                                 *****                                                                 +-+   
+        |                                        *                                                                  |   
+        |                                         ******                                                            |   
+  30000 +-+                                             *****                                                     +-+   
+        |                                                    *                                                      |   
+        |                                                     ******                                                |   
+  20000 +-+                                                         ******                                        +-+   
+        |                                                                 ******                                    |   
+        |                                                                       ******                              |   
+        |                                                                             ******                        |   
+  10000 +-+                                                                                 ************          +-+   
+        |                                                                                               *************   
+        +           +           +           +           +           +           +           +           +           +   
+      0 +-+---------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+---------+-+   
+        2           4           6           8           10          12          14          16          18          20  
+                                                          Coverage                                                                                                                                                                              
+Please choose data cutoff.  In essence, you are picking a minimum (within individual) coverage level for a read (allele) to be used in the reference assembly
+```
+
+This is generated from simulated data, so it may not look like your data.  You need to choose a cutoff value. You want to choose a value that captures as much of the diversity of the data as possible while simultaneously eliminating sequences that are likely errors. Typically, you're looking for some sort of inflection in the curve.  Let's try `6`.  Shortly, a new prompt appears:
+
+```
+6
+
+                                                                                                                        
+                               Number of Unique Sequences present in more than X Individuals                            
+                                                                                                                        
+  5500 +-+---------+-----------+-----------+-----------+------------+-----------+-----------+-----------+---------+-+   
+       **          +           +           +           +            +           +           +           +           +   
+  5000 +-*                                                                                                        +-+   
+       |  **                                                                                                        |   
+       |    *                                                                                                       |   
+  4500 +-+                                                                                                        +-+   
+       |     ***                                                                                                    |   
+  4000 +-+      **                                                                                                +-+   
+       |          *                                                                                                 |   
+  3500 +-+         *****                                                                                          +-+   
+       |                *                                                                                           |   
+  3000 +-+               *****                                                                                    +-+   
+       |                      *                                                                                     |   
+       |                       ******                                                                               |   
+  2500 +-+                           ******                                                                       +-+   
+       |                                   *****                                                                    |   
+  2000 +-+                                      *                                                                 +-+   
+       |                                         *************                                                      |   
+  1500 +-+                                                    ******                                              +-+   
+       |                                                            ************                                    |   
+       |                                                                        ************                        |   
+  1000 +-+                                                                                  ************          +-+   
+       +           +           +           +           +            +           +           +           *************   
+   500 +-+---------+-----------+-----------+-----------+------------+-----------+-----------+-----------+---------+-+   
+       2           4           6           8           10           12          14          16          18          20  
+                                                   Number of Individuals                                                
+                                                                                                                        
+Please choose data cutoff.  Pick point right before the assymptote. A good starting cutoff might be 10% of the total number of individuals
+
+```
+This is from a simulated data set with 40 individuals, and a cutoff of `4` lines up well with the inflection in the curver.  Let's enter `4`.
+
+`dDocent` now outputs:
+
+```
+At this point, all configuration information has been entered and dDocent may take several hours to run.
+It is recommended that you move this script to a background operation and disable terminal input and output.
+All data and logfiles will still be recorded.
+To do this:
+Press control and Z simultaneously
+Type 'bg' without the quotes and press enter
+Type 'disown -h' again without the quotes and press enter
+```
+
+Follow the instructions and then simply wait for `dDocent` to finish.
 
 
+## Running with configuration file
 
-
-
-
-#Running with configuration file
-The file can be named anything, but must follow the format below:
+If `dDocent` is not being used for *de novo* assembly, it may be run in non-interactive mode and configuration parameters can be entered with a configuration file.  The file can be named anything, but must follow the **EXACT** format below:
 
 ```bash
 Number of Processors
@@ -215,16 +393,16 @@ yes
 Email
 jpuritz@gmail.com
 ```
-Run:
+
+Now run `dDocent` and pass the configuration file:
+
 ```bash
 dDocent config.file
 ```
 
+---
 
-
-
-
-Outputs:
+# Outputs
 
 dDocent will output several different files as part of the pipeline.  The main outputs of interest are:
 
