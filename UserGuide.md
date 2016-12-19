@@ -29,7 +29,7 @@ subtitle: Everything there is to know
 	* [Read Mapping](#read-mapping-customization)
 	* [SNP Calling](#snp-calling-customization)
 	* [VCF Filtering](#vcf-filtering-customization)
-
+* [Citing dDocent](#citing-ddocent)
 ---
 
 # What does dDocent do?
@@ -528,20 +528,32 @@ FreeBayes is a highly customizable variant calling program and can be adapted to
 
 This brings up the FreeBayes help menu that lists and explains all options.  Options that may be of interest are listed below:
 
-```
---populations FILE     If you are expecting your data to be highly structured, you may consider using this option.  FreeBayes does do some population specific calculations for heterozygosity levels and mutation rates.  This allows you to partition the population model.  To do this, you must supply a file that lists the sample and it's population.  Note, you should only use this is you have a strong a priori reason to expect substantial population structure.
 
--E      This parameter affects how haplotypes are called in the VCF file.  The default value is 3, meaning that variants within 3 bp of each other will be called as a single contiguous haplotype.   This represents the highest tradeoff between haplotype length and sensitivity.  See this discussion for more information.
+`--populations FILE`     
+If you are expecting your data to be highly structured, you may consider using this option.  FreeBayes does do some population specific calculations for heterozygosity levels and mutation rates.  This allows you to partition the population model.  To do this, you must supply a file that lists the sample and it's population.  Note, you should only use this is you have a strong a priori reason to expect substantial population structure.
 
--m     This parameter controls the minimum mapping quality score for reads to be considered for genotyping.  By default, dDocent sets this to PHRED 10 (or 90% probability of being true).
+`-E`
+This parameter affects how haplotypes are called in the VCF file.  The default value is 3, meaning that variants within 3 bp of each other will be called as a single contiguous haplotype.   This represents the highest tradeoff between haplotype length and sensitivity.  See this discussion for more information.
 
--q      This sets the minimum base quality score for a bp to be used for genotyping.  By default, dDocent sets this to PHRED 10 (or 90% probability of being true).
+`-m`
+This parameter controls the minimum mapping quality score for reads to be considered for genotyping.  By default, dDocent sets this to PHRED 10 (or 90% probability of being true).
 
--V     This parameter tells FreeBayes to ignore read placement bias and strand bias in the calculation of SNP site quality scores.  By default, dDocent leaves this parameter in because it, at worst, conservatively biases quality scores.  However, this may be too conservative because one would expect extreme strand bias in RAD sequencing.
-```
+`-q`
+This sets the minimum base quality score for a bp to be used for genotyping.  By default, dDocent sets this to PHRED 10 (or 90% probability of being true).
+
+`-V`
+This parameter tells FreeBayes to ignore read placement bias and strand bias in the calculation of SNP site quality scores.  By default, dDocent leaves this parameter in because it, at worst, conservatively biases quality scores.  However, this may be too conservative because one would expect extreme strand bias in RAD sequencing.
 
 To customize FreeBayes these parameters can be changed or altered on line [355](https://github.com/jpuritz/dDocent/blob/master/dDocent#L355)
 
 ### VCF Filtering Customization
 
 To customize the basic VCF filtering performed by dDocent, simply edit line [387](https://github.com/jpuritz/dDocent/blob/master/dDocent#L387). Please see the `VCFtools` [documentation](https://vcftools.github.io/examples.html) for a list of options.
+
+## Citing dDocent
+
+If you found this pipleine useful, please cite the following papers:
+
+Puritz, J. B., Hollenbeck, C. M., Gold, J. R.  dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms. PeerJ 2:e431 [LINK](http://dx.doi.org/10.7717/peerj.431)
+
+Puritz, J.B., Matz, M. V., Toonen, R. J., Weber, J. N., Bolnick, D. I., Bird, C. E. Comment: Demystifying the RAD fad.  Molecular Ecology 23: 5937–5942. doi: 10.1111/mec.12965 [LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.12965/abstract)
