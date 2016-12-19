@@ -20,6 +20,9 @@ subtitle: Everything there is to know
 	* [Running](#running-dDocent)
 		* [Running with a configuration file](#running-with-configuration-file)
 * [Outputs](#outputs)
+	* [Data Outputs](#data-outputs)
+	* [Log Files](#log-files)
+	* [Temporary Files](#temporary-files)
 * [Customization](#Customizing-dDocent)
 
 ---
@@ -129,7 +132,7 @@ Where R1 are trimmed forward reads and R2 are trimmed paired-end reads (If PE se
 
 ---
 
-# Running
+## Running
 
 Simply type:
 
@@ -361,7 +364,7 @@ Type 'disown -h' again without the quotes and press enter
 Follow the instructions and then simply wait for `dDocent` to finish.
 
 
-## Running with configuration file
+### Running with configuration file
 
 If `dDocent` is not being used for *de novo* assembly, it may be run in non-interactive mode and configuration parameters can be entered with a configuration file.  The file can be named anything, but must follow the **EXACT** format below:
 
@@ -406,6 +409,8 @@ dDocent will output several different files as part of the pipeline.
 
 ### Data outputs
 
+
+
 #### TotalRawSNPs.vcf
 This file, in the standard Variant Call Format, has the raw SNP, INDEL, MNP, and complex variant calls for every individual.  This is the file that will be used for further filtering (see VCFtools or vcflib) to produce the final data set.  It is important to note that FreeBayes combines SNP and INDEL calls that are in within a default 3bp window into haplotype calls of the complex variant calls.  To properly look at SNPs only, complex variants need to be decomposed with vcfallelicprimatives from the vcflib package (https://github.com/ekg/vcflib) and then INDELs can be filtered with VCFtools or vcflib.  See the [SNP Filtering Tutorial](/filtering) for more information on SNP filtering.
 
@@ -423,8 +428,9 @@ This file is a tab delimited file the level of coverage in the first column and 
 
 
 
-
 ### Log files
+
+
 
 #### dDocent_main.LOG
 This file captures all terminal output during the `dDocent` run and will be your goto file if you encounter any problems with `dDocent`
@@ -435,7 +441,8 @@ This file captures simply the run configuration parameters for every `dDocent` r
 #### logfiles directory
 `dDocent` creates a directory called `logfiles` and will store various other logfiles there.  These are generally only necessary for debugging purposes.
 
-#### Temporary Files
+
+### Temporary Files
 
 `dDocent` creates a variety of temporary files during a run.  Below is a list and a brief description for each:
 
