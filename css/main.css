@@ -537,6 +537,12 @@ footer .theme-by {
   .header-section.has-img .big-img {
     margin-bottom: 0;
   }  
+  .intro-header .page-heading h1 {
+    font-size: 70px;
+  }
+  .intro-header .post-heading h1 {
+    font-size: 50px;
+  }
 } 
 @media only screen and (max-width: 325px) { 
   .intro-header.big-img {
