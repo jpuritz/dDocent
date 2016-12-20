@@ -123,7 +123,7 @@
             </a>
           </li>
           {% endif %}
-      &copy;{% if site.author.spotify and site.footer-links-active.spotify %}
+      {% if site.author.spotify and site.footer-links-active.spotify %}
           <li>
             <a href="https://open.spotify.com/user/{{ site.author.spotify }}" title="Spotify">
               <span class="fa-stack fa-lg">
@@ -146,7 +146,7 @@
         </ul>
 	     
         <p class="copyright text-muted">
-		<a href="http://MarineEvoEco.com">{{ site.author.name }}</a>
+		&copy;<a href="http://MarineEvoEco.com">{{ site.author.name }}</a>
 		  &nbsp;&bull;&nbsp;
 		  {{ site.time | date: '%Y' }}
 
