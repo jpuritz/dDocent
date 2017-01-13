@@ -867,9 +867,9 @@ fi
 
 #Actually starts program
 if [ -n "$1" ]; then
-	main $1 | tee -a dDocent_main.LOG #Log all output
+	main $1 2>&1 | tee -a dDocent_main.LOG #Log all output
 else
-	main | tee -a dDocent_main.LOG  #Log all output
+	main 2>&1 | tee -a dDocent_main.LOG  #Log all output
 fi
 
 #Compress Large Leftover files
