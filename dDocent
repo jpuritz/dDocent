@@ -384,7 +384,7 @@ if [ "$SNP" != "no" ]; then
 	mv raw.*.vcf ./raw.vcf
 
 	echo "Using VCFtools to parse SNPS.vcf for SNPs that are called in at least 90% of individuals"
-	vcftools --vcf TotalRawSNPs.vcf $VCFGTFLAG 0.9 --out Final --counts --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
+	vcftools --vcf TotalRawSNPs.vcf $VCFGTFLAG 0.9 --out Final --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
 fi
 
 ##Checking for possible errors
