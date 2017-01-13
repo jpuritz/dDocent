@@ -141,9 +141,10 @@ else
 	curl -L -o vcftools_x.tar.gz "https://github.com/vcftools/vcftools/releases/download/v0.1.14/vcftools-0.1.14.tar.gz"	
 	tar xvzf vcftools_x.tar.gz
 	cd vcftools-*
+	./configure
 	make
-	chmod +x ./bin/vcftools
-	cp -f ./bin/vcftools $INSTALL_PATH
+	chmod +x ./src/cpp/vcftools
+	cp -f ./src/cpp/vcftools $INSTALL_PATH
 	cd ..
 fi
 
