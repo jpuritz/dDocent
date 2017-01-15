@@ -14,7 +14,7 @@ subtitle: Results can happen!
 
 **Hollenbeck, C.M., Portnoy, D.S. and Gold, J.R., 2016. A method for detecting recent changes in contemporary effective population size from linkage disequilibrium at linked and unlinked loci. Heredity.** [LINK](http://www.nature.com/hdy/journal/v117/n4/full/hdy201630a.html)
 
-**Portnoy, D.S., Puritz, J.B., Hollenbeck, C.M., Gelsleichter, J., Chapman, D. and Gold, J.R., 2015. Selection and sex‐biased dispersal in a coastal shark: the influence of philopatry on adaptive variation. Molecular ecology, 24(23), pp.5877-5885.** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.13441/full)[PDF](https://www.researchgate.net/publication/283448154_Selection_and_sex-biased_dispersal_in_a_coastal_shark_The_influence_of_philopatry_on_adaptive_variation)
+**Portnoy, D.S., Puritz, J.B., Hollenbeck, C.M., Gelsleichter, J., Chapman, D. and Gold, J.R., 2015. Selection and sex‐biased dispersal in a coastal shark: the influence of philopatry on adaptive variation. Molecular ecology, 24(23), pp.5877-5885.** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.13441/full) [PDF](https://www.researchgate.net/publication/283448154_Selection_and_sex-biased_dispersal_in_a_coastal_shark_The_influence_of_philopatry_on_adaptive_variation)
 
 
 
