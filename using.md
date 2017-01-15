@@ -6,7 +6,7 @@ subtitle: Results can happen!
 
 **Hollenbeck, C.M., Portnoy, D.S., Wetzel, D., et al., 2017. Linkage mapping and comparative genomics of red drum (Sciaenops ocellatus) using next-generation sequencing. G3, Accepted.**
 
-**Willis, S.C., Hollenbeck, C.M., Puritz, J.B., Gold, J.R. and Portnoy, D.S., 2017. Haplotyping RAD loci: an efficient method to filter paralogs and account for physical linkage. Molecular Ecology Resources. Online Early** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/1755-0998.12647/full)
+**Willis, S.C., Hollenbeck, C.M., Puritz, J.B., Gold, J.R. and Portnoy, D.S., 2017. Haplotyping RAD loci: an efficient method to filter paralogs and account for physical linkage. Molecular Ecology Resources. Online Early.** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/1755-0998.12647/full)
 
 **Johnson, J.S., Gaddis, K.D., Cairns, D.M. and Krutovsky, K.V., 2017. Seed dispersal at alpine treeline: an assessment of seed movement within the alpine treeline ecotone. Ecosphere, 8(1), p.e01649.** [LINK/PDF](http://onlinelibrary.wiley.com/doi/10.1002/ecs2.1649/full)
 
