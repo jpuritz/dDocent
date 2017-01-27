@@ -1,6 +1,6 @@
 **dDocent** is simple bash wrapper to QC, assemble, map, and call SNPs from almost any kind of RAD sequencing.  If you have a reference already, dDocent can be used to call SNPs from almost any type of NGS data set.  It is designed to run on Linux based machines with large memory capacity and multiple processing cores, and it can be modified for use on HPC.  
 
-**In Defense of Science**
+## In Defense of Science
 
 We are deeply concerned by the Trump administration's move to gag 
 scientists working at various governmental agencies. The US government 
