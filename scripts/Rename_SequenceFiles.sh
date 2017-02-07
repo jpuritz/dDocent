@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export LC_ALL=C.UTF8
+export LC_ALL=en_US.UTF-8
 
 #This script can quickly rename filess within the dDocent naming convention. It needs to be passed a tab delimited
 #file with the old name in one column and the new name in the other

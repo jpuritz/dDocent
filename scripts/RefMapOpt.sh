@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export LC_ALL=C.UTF8
+export LC_ALL=en_US.UTF-8
 
 if [[ -z "$7" ]]; then
 echo "Usage is RefMapTest minK1 maxK1 minK2 maxK2 cluster_similarity Num_of_Processors Assembly_Type optional_list_of_individuals"

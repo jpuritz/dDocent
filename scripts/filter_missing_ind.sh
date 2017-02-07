@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export LC_ALL=C.UTF8
+export LC_ALL=en_US.UTF-8
 
 #check for vcftools version
 VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
