@@ -6,13 +6,13 @@ subtitle:
 
 # Current Release
 
-Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/2.2.7.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.2.7</a>
+Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/2.2.8.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.2.8</a>
 
 Alternatively:
 
 ```
-curl -L -O https://github.com/jpuritz/dDocent/archive/v2.2.7.tar.gz
-tar xvzf v2.2.7.tar.gz
+curl -L -O https://github.com/jpuritz/dDocent/archive/v2.2.8.tar.gz
+tar xvzf v2.2.8.tar.gz
 ```
  
 # Requirements
@@ -33,7 +33,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |rainbow		    | http://sourceforge.net/projects/bio-rainbow/files/ |
 |seqtk			    | https://github.com/lh3/seqtk |
 |CD-HIT		      | http://weizhong-lab.ucsd.edu/cd-hit/ |
-|bedtools| https://code.google.com/p/bedtools/ |
+|bedtools| http://bedtools.readthedocs.io/en/latest/ |
 |vcflib| https://github.com/ekg/vcflib |
 |gnuplot| http://www.gnuplot.info |
 |gnu-parallel| http://www.gnu.org/software/parallel/ |
