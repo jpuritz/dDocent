@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 if [[ -z "$7" ]]; then
-echo "Usage is RefMapTest minK1 maxK1 minK2 maxK2 cluster_similarity Num_of_Processors Assembly_Type optional_list_of_individuals"
+echo "Usage is RefMapOpt minK1 maxK1 minK2 maxK2 cluster_similarity Num_of_Processors Assembly_Type optional_list_of_individuals"
 exit 1
 fi
 
