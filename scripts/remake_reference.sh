@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export LC_ALL=C.UTF8
 
 if [[ -z "$5" ]]; then
 echo "Usage is sh ReferenceOpt.sh K1 K2 similarity% Assembly_Type Number_of_Processors"

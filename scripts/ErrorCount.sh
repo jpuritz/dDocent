@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export LC_ALL=C.UTF8
 
 echo "This script counts the number of potential genotyping errors due to low read depth"
 echo "It report a low range, based on a 50% binomial probability of observing the second allele in a heterozygote and a high range based on a 25% probability."
