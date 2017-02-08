@@ -27,7 +27,7 @@ conda config --add channels bioconda
 Create a dDocent conda environment:
 
 ```
-conda create -n ddocent_env ddocent=2.2.7
+conda create -n ddocent_env ddocent=2.2.8
 ```
 
 Activate the dDocent environment:
