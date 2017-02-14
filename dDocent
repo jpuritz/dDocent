@@ -194,7 +194,7 @@ fi
 #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
 #This functionality is now parallelized and will run if only SE sequences are used.
 
-STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | head -1" | mawk '!/\/1/' | wc -l)
+STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | head -1" | mawk '!/\/1[ ,	]/'| wc -l )
 FB1=$(( $NUMProc / 2 ))
 if [ $STACKS -gt 0 ]; then
 	echo "Removing the _1 character and replacing with /1 in the name of every sequence"
@@ -205,7 +205,7 @@ fi
 
 if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
 	
-	STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.R.fq.gz | head -1" | mawk '!/\/2/' | wc -l)
+	STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.R.fq.gz | head -1" | mawk '!/\/2[ ,	]/'| wc -l )
 
 	if [ $STACKS -gt 0 ]; then
 		echo "Removing the _2 character and replacing with /2 in the name of every sequence"
