@@ -4,6 +4,10 @@ title: Help
 subtitle: Email me, tweet me, or ask everyone below
 ---
 
+{% capture my-include %}{% include help.md %}{% endcapture %}
+{{ my-include | markdownify }}
+
+
 <iframe id="forum_embed"
   src="javascript:void(0)"
   scrolling="no"
