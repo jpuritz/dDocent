@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.9'
+VERSION='2.2.10'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -88,6 +88,12 @@ VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
                 VCFGTFLAG="--geno" 
         elif [ "$VCFTV" -ge "12" ]; then
                 VCFGTFLAG="--max-missing"
+	fi
+BWAV=$(bwa 2>&1 | mawk '/Versi/' | sed 's/Version: //g' | sed 's/0.7.//g' | sed 's/-.*//g')
+	if [ "$BWAV" -lt "13" ]; then
+        	echo "The version of bwa installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 0.7.13"
+        	exit 1
 	fi
 
 BTC=$( bedtools --version | mawk '{print $2}' | sed 's/v//g' | cut -f1,2 -d"." | sed 's/2\.//g' )
