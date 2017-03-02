@@ -462,10 +462,11 @@ TrimReads () {
 	cat namelist | parallel "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     MLen=$(($MLen / 2))
+    	FB1=$(( $NUMProc / 2 ))
 	TW="MINLEN:$MLen"
 	if [ -f $i.R.fq.gz ]; then
-		cat namelist | parallel java -jar $TRIMMOMATIC PE -threads 2 -phred33 {}.F.fq.gz {}.R.fq.gz {}.R1.fq.gz {}.unpairedF.fq.gz {}.R2.fq.gz {}.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
-		else cat namelist | parallel java -jar $TRIMMOMATIC SE -threads 2 -phred33 {}.F.fq.gz {}.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
+		cat namelist | parallel -j $NUMProc java -jar $TRIMMOMATIC PE -threads 2 -phred33 {}.F.fq.gz {}.R.fq.gz {}.R1.fq.gz {}.unpairedF.fq.gz {}.R2.fq.gz {}.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
+		else cat namelist | parallel -j $NUMProc java -jar $TRIMMOMATIC SE -threads 2 -phred33 {}.F.fq.gz {}.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
 	fi 
 	
 mkdir unpaired &>/dev/null
