@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.10'
+VERSION='2.2.11'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -467,16 +467,7 @@ TrimReads () {
 		cat namelist | parallel java -jar $TRIMMOMATIC PE -threads 2 -phred33 {}.F.fq.gz {}.R.fq.gz {}.R1.fq.gz {}.unpairedF.fq.gz {}.R2.fq.gz {}.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
 		else cat namelist | parallel java -jar $TRIMMOMATIC SE -threads 2 -phred33 {}.F.fq.gz {}.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
 	fi 
-
-
-for i in "${NAMES[@]}"
-do
-#echo "Trimming Sample $i"
-if [ -f $i.R.fq.gz ]; then
-java -jar $TRIMMOMATIC PE -threads $NUMProc -phred33 $i.F.fq.gz $i.R.fq.gz $i.R1.fq.gz $i.unpairedF.fq.gz $i.R2.fq.gz $i.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $i.trim.log
-else java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 $i.F.fq.gz $i.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $i.trim.log
-fi 
-done
+	
 mkdir unpaired &>/dev/null
 mv *unpaired*.gz ./unpaired &>/dev/null	
 }
