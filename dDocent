@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.11'
+VERSION='2.2.12'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -33,7 +33,7 @@ if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'tr
     echo "The dependency trimmomatic is not installed or is not in your" '$PATH'"."
     NUMDEP=$((NUMDEP + 1))
 	fi
-	
+
 if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru' ; then
 	ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
 	else
@@ -457,20 +457,29 @@ echo $MAIL >> dDocent.runs
 ##Function definitions
 
 #Function for trimming reads using trimmomatic
+trim_reads(){
+	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
+        ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
+
+	if [ -f $1.R.fq.gz ]; then	
+		java -jar $TRIMMOMATIC PE -threads 2 -phred33 $1.F.fq.gz $1.R.fq.gz $1.R1.fq.gz $1.unpairedF.fq.gz $1.R2.fq.gz $1.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log
+	else 
+		java -jar $TRIMMOMATIC SE -threads 2 -phred33 $1.F.fq.gz $1.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log
+	fi 
+}
+	
+	export -f trim_reads
+
 TrimReads () { 
 
 	cat namelist | parallel "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-    MLen=$(($MLen / 2))
+    	MLen=$(($MLen / 2))
     	FB1=$(( $NUMProc / 2 ))
 	TW="MINLEN:$MLen"
-	if [ -f $i.R.fq.gz ]; then
-		cat namelist | parallel -j $NUMProc java -jar $TRIMMOMATIC PE -threads 2 -phred33 {}.F.fq.gz {}.R.fq.gz {}.R1.fq.gz {}.unpairedF.fq.gz {}.R2.fq.gz {}.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
-		else cat namelist | parallel -j $NUMProc java -jar $TRIMMOMATIC SE -threads 2 -phred33 {}.F.fq.gz {}.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> {}.trim.log
-	fi 
-	
-mkdir unpaired &>/dev/null
-mv *unpaired*.gz ./unpaired &>/dev/null	
+	cat namelist | parallel -j $NUMProc trim_reads {}	
+	mkdir unpaired &>/dev/null
+	mv *unpaired*.gz ./unpaired &>/dev/null	
 }
 
 
