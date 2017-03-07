@@ -115,7 +115,9 @@ mkdir my_dDocent_working_dir
 ```
 
 ### Raw Sequences
-In this directory, you need to place **RAW**, **DEMULTIPLEXED** sequencing files.  In other words, one raw gzipped fastq file (or sets of files for paired sequencing) for each individual.
+In this directory, you need to place **RAW**, **DEMULTIPLEXED** sequencing files.  In other words, one raw gzipped fastq file (or sets of files for paired sequencing) for each individual.  
+
+If you are using `process_radtags` to demultiplex, avoid using the `-c` and `-q` parameters.
 
 #### Trimmed reads will fail *de novo* assembly
 If performing *de novo* assembly, it's essential that no read trimming or adapter removal has taken place before the dDocent pipeline.  If a reference is being supplied, then trimmed reads may be used.
