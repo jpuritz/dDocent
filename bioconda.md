@@ -6,6 +6,8 @@ subtitle: less than 10 lines of code
 
 ### The beauty of Conda
 
+![alt text](./bioconda-badge-wide (1).png)
+
 Conda is an open source package and environment management system for installing multiple versions of software packages and their dependencies and switching easily between them. It works on Linux, OS X and Windows, and was created for Python programs but can package and distribute any software.
 
 Miniconda is a small version that includes only conda, Python, and the packages they depend on. Over **720** scientific packages and their dependencies can be installed individually from the Continuum repository with the “conda install” command.
