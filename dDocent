@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.14'
+VERSION='2.2.15'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -197,34 +197,6 @@ else
 	GetInfo 
 fi
 
-#Creates (or appends to) a dDcoent run file recording variables
-echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
-echo "Number of Processors" >> dDocent.runs
-echo $NUMProc >> dDocent.runs
-echo "Maximum Memory" >> dDocent.runs
-echo $MAXMemory >> dDocent.runs
-echo "Trimming" >> dDocent.runs
-echo $TRIM >> dDocent.runs
-echo "Assembly?" >> dDocent.runs
-echo $ASSEMBLY >> dDocent.runs
-echo "Type_of_Assembly" >> dDocent.runs
-echo $ATYPE >> dDocent.runs
-echo "Clustering_Similarity%" >> dDocent.runs
-echo $simC >> dDocent.runs
-echo "Mapping_Reads?" >> dDocent.runs
-echo $MAP >> dDocent.runs
-echo "Mapping_Match_Value" >> dDocent.runs
-echo $optA >> dDocent.runs
-echo "Mapping_MisMatch_Value" >> dDocent.runs
-echo $optB >> dDocent.runs
-echo "Mapping_GapOpen_Penalty" >> dDocent.runs
-echo $optO >> dDocent.runs
-echo "Calling_SNPs?" >> dDocent.runs
-echo $SNP >> dDocent.runs
-echo "Email" >> dDocent.runs
-echo $MAIL >> dDocent.runs
-
-
 #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
 #This functionality is now parallelized and will run if only SE sequences are used.
 
@@ -389,23 +361,22 @@ if [ "$SNP" != "no" ]; then
 	paste namelist p > popmap
 	rm p
 	
+
+
 ###New implementation of SNP calling here to save on memory	
+	call_genos(){
+	samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
+	samtools index split.$1.bam
+	freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
+	rm split.$1.bam*
+	}
+	export -f call_genos
 
-rm call_genos &> /dev/null
-
-echo "#!/usr/bin/env bash" > call_genos
-echo "samtools view -@" '$FB2' "-b -1 -L mapped."'$1'".bed -o split."'$1'".bam cat-RRG.bam" >> call_genos
-echo "samtools index split."'$1'".bam" >> call_genos
-echo "freebayes -b split."'$1'".bam -t mapped."'$1'".bed -v raw."'$1'".vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10" >> call_genos
-echo "rm split."'$1'".bam*" >> call_genos
-chmod +x call_genos
-
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $NUMProc --no-notice ./call_genos {}
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --env call_genos --memfree $MAXMemory -j $NUMProc --no-notice call_genos {}
 ####	
 	#ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice --delay 1 freebayes -L bamlist.list -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
 	#ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --memfree $MAXMemory -j $FB1 --no-notice "samtools view -b -L mapped.{}.bed | freebayes -c -t mapped.{}.bed -v raw.{}.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10"
 
-rm call_genos
 
 	rm mapped.*.bed 
 
@@ -454,34 +425,61 @@ else
 fi
 
 
+#Creates (or appends to) a dDcoent run file recording variables
+echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
+echo "Number of Processors" >> dDocent.runs
+echo $NUMProc >> dDocent.runs
+echo "Maximum Memory" >> dDocent.runs
+echo $MAXMemory >> dDocent.runs
+echo "Trimming" >> dDocent.runs
+echo $TRIM >> dDocent.runs
+echo "Assembly?" >> dDocent.runs
+echo $ASSEMBLY >> dDocent.runs
+echo "Type_of_Assembly" >> dDocent.runs
+echo $ATYPE >> dDocent.runs
+echo "Clustering_Similarity%" >> dDocent.runs
+echo $simC >> dDocent.runs
+echo "Mapping_Reads?" >> dDocent.runs
+echo $MAP >> dDocent.runs
+echo "Mapping_Match_Value" >> dDocent.runs
+echo $optA >> dDocent.runs
+echo "Mapping_MisMatch_Value" >> dDocent.runs
+echo $optB >> dDocent.runs
+echo "Mapping_GapOpen_Penalty" >> dDocent.runs
+echo $optO >> dDocent.runs
+echo "Calling_SNPs?" >> dDocent.runs
+echo $SNP >> dDocent.runs
+echo "Email" >> dDocent.runs
+echo $MAIL >> dDocent.runs
+
 }
 
 ##Function definitions
 
 #Function for trimming reads using trimmomatic
+trim_reads(){
+	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
+    ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
+
+	if [ -f $1.R.fq.gz ]; then	
+		java -jar $TRIMMOMATIC PE -threads 2 -phred33 $1.F.fq.gz $1.R.fq.gz $1.R1.fq.gz $1.unpairedF.fq.gz $1.R2.fq.gz $1.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log
+	else 
+		java -jar $TRIMMOMATIC SE -threads 2 -phred33 $1.F.fq.gz $1.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log
+	fi 
+}
+	
+	export -f trim_reads
 
 TrimReads () { 
-echo "#!/usr/bin/env bash" > trim_reads
-echo 'TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)' >> trim_reads
-echo 'ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)' >> trim_reads
-echo 'if [ -f $1.R.fq.gz ]; then' >>trim_reads	
-echo 'java -jar $TRIMMOMATIC PE -threads 2 -phred33 $1.F.fq.gz $1.R.fq.gz $1.R1.fq.gz $1.unpairedF.fq.gz $1.R2.fq.gz $1.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log' >> trim_reads
-echo "else" >> trim_reads
-echo 'java -jar $TRIMMOMATIC SE -threads 2 -phred33 $1.F.fq.gz $1.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log' >> trim_reads
-echo 'fi' >> trim_reads 
 
-chmod +x trim_reads
-
-cat namelist | parallel "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
-MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-MLen=$(($MLen / 2))
-FB1=$(( $NUMProc / 2 ))
-TW="MINLEN:$MLen"
-cat namelist | parallel -j $NUMProc ./trim_reads {}	
-mkdir unpaired &>/dev/null
-mv *unpaired*.gz ./unpaired &>/dev/null	
-rm trim_reads
-
+	cat namelist | parallel "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
+	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+    	MLen=$(($MLen / 2))
+    	FB1=$(( $NUMProc / 2 ))
+	TW="MINLEN:$MLen"
+	cat namelist | parallel --env trim_reads -j $NUMProc trim_reads {}	
+	mkdir unpaired &>/dev/null
+	mv *unpaired*.gz ./unpaired &>/dev/null	
 }
 
 
