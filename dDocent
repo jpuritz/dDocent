@@ -197,6 +197,33 @@ else
 	GetInfo 
 fi
 
+#Creates (or appends to) a dDcoent run file recording variables
+echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
+echo "Number of Processors" >> dDocent.runs
+echo $NUMProc >> dDocent.runs
+echo "Maximum Memory" >> dDocent.runs
+echo $MAXMemory >> dDocent.runs
+echo "Trimming" >> dDocent.runs
+echo $TRIM >> dDocent.runs
+echo "Assembly?" >> dDocent.runs
+echo $ASSEMBLY >> dDocent.runs
+echo "Type_of_Assembly" >> dDocent.runs
+echo $ATYPE >> dDocent.runs
+echo "Clustering_Similarity%" >> dDocent.runs
+echo $simC >> dDocent.runs
+echo "Mapping_Reads?" >> dDocent.runs
+echo $MAP >> dDocent.runs
+echo "Mapping_Match_Value" >> dDocent.runs
+echo $optA >> dDocent.runs
+echo "Mapping_MisMatch_Value" >> dDocent.runs
+echo $optB >> dDocent.runs
+echo "Mapping_GapOpen_Penalty" >> dDocent.runs
+echo $optO >> dDocent.runs
+echo "Calling_SNPs?" >> dDocent.runs
+echo $SNP >> dDocent.runs
+echo "Email" >> dDocent.runs
+echo $MAIL >> dDocent.runs
+
 #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
 #This functionality is now parallelized and will run if only SE sequences are used.
 
@@ -424,33 +451,6 @@ else
         echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/VCFtools.log` "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
 fi
 
-
-#Creates (or appends to) a dDcoent run file recording variables
-echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
-echo "Number of Processors" >> dDocent.runs
-echo $NUMProc >> dDocent.runs
-echo "Maximum Memory" >> dDocent.runs
-echo $MAXMemory >> dDocent.runs
-echo "Trimming" >> dDocent.runs
-echo $TRIM >> dDocent.runs
-echo "Assembly?" >> dDocent.runs
-echo $ASSEMBLY >> dDocent.runs
-echo "Type_of_Assembly" >> dDocent.runs
-echo $ATYPE >> dDocent.runs
-echo "Clustering_Similarity%" >> dDocent.runs
-echo $simC >> dDocent.runs
-echo "Mapping_Reads?" >> dDocent.runs
-echo $MAP >> dDocent.runs
-echo "Mapping_Match_Value" >> dDocent.runs
-echo $optA >> dDocent.runs
-echo "Mapping_MisMatch_Value" >> dDocent.runs
-echo $optB >> dDocent.runs
-echo "Mapping_GapOpen_Penalty" >> dDocent.runs
-echo $optO >> dDocent.runs
-echo "Calling_SNPs?" >> dDocent.runs
-echo $SNP >> dDocent.runs
-echo "Email" >> dDocent.runs
-echo $MAIL >> dDocent.runs
 
 }
 
