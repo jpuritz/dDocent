@@ -22,7 +22,8 @@ subtitle: Who reads manuals?
   * Visualize data in `kopt.data`
     * Plot values for each k1,k2 combination across similarity thresholds
     * Pick a similarity threshold at the point of inflection on the curve
-8. Run [RefMapOpt.sh](https://github.com/jpuritz/dDocent/blob/master/scripts/RefMapOpt.sh) using the similarity threshold picked from step 7.
+8. Run [RefMapOpt.sh](https://github.com/jpuritz/dDocent/blob/master/scripts/RefMapOpt.sh) using the similarity threshold picked from step 7. 
+  * **Note- You will need to have the trimmed reads files `*.R1.fq.gz` and `*.R2.fq.gz` included to run this script**
   * Pick optimal k1,k2 cutoffs.  Ideally, you want to maximize properly paired mappings and coverage while minimizing mismatched reads.
 9. Run dDocent on this subset with the correct assembly parameters, skipping mapping and snp calling.
 10. Copy the `reference.fasta` file from this `RefOpt` directory to your main working directory.
