@@ -251,7 +251,7 @@ echo "5" >randlist
 		fi
 	done
 
-RANDNAMES=( `mawk '!/5/' "randlist" | head -20 `)
+RANDNAMES=( `mawk '!/^5$/' "randlist" | head -20 `)
 else
 RANDNAMES=( `cat "$8" `)
 fi
