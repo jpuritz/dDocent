@@ -351,8 +351,6 @@ if [ "$SNP" != "no" ]; then
 	if [[ "$MAP" == "no" && ! -f "mapped.bed" ]]; then
 		bamToBed -i cat-RRG.bam > map.bed
 		bedtools merge -i map.bed > mapped.bed
-		sort -k1,1 -k2,2n mapped.bed > mapped.bed.sorted
-		mv mapped.bed.sorted mapped.bed
 		rm map.bed
 	fi
 	#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
@@ -715,8 +713,6 @@ samtools index cat-RRG.bam
 wait
 bamToBed -i cat-RRG.bam > map.bed
 bedtools merge -i map.bed > mapped.bed
-sort -k1,1 -k2,2n mapped.bed > mapped.bed.sorted
-mv mapped.bed.sorted mapped.bed
 rm map.bed
 }
 
