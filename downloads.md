@@ -6,7 +6,7 @@ subtitle:
 
 # Current Release
 
-Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/v2.2.15.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.2.15</a>
+Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/v2.2.16.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.2.16</a>
 
 Alternatively:
 
