@@ -4,7 +4,9 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-**Hollenbeck, C.M., Portnoy, D.S., Wetzel, D., et al., 2017. Linkage mapping and comparative genomics of red drum (Sciaenops ocellatus) using next-generation sequencing. G3, Accepted.**
+**Johnson, J.S., Gaddis, K.D., Cairns, D.M., Konganti, K. and Krutovsky, K.V., 2017. Landscape genomic insights into the historic migration of mountain hemlock in response to Holocene climate change. American Journal of Botany.** [LINK](http://www.amjbot.org/content/early/2017/03/21/ajb.1600262.abstract)
+
+**Hollenbeck, C.M., Portnoy, D.S., Wetzel, D., Sherwood, T.A., Samollow, P.B. and Gold, J.R., 2017. Linkage mapping and comparative genomics of red drum (Sciaenops ocellatus) using next-generation sequencing. G3: Genes, Genomes, Genetics, 7(3), pp.843-850.** [LINK](http://www.g3journal.org/content/7/3/843)
 
 **Willis, S.C., Hollenbeck, C.M., Puritz, J.B., Gold, J.R. and Portnoy, D.S., 2017. Haplotyping RAD loci: an efficient method to filter paralogs and account for physical linkage. Molecular Ecology Resources. Online Early.** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/1755-0998.12647/full)
 
