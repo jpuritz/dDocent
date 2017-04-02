@@ -11,8 +11,8 @@ Click here to download: <a class="btn btn-success" href="https://github.com/jpur
 Alternatively:
 
 ```
-curl -L -O https://github.com/jpuritz/dDocent/archive/v2.2.15.tar.gz
-tar xvzf v2.2.15.tar.gz
+curl -L -O https://github.com/jpuritz/dDocent/archive/v2.2.16.tar.gz
+tar xvzf v2.2.16.tar.gz
 ```
  
 # Requirements
