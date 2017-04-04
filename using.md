@@ -4,6 +4,8 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
+**Forsman, Z.H., Knapp, I.S.S., Tisthammer, K., Eaton, D.A.R., Belcaid, M. and Toonen, R.J., 2017. Coral hybridization or phenotypic variation? Genomic data reveal gene flow between Porites lobata and P. compressa. Molecular Phylogenetics and Evolution.** [LINK](http://www.sciencedirect.com/science/article/pii/S1055790316303384)
+
 **Johnson, J.S., Gaddis, K.D., Cairns, D.M., Konganti, K. and Krutovsky, K.V., 2017. Landscape genomic insights into the historic migration of mountain hemlock in response to Holocene climate change. American Journal of Botany.** [LINK](http://www.amjbot.org/content/early/2017/03/21/ajb.1600262.abstract)
 
 **Hollenbeck, C.M., Portnoy, D.S., Wetzel, D., Sherwood, T.A., Samollow, P.B. and Gold, J.R., 2017. Linkage mapping and comparative genomics of red drum (Sciaenops ocellatus) using next-generation sequencing. G3: Genes, Genomes, Genetics, 7(3), pp.843-850.** [LINK](http://www.g3journal.org/content/7/3/843)
