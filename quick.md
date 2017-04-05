@@ -22,6 +22,22 @@ subtitle: Who reads manuals?
   * Visualize data in `kopt.data`
     * Plot values for each k1,k2 combination across similarity thresholds
     * Pick a similarity threshold at the point of inflection on the curve
+  * Here's some R code to quickly plot this for you:
+
+```R
+library(ggplot2)
+
+data.table <- read.table("kopt.data", header = FALSE, col.names= c("k1","k2","Similarity", "Contigs"))
+
+data.table$K1K2 <- paste(data.table$k1, data.table$k2, sep=",")
+
+df=data.frame(data.table)
+df$Kcombo <- as.factor(df$K1K2)
+
+p <- ggplot(df, aes(x=Similarity, y=Contigs, group=K1K2)) + scale_x_continuous(breaks=seq(0.8,0.98,0.01)) + geom_line(aes(colour = K1K2))
+p
+```
+       
 8. Run [RefMapOpt.sh](https://github.com/jpuritz/dDocent/blob/master/scripts/RefMapOpt.sh) using the similarity threshold picked from step 7. 
   * **Note- You will need to have the trimmed reads files `*.R1.fq.gz` and `*.R2.fq.gz` included to run this script**
   * Pick optimal k1,k2 cutoffs.  Ideally, you want to maximize properly paired mappings and coverage while minimizing mismatched reads.
