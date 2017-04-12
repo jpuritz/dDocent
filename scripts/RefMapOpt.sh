@@ -27,7 +27,7 @@ if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru
     fi
 
 ATYPE=$7
-if [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" && $ATYPE != "HYB" ]]; then
+if [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" && $ATYPE != "HYB" && $ATYPE != "ROL" ]]; then
 echo "Usage is RefMapTest minK1 maxK1 minK2 maxK2 cluster_similarity Num_of_Processors Assembly_Type optional_list_of_individuals"
 echo "Please make sure to choose assembly type."
 exit 1
