@@ -63,7 +63,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	#if SE assembly, creates files of every unique read for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
-	if [ "$ATYPE" == "OL" ]; then
+	if [[ "$ATYPE" == "OL" || "$ATYPE" == "ROL" ]]; then
 	#If OL assembly, dDocent assumes that the marjority of PE reads will overlap, so the software PEAR is used to merge paired reads into single reads
 		for i in "${NAMES[@]}";
         		do
@@ -101,7 +101,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 fi
 
 #Create a data file with the number of unique sequences and the number of occurrences
-if [ "$ATYPE" == "RPE" ]; then
+if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 |  sort | uniq -c -w $FRL | sed -e 's/^[ \t]*//' | sed -e 's/\s/\t/g' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
 else
 	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
