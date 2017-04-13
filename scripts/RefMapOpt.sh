@@ -69,11 +69,11 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
         		do
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
         		done	
-        	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+        MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 		LENGTH=$(( $MaxLen / 3))
 		for i in "${NAMES[@]}"
 			do
-			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &>kopt.log
+			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &> $i.kopt.log
 			done
 		cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
