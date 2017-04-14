@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.16'
+VERSION='2.2.17'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -474,8 +474,8 @@ TrimReads () {
 
 	cat namelist | parallel "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-    	MLen=$(($MLen / 2))
-    	FB1=$(( $NUMProc / 2 ))
+    MLen=$(($MLen / 2))
+    FB1=$(( $NUMProc / 2 ))
 	TW="MINLEN:$MLen"
 	cat namelist | parallel --env trim_reads -j $NUMProc trim_reads {}	
 	mkdir unpaired &>/dev/null
@@ -703,7 +703,7 @@ bwa index reference.fasta
 
 ##Create alignment intervals
 ##This takes advantage of the fact that RAD loci are very discrete.  Instead of calculating intervals for every BAM file,
-##this function merges all BAM files together and removes duplicates.  This overall BAM file 
+##this function merges all BAM files together.  This overall BAM file 
 ##is used to create a single list of intervals, saving a large amount of computational time.
 
 CreateIntervals()
@@ -711,9 +711,7 @@ CreateIntervals()
 samtools merge -@$NUMProc -b bamlist.list -f cat-RRG.bam &>/dev/null
 samtools index cat-RRG.bam 
 wait
-bamToBed -i cat-RRG.bam > map.bed
-bedtools merge -i map.bed > mapped.bed
-rm map.bed
+bamToBed -i cat-RRG.bam | bedtools merge -i - > mapped.bed
 }
 
 #This checks that dDocent has detected the proper number of individuals and exits if incorrect

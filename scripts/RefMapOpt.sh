@@ -39,6 +39,11 @@ sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
 
 Reference(){
+
+ls *.F.fq.gz > namelist
+sed -i'' -e 's/.F.fq.gz//g' namelist
+NAMES=( `cat "namelist" `)
+
 AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 AWK2='!/>/'
 AWK3='!/NNN/'
@@ -238,17 +243,17 @@ NUM1=$(($NUMIND / 10))
 NUM2=$(($NUMIND - $NUM1))
 NUM3=$(($NUM2 - $NUM1))
 cat namelist | head -$NUM2 | tail -$NUM3 > newlist
-NAMES=( `cat "newlist" `)
-LEN=${#NAMES[@]}
+NAMESR=( `cat "newlist" `)
+LEN=${#NAMESR[@]}
 LEN=$(($LEN - 1))
 echo "5" >randlist
 	for ((rr = 1; rr<=50; rr++));
 	do
 	INDEX=$[ 1 + $[ RANDOM % $LEN ]]
-		if grep -q ${NAMES[$INDEX]} randlist;
+		if grep -q ${NAMESR[$INDEX]} randlist;
 		then x=x
 		else
-	echo ${NAMES[$INDEX]} >> randlist
+	echo ${NAMESR[$INDEX]} >> randlist
 		fi
 	done
 
@@ -282,10 +287,10 @@ do
     		for k in "${RANDNAMES[@]}"
     		do
 		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB" ]]; then
-		bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
 		else
     		bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
-    		fi
+    	fi
 		samtools sort -@24 $k.bam -o $k.bam 
 		samtools index $k.bam
     		MM=$(samtools flagstat $k.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
