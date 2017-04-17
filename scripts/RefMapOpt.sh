@@ -40,10 +40,6 @@ NAMES=( `cat "namelist" `)
 
 Reference(){
 
-ls *.F.fq.gz > namelist
-sed -i'' -e 's/.F.fq.gz//g' namelist
-NAMES=( `cat "namelist" `)
-
 AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 AWK2='!/>/'
 AWK3='!/NNN/'
@@ -264,13 +260,13 @@ fi
 
 echo -e "Cov\tNon0Cov\tContigs\tMeanContigsMapped\tK1\tK2\tSUM Mapped\tSUM Properly\tMean Mapped\tMean Properly\tMisMatched" > mapping.results
 
-for ((i = $1; i <= $2; i++));
+for ((r = $1; i <= $2; r++));
 do
 	for ((j = $3; j <= $4; j++));
 	do
-	PP=$(($i + $j))
+	PP=$(($r + $j))
 	if [ "$PP" != "2" ]; then
-	Reference $i $j $5
+	Reference $r $j $5
     	rm lengths.txt &> /dev/null
     		for k in "${RANDNAMES[@]}";
     		do
@@ -283,13 +279,13 @@ do
     	SD=$(($INSERT / 10))
 
     	#BWA for mapping for all samples
-    	rm $i.$j.results 2>/dev/null
+    	rm $r.$j.results 2>/dev/null
     		for k in "${RANDNAMES[@]}"
     		do
 		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB" ]]; then
-			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
 		else
-    		bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$i.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+    		bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
     	fi
 		samtools sort -@24 $k.bam -o $k.bam 
 		samtools index $k.bam
@@ -298,18 +294,18 @@ do
     		CC=$(samtools idxstats $k.bam | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
 		DD=$(samtools idxstats $k.bam | mawk '$3 >0' | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
 		BM=$(samtools flagstat $k.bam | grep mapQ | cut -f1 -d ' ')
-		echo -e "$MM\t$CM\t$CC\t$DD\t$BM" >> $i.$j.results
+		echo -e "$MM\t$CM\t$CC\t$DD\t$BM" >> $r.$j.results
     		done
-    	SUMM=$(mawk '{ sum+=$1} END {print sum}' $i.$j.results)
-    	SUMPM=$(mawk '{ sum+=$2} END {print sum}' $i.$j.results)
-    	AVEM=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $i.$j.results)
-    	AVEP=$(mawk '{ sum += $2; n++ } END { if (n > 0) print sum / n; }' $i.$j.results)
-    	AC=$(mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' $i.$j.results)
+    	SUMM=$(mawk '{ sum+=$1} END {print sum}' $r.$j.results)
+    	SUMPM=$(mawk '{ sum+=$2} END {print sum}' $r.$j.results)
+    	AVEM=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	AVEP=$(mawk '{ sum += $2; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	AC=$(mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
     	CON=$(mawk '/>/' reference.fasta | wc -l)
-	CCC=$(mawk '{ sum += $4; n++ } END { if (n > 0) print sum / n; }' $i.$j.results)
-	DDD=$(mawk '{ sum += $5; n++ } END { if (n > 0) print sum / n; }' $i.$j.results)
-	BBM=$(mawk '{ sum += $6; n++ } END { if (n > 0) print sum / n; }' $i.$j.results)
-    	echo -e "$CCC\t$DDD\t$CON\t$AC\t$i\t$j\t$SUMM\t$SUMPM\t$AVEM\t$AVEP\t$BBM" >> mapping.results
+	CCC=$(mawk '{ sum += $4; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+	DDD=$(mawk '{ sum += $5; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+	BBM=$(mawk '{ sum += $6; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	echo -e "$CCC\t$DDD\t$CON\t$AC\t$r\t$j\t$SUMM\t$SUMPM\t$AVEM\t$AVEP\t$BBM" >> mapping.results
 	fi
 	done
     		
