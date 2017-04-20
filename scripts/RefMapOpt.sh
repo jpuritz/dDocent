@@ -260,7 +260,7 @@ fi
 
 echo -e "Cov\tNon0Cov\tContigs\tMeanContigsMapped\tK1\tK2\tSUM Mapped\tSUM Properly\tMean Mapped\tMean Properly\tMisMatched" > mapping.results
 
-for ((r = $1; i <= $2; r++));
+for ((r = $1; r <= $2; r++));
 do
 	for ((j = $3; j <= $4; j++));
 	do
@@ -282,7 +282,7 @@ do
     	rm $r.$j.results 2>/dev/null
     		for k in "${RANDNAMES[@]}"
     		do
-		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB" ]]; then
+		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" ]]; then
 			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
 		else
     		bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
