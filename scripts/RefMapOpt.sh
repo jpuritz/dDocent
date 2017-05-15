@@ -270,22 +270,33 @@ do
     	rm lengths.txt &> /dev/null
     		for k in "${RANDNAMES[@]}";
     		do
+    		if [ -f "$k.R.fq.gz" ]; then
     		zcat $k.R.fq.gz | head -2 | tail -1 >> lengths.txt
+    		fi
     		done	
+    	if [ -f "lengths.txt" ]; then
     	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     	INSERT=$(($MaxLen * 2 ))
     	INSERTH=$(($INSERT + 100 ))
     	INSERTL=$(($INSERT - 100 ))
     	SD=$(($INSERT / 10))
-
+		fi
     	#BWA for mapping for all samples
     	rm $r.$j.results 2>/dev/null
     		for k in "${RANDNAMES[@]}"
     		do
 		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" ]]; then
-			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			if [ -f "$i.R2.fq.gz" ]; then
+				bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			else
+				bwa mem reference.fasta $k.R1.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			fi
 		else
-    		bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			if [ -f "$i.R2.fq.gz" ]; then
+    			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+    		else
+    			bwa mem reference.fasta $k.R1.fq.gz -L 20,5 -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+    		fi
     	fi
 		samtools sort -@24 $k.bam -o $k.bam 
 		samtools index $k.bam
