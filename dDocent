@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.17'
+VERSION='2.2.18'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -224,29 +224,6 @@ echo $SNP >> dDocent.runs
 echo "Email" >> dDocent.runs
 echo $MAIL >> dDocent.runs
 
-#STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
-#This functionality is now parallelized and will run if only SE sequences are used.
-
-STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | head -1" | mawk '$0 !~ /\/1$/ && $0 !~ /\/1[ ,	]/'| wc -l )
-FB1=$(( $NUMProc / 2 ))
-if [ $STACKS -gt 0 ]; then
-	echo "Removing the _1 character and replacing with /1 in the name of every sequence"
-	cat namelist | parallel -j $FB1 --no-notice "zcat {}.F.fq.gz | sed -e 's:_1$:/1:g' > {}.F.fq"
-	rm -f *.F.fq.gz
-	cat namelist | parallel -j $FB1 --no-notice "gzip {}.F.fq"
-fi
-
-if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
-	
-	STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.R.fq.gz | head -1" | mawk '$0 !~ /\/2$/ && $0 !~ /\/2[ ,	]/'| wc -l )
-
-	if [ $STACKS -gt 0 ]; then
-		echo "Removing the _2 character and replacing with /2 in the name of every sequence"
-		cat namelist | parallel -j $FB1 --no-notice "zcat {}.R.fq.gz | sed -e 's:_2$:/2:g' > {}.R.fq"
-		rm -f *.R.fq.gz
-		cat namelist | parallel -j $FB1 --no-notice "gzip {}.R.fq"
-	fi
-fi
 
 ##Section of logic statements that dictates the order and function of processing the pipeline
 
@@ -471,13 +448,36 @@ trim_reads(){
 	export -f trim_reads
 
 TrimReads () { 
+	#STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
+	#This functionality is now parallelized and will run if only SE sequences are used.
+
+	STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.F.fq.gz | head -1" | mawk '$0 !~ /\/1$/ && $0 !~ /\/1[ ,	]/ && $0 !~ / 1:.*[A-Z]*/' | wc -l )
+	FB1=$(( $NUMProc / 2 ))
+	if [ $STACKS -gt 0 ]; then
+		
+		echo "Removing the _1 character and replacing with /1 in the name of every sequence"
+		cat namelist | parallel -j $FB1 --no-notice "zcat {}.F.fq.gz | sed -e 's:_1$:/1:g' > {}.F.fq"
+		rm -f *.F.fq.gz
+		cat namelist | parallel -j $FB1 --no-notice "gzip {}.F.fq"
+	fi
+
+	if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
+	
+		STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "zcat {}.R.fq.gz | head -1" | mawk '$0 !~ /\/2$/ && $0 !~ /\/2[ ,	]/ && $0 !~ / 2:.*[A-Z]*/'| wc -l )
+
+		if [ $STACKS -gt 0 ]; then
+			echo "Removing the _2 character and replacing with /2 in the name of every sequence"
+			cat namelist | parallel -j $FB1 --no-notice "zcat {}.R.fq.gz | sed -e 's:_2$:/2:g' > {}.R.fq"
+			rm -f *.R.fq.gz
+			cat namelist | parallel -j $FB1 --no-notice "gzip {}.R.fq"
+		fi
+	fi
 
 	cat namelist | parallel "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     MLen=$(($MLen / 2))
-    FB1=$(( $NUMProc / 2 ))
 	TW="MINLEN:$MLen"
-	cat namelist | parallel --env trim_reads -j $NUMProc trim_reads {}	
+	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}	
 	mkdir unpaired &>/dev/null
 	mv *unpaired*.gz ./unpaired &>/dev/null	
 }
