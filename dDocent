@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.18'
+VERSION='2.2.19'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -473,7 +473,7 @@ TrimReads () {
 		fi
 	fi
 
-	cat namelist | parallel "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
+	cat namelist | parallel -j $NUMProc "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     MLen=$(($MLen / 2))
 	TW="MINLEN:$MLen"
@@ -546,7 +546,7 @@ for i in {2..20};
 do 
 echo $i >> pfile
 done
-cat pfile | parallel --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniq.seqs | wc -l" | mawk  '{gsub("xxx","\t",$0); print;}'| sort -g > uniqseq.data
+cat pfile | parallel -j $NUMProc --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniq.seqs | wc -l" | mawk  '{gsub("xxx","\t",$0); print;}'| sort -g > uniqseq.data
 rm pfile
 
 
@@ -586,7 +586,7 @@ do
 echo $i >> ufile
 done
 
-cat ufile | parallel --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniqCperindv | wc -l" | mawk  '{gsub("xxx","\t",$0); print;}'| sort -g > uniqseq.peri.data
+cat ufile | parallel -j $NUMProc --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniqCperindv | wc -l" | mawk  '{gsub("xxx","\t",$0); print;}'| sort -g > uniqseq.peri.data
 rm ufile
 
 
