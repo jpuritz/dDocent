@@ -4,6 +4,8 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
+**Barker, A.M., Frazier, B.S., Bethea, D.M., Gold, J.R. and Portnoy, D.S., 2017. Identification of young‐of‐the‐year great hammerhead shark Sphyrna mokarran in northern Florida and South Carolina. Journal of Fish Biology.** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/jfb.13356/full)
+
 **Forsman, Z.H., Knapp, I.S.S., Tisthammer, K., Eaton, D.A.R., Belcaid, M. and Toonen, R.J., 2017. Coral hybridization or phenotypic variation? Genomic data reveal gene flow between Porites lobata and P. compressa. Molecular Phylogenetics and Evolution.** [LINK](http://www.sciencedirect.com/science/article/pii/S1055790316303384)
 
 **Johnson, J.S., Gaddis, K.D., Cairns, D.M., Konganti, K. and Krutovsky, K.V., 2017. Landscape genomic insights into the historic migration of mountain hemlock in response to Holocene climate change. American Journal of Botany.** [LINK](http://www.amjbot.org/content/early/2017/03/21/ajb.1600262.abstract)
