@@ -5,7 +5,7 @@
 body {
   font-family: 'Lora', 'Times New Roman', serif;
   font-size: 18px;
-  color: #404040;
+  color: #000000;
   position: relative;
   background: #FFF;
 }
@@ -15,7 +15,7 @@ p {
 }
 p a {
   /* text-decoration: underline */
-  color: #008AFF;
+  color: #000000;
 }
 h1,h2,h3,h4,h5,h6 {
   font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
