@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.2.21'
+VERSION='2.2.22'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -650,6 +650,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 		rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
 	else
 		rainbow merge -o rbasm.out -a -i rbdiv.out
+	fi
 	#This AWK code replaces rainbow's contig selection perl script
 	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 		if (NR == 1) e=$2;
