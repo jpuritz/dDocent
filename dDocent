@@ -136,7 +136,7 @@ NumInd=$(($NumInd - 0))
 
 #Test for file limits for current user and reset if necessary
 
-Flimit=$(ulimit)
+Flimit=$(ulimit -n)
 export Flimit
 
 if [ "$Flimit" != "unlimited" ]; then
