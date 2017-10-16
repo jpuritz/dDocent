@@ -139,7 +139,7 @@ NumInd=$(($NumInd - 0))
 Flimit=$(ulimit)
 export Flimit
 
-if [ "$Flimit" != "unlimited ]; then
+if [ "$Flimit" != "unlimited" ]; then
 	Nlimit=$(( $NumInd * 10 ))
 	if [ "$Flimit" -lt "$Nlimit" ]; then
 		ulimit -n $Nlimit
@@ -905,7 +905,7 @@ else
 	main 2>&1 | tee -a dDocent_main.LOG  #Log all output
 fi
 
-if [ "$Flimit" != "unlimited ]; then
+if [ "$Flimit" != "unlimited" ]; then
 	Nlimit=$(( $NumInd * 10 ))
 	if [ "$Flimit" -lt "$Nlimit" ]; then
 		ulimit -n $Flimit
