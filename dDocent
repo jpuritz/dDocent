@@ -140,10 +140,10 @@ Flimit=$(ulimit)
 export Flimit
 
 if [ "$Flimit" != "unlimited" ]; then
-	Nlimit=$(( $NumInd * 10 ))
-	if [ "$Flimit" -lt "$Nlimit" ]; then
-		ulimit -n $Nlimit
-	fi
+        Nlimit=$(( $NumInd * 10 ))
+        if [ "$Flimit" -lt "$Nlimit" ]; then
+                ulimit -n $Nlimit
+        fi
 fi
 
 #Create list of sample names
@@ -906,11 +906,12 @@ else
 fi
 
 if [ "$Flimit" != "unlimited" ]; then
-	Nlimit=$(( $NumInd * 10 ))
-	if [ "$Flimit" -lt "$Nlimit" ]; then
-		ulimit -n $Flimit
-	fi
+        Nlimit=$(( $NumInd * 10 ))
+        if [ "$Flimit" -lt "$Nlimit" ]; then
+                ulimit -n $Flimit
+        fi
 fi
+
 
 
 #Compress Large Leftover files
