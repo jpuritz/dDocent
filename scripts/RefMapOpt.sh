@@ -286,13 +286,13 @@ do
     		for k in "${RANDNAMES[@]}"
     		do
 		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" ]]; then
-			if [ -f "$i.R2.fq.gz" ]; then
+			if [ -f "$k.R2.fq.gz" ]; then
 				bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
 			else
 				bwa mem reference.fasta $k.R1.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
 			fi
 		else
-			if [ -f "$i.R2.fq.gz" ]; then
+			if [ -f "$k.R2.fq.gz" ]; then
     			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
     		else
     			bwa mem reference.fasta $k.R1.fq.gz -L 20,5 -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
