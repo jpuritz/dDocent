@@ -4,6 +4,14 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
+**Johnson, J.S., Chhetri, P.K., Krutovsky, K.V. and Cairns, D.M., 2017. Growth and Its Relationship to Individual Genetic Diversity of Mountain Hemlock (Tsuga mertensiana) at Alpine Treeline in Alaska: Combining Dendrochronology and Genomics. Forests, 8(11), p.418.** [LINK](http://www.mdpi.com/1999-4907/8/11/418)
+
+**Schield, D.R., Adams, R.H., Card, D.C., Perry, B.W., Pasquesi, G.M., Jezkova, T., Portik, D.M., Andrew, A.L., Spencer, C.L., Sanchez, E.E. and Fujita, M.K., 2017. Insight into the roles of selection in speciation from genomic patterns of divergence and introgression in secondary contact in venomous rattlesnakes. Ecology and evolution.** [LINK](http://onlinelibrary.wiley.com/doi/10.1002/ece3.2996/full)
+
+**Koubínová, D., Dincă, V., Dapporto, L., Vodă, R., Suchan, T., Vila, R. and Alvarez, N., 2017. Genomics of extreme ecological specialists: multiple convergent evolution but no genetic divergence between ecotypes of Maculinea alcon butterflies. Scientific Reports, 7(1), p.13752.** [LINK](https://www.nature.com/articles/s41598-017-12938-8)
+
+**Heinzelmann, R., Croll, D., Zoller, S., Sipos, G., Münsterkötter, M., Güldener, U. and Rigling, D., 2017. High-density genetic mapping identifies the genetic basis of a natural colony morphology mutant in the root rot pathogen Armillaria ostoyae. Fungal Genetics and Biology.** [LINK](http://www.sciencedirect.com/science/article/pii/S1087184517301354)
+
 **Barker, A.M., Frazier, B.S., Bethea, D.M., Gold, J.R. and Portnoy, D.S., 2017. Identification of young‐of‐the‐year great hammerhead shark Sphyrna mokarran in northern Florida and South Carolina. Journal of Fish Biology.** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/jfb.13356/full)
 
 **Forsman, Z.H., Knapp, I.S.S., Tisthammer, K., Eaton, D.A.R., Belcaid, M. and Toonen, R.J., 2017. Coral hybridization or phenotypic variation? Genomic data reveal gene flow between Porites lobata and P. compressa. Molecular Phylogenetics and Evolution.** [LINK](http://www.sciencedirect.com/science/article/pii/S1055790316303384)
