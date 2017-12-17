@@ -4,6 +4,8 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
+**Turner, K.G., Huang, D.I., Cronk, Q.C. and Rieseberg, L.H., 2017. Homogenization of Populations in the Wildflower, Texas Bluebonnet (Lupinus texensis). Journal of Heredity.** [LINK](https://academic.oup.com/jhered/advance-article/doi/10.1093/jhered/esx094/4733275)
+
 **Johnson, J.S., Chhetri, P.K., Krutovsky, K.V. and Cairns, D.M., 2017. Growth and Its Relationship to Individual Genetic Diversity of Mountain Hemlock (Tsuga mertensiana) at Alpine Treeline in Alaska: Combining Dendrochronology and Genomics. Forests, 8(11), p.418.** [LINK](http://www.mdpi.com/1999-4907/8/11/418)
 
 **Schield, D.R., Adams, R.H., Card, D.C., Perry, B.W., Pasquesi, G.M., Jezkova, T., Portik, D.M., Andrew, A.L., Spencer, C.L., Sanchez, E.E. and Fujita, M.K., 2017. Insight into the roles of selection in speciation from genomic patterns of divergence and introgression in secondary contact in venomous rattlesnakes. Ecology and evolution.** [LINK](http://onlinelibrary.wiley.com/doi/10.1002/ece3.2996/full)
