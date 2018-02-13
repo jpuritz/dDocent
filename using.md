@@ -4,6 +4,8 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
+**Sandoval‐Castillo, J., Robinson, N.A., Hart, A.M., Strain, L.W. and Beheregaray, L.B., Seascape genomics reveals adaptive divergence in a connected and commercially important mollusc, the greenlip abalone (Haliotis laevigata), along a longitudinal environmental gradient. Molecular Ecology.**[LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.14526/full)
+
 **Turner, K.G., Huang, D.I., Cronk, Q.C. and Rieseberg, L.H., 2017. Homogenization of Populations in the Wildflower, Texas Bluebonnet (Lupinus texensis). Journal of Heredity.** [LINK](https://academic.oup.com/jhered/advance-article/doi/10.1093/jhered/esx094/4733275)
 
 **Johnson, J.S., Chhetri, P.K., Krutovsky, K.V. and Cairns, D.M., 2017. Growth and Its Relationship to Individual Genetic Diversity of Mountain Hemlock (Tsuga mertensiana) at Alpine Treeline in Alaska: Combining Dendrochronology and Genomics. Forests, 8(11), p.418.** [LINK](http://www.mdpi.com/1999-4907/8/11/418)
