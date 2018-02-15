@@ -14,6 +14,8 @@ Miniconda is a small version that includes only conda, Python, and the packages 
 
 ### So easy, your grandfather could do this...
 
+![alt text](https://anaconda.org/bioconda/ddocent/badges/downloads.svg)
+
 Install Miniconda: [http://conda.pydata.org/miniconda.html](http://conda.pydata.org/miniconda.html)
 
 Add the bioconda channel:
