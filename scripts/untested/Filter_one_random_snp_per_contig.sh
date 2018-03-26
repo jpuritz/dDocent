@@ -3,7 +3,7 @@
 #Script to take random SNP from every contig in a vcffile
 
 if [[ -z "$1" ]]; then
-echo "Usage is bash Filter_VCF_best_SNP_per_contig.sh vcffile"
+echo "Usage is bash Filter_one_random_snp_per_contig.sh vcffile"
 exit 1
 fi
 
