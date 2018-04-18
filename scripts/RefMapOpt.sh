@@ -38,6 +38,16 @@ ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
 
+#This code checks for trimmed sequence files
+TEST=$(ls *.fq 2> /dev/null | wc -l )
+if [ "$TEST" -gt 0 ]; then
+echo -e "\nRefMapOpt.sh requires that you have trimmed sequence files.\nPlease include trimmed sequence files with the .R1.fq.gz and .R2.fq.gz naming convention."
+echo "dDocent will create these for you"
+echo "Please rerun RefMapOpt.sh after trimming sequence files"
+exit 1
+fi
+
+
 Reference(){
 
 AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
