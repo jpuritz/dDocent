@@ -39,11 +39,13 @@ sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
 
 #This code checks for trimmed sequence files
-TEST=$(ls *.fq 2> /dev/null | wc -l )
+TEST=$(ls *.R1.fq.gz 2> /dev/null | wc -l )
 if [ "$TEST" -gt 0 ]; then
-echo -e "\nRefMapOpt.sh requires that you have trimmed sequence files.\nPlease include trimmed sequence files with the .R1.fq.gz and .R2.fq.gz naming convention."
-echo "dDocent will create these for you"
-echo "Please rerun RefMapOpt.sh after trimming sequence files"
+	echo "Trimmed sequences found, proceeding with optimization."
+else
+	echo -e "\nRefMapOpt.sh requires that you have trimmed sequence files.\nPlease include trimmed sequence files with the .R1.fq.gz and .R2.fq.gz naming convention."
+	echo "dDocent will create these for you"
+	echo "Please rerun RefMapOpt.sh after trimming sequence files"
 exit 1
 fi
 
