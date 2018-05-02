@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.3.2'
+VERSION='2.3.3'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -440,8 +440,10 @@ if [ "$SNP" != "no" ]; then
 		echo "FreeBayes has now failed a third  time, likely because of memory issues.  More resources must be allocated to finish this analysis."
 		ERROR3=1
 		export ERROR3
-	fi	
-
+	else
+            	ERROR3=0
+		export ERROR3
+        fi
 
 	rm mapped.*.bed  
 
