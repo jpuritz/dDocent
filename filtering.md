@@ -757,7 +757,7 @@ We have now created a thoroughly filtered VCF, and we should have confidence in 
 However, our lab is currently developing one more script, called rad_haplotyper.  
 This tool takes a VCF file of SNPs and will parse through BAM files looking to link SNPs into haplotypes along paired reads.
 ```bash
-curl -L -O https://raw.githubusercontent.com/jpuritz/WinterSchool.2016/master/rad_haplotyper.pl
+curl -L -O https://raw.githubusercontent.com/chollenbeck/rad_haplotyper/master/rad_haplotyper.pl
 chmod +x rad_haplotyper.pl
 
 ```
