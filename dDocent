@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.3.3'
+VERSION='2.3.4'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -338,9 +338,7 @@ if [ "$SNP" != "no" ]; then
 	fi
 	#Check to make sure interval files have been created
 	if [[ "$MAP" == "no" && ! -f "mapped.bed" ]]; then
-		bamToBed -i cat-RRG.bam > map.bed
-		bedtools merge -i map.bed > mapped.bed
-		rm map.bed
+		bedtools merge -i cat-RRG.bam -bed >  mapped.bed
 	fi
 	#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
 	#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
@@ -348,7 +346,8 @@ if [ "$SNP" != "no" ]; then
 		if [ "$BEDTOOLSFLAG" == "OLD" ]; then
 			coverageBed -abam cat-RRG.bam -b mapped.bed -counts > cov.stats
 		else
-			bedtools coverage -b  cat-RRG.bam -a mapped.bed -counts -sorted > cov.stats
+			mawk -v OFS='\t' {'print $1,$2'} reference.fasta.fai > genome.file
+                        bedtools coverage -b filter.merged.bam -a mapped.bed -counts -sorted -g genome.file > cov.stats
 		fi
 	fi
 		
