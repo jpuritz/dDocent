@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.3.4'
+VERSION='2.3.5'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -471,9 +471,12 @@ fi
 ##Checking for possible errors
 
 if [ "$MAP" != "no" ]; then
-ERROR1=$(mawk '/developer/' bwa* 2>/dev/null | wc -l 2>/dev/null) 
+	ERROR1=$(mawk '/developer/' bwa* 2>/dev/null | wc -l 2>/dev/null) 
 fi
 ERROR2=$(mawk '/error/' *.bam.log 2>/dev/null | wc -l 2>/dev/null)
+if [ "$SNP" == "no" ]; then
+	ERROR3=0
+fi
 ERRORS=$(($ERROR1 + $ERROR2 + $ERROR3))
 
 #Move various log files to own directory
