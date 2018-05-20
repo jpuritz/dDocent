@@ -65,7 +65,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
         		do
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
         		done	
-        MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+        	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 		LENGTH=$(( $MaxLen / 3))
 		for i in "${NAMES[@]}"
 			do
@@ -99,11 +99,11 @@ fi
 
 #Create a data file with the number of unique sequences and the number of occurrences
 if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
-	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 |  sort | uniq -c -w $FRL | sed -e 's/^[ \t]*//' | sed -e 's/\s/\t/g' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
+	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 |  sort | uniq -c -w $FRL | sed -e 's/^[ \t]*//' | sed -e 's/\s/\t/g' | mawk -v x=$2 '$1 >= x' | sort -k1 -r -n > uniq.k.$1.c.$2.seqs
 else
 	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
 fi
-cut -f2 uniq.k.$1.c.$2.seqs > totaluniqseq
+sort -k1 -r -n uniq.k.$1.c.$2.seqs | cut -k2 > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
