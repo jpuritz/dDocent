@@ -117,7 +117,7 @@ rm uniq.fq*
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 	sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
-	CDHIT=$(python -c "print (max("$3" - 0.1,0.8))")
+	CDHIT=$(python -c "print(max("$3" - 0.1,0.8))")
 	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 -d 100 &>cdhit.log
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
