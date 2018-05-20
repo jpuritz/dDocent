@@ -31,6 +31,7 @@ NUMProc=$5
 NAMES=( `cat "namelist" `)
 
 Reference(){
+
 AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 AWK2='!/>/'
 AWK3='!/NNN/'
@@ -55,17 +56,18 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	#if SE assembly, creates files of every unique read for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
-	if [ "$ATYPE" == "OL" ]; then
+	if [[ "$ATYPE" == "OL" || "$ATYPE" == "ROL" ]]; then
 	#If OL assembly, dDocent assumes that the marjority of PE reads will overlap, so the software PEAR is used to merge paired reads into single reads
 		for i in "${NAMES[@]}";
         		do
         		zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
         		done	
-        	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+        MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 		LENGTH=$(( $MaxLen / 3))
 		for i in "${NAMES[@]}"
 			do
-			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &>kopt.log
+			echo "Running PEAR on sample" $i
+			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &> $i.kopt.log
 			done
 		cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
@@ -93,7 +95,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 fi
 
 #Create a data file with the number of unique sequences and the number of occurrences
-if [ "$ATYPE" == "RPE" ]; then
+if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 |  sort | uniq -c -w $FRL | sed -e 's/^[ \t]*//' | sed -e 's/\s/\t/g' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
 else
 	parallel --no-notice mawk -v x=$1 \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$1.c.$2.seqs
@@ -112,14 +114,18 @@ rm uniq.fq*
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 	sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
-	CDHIT=$(python -c "print(max("$3" - 0.1,0.8))")
+	CDHIT=$(python -c "print (max("$3" - 0.1,0.8))")
 	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 -d 100 &>cdhit.log
 	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
 	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
 	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	#CD-hit output is converted to rainbow format
 	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
-	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+	if [ "$ATYPE" == "PE" ]; then
+		rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+	else
+		rainbow merge -o rbasm.out -a -i rbdiv.out
+	fi
 	#This AWK code replaces rainbow's contig selection perl script
 	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 		if (NR == 1) e=$2;
@@ -183,7 +189,12 @@ if [[ "$ATYPE" == "HYB" ]];then
 		sort -k2,2 -g contig.cluster.totaluniqseq.ua | sed -e 's/NNNNNNNNNN/	/g' > rcluster.ua
 		#CD-hit output is converted to rainbow format
 		rainbow div -i rcluster.ua -o rbdiv.ua.out -f 0.5 -K 10
-		rainbow merge -o rbasm.ua.out -a -i rbdiv.ua.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+		if [ "$ATYPE" == "PE" ]; then
+			rainbow merge -o rbasm.ua.out -a -i rbdiv.ua.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+		else
+			rainbow merge -o rbasm.ua.out -a -i rbdiv.ua.out
+		fi
+		
 		#This AWK code replaces rainbow's contig selection perl script
 		cat rbasm.ua.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 			if (NR == 1) e=$2;
@@ -217,6 +228,5 @@ sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -
 SEQS=$(cat reference.fasta | wc -l)
 SEQS=$(($SEQS / 2 ))
 echo $SEQS
-
 }
 Reference $1 $2 $3
