@@ -141,7 +141,11 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	#CD-hit output is converted to rainbow format
 	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
-	rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+	if [ "$ATYPE" == "PE" ]; then
+		rainbow merge -o rbasm.out -a -i rbdiv.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+	else
+		rainbow merge -o rbasm.out -a -i rbdiv.out
+	fi
 	#This AWK code replaces rainbow's contig selection perl script
 	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 		if (NR == 1) e=$2;
@@ -205,7 +209,12 @@ if [[ "$ATYPE" == "HYB" ]];then
 		sort -k2,2 -g contig.cluster.totaluniqseq.ua | sed -e 's/NNNNNNNNNN/	/g' > rcluster.ua
 		#CD-hit output is converted to rainbow format
 		rainbow div -i rcluster.ua -o rbdiv.ua.out -f 0.5 -K 10
-		rainbow merge -o rbasm.ua.out -a -i rbdiv.ua.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+		if [ "$ATYPE" == "PE" ]; then
+			rainbow merge -o rbasm.ua.out -a -i rbdiv.ua.out -r 2 -N10000 -R10000 -l 20 -f 0.75
+		else
+			rainbow merge -o rbasm.ua.out -a -i rbdiv.ua.out
+		fi
+		
 		#This AWK code replaces rainbow's contig selection perl script
 		cat rbasm.ua.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
 			if (NR == 1) e=$2;
