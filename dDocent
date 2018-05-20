@@ -690,7 +690,7 @@ echo "Now sit back, relax, and wait for your analysis to finish."
 #and remove reads with substantial amounts of adapters
 
 mawk -v x=$CUTOFF2 '$1 >= x' uniqCperindv > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
-cut -f2 uniq.k.$CUTOFF.c.$CUTOFF2.seqs > totaluniqseq
+sort -k1 -r -n uniq.k.$CUTOFF.c.$CUTOFF2.seqs | cut -f 2 > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
