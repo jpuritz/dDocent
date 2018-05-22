@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.3.6'
+VERSION='2.3.7'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -293,7 +293,7 @@ echo "Using BWA to map reads."
         	if [ -f "$i.R2.fq.gz" ]; then
         		bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz $i.R2.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	else
-        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" 2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/'reference.fasta $i.R1.fq.gz  | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz 2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	fi
         	samtools sort -@$NUMProc $i.bam -o $i.bam 
 		mv $i.bam $i-RG.bam
