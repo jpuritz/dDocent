@@ -4,7 +4,15 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-**Sandoval‐Castillo, J., Robinson, N.A., Hart, A.M., Strain, L.W. and Beheregaray, L.B., Seascape genomics reveals adaptive divergence in a connected and commercially important mollusc, the greenlip abalone (Haliotis laevigata), along a longitudinal environmental gradient. Molecular Ecology.**[LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.14526/full)
+**Menon, M., Bagley, J.C., Friedline, C.J., Whipple, A.V., Schoettle, A.W., Leal‐Sàenz, A., Wehenkel, C., Molina‐Freaner, F., Flores‐Rentería, L., Gonzalez‐Elizondo, M.S. and Sniezko, R.A., 2018. The role of hybridization during ecological divergence of southwestern white pine (Pinus strobiformis) and limber pine (P. flexilis). Molecular ecology, 27(5), pp.1245-1260.** [LINK](https://www.fs.fed.us/rm/pubs_journals/2017/rmrs_2017_menon_m001.pdf)
+
+**O’Leary, S.J., Hollenbeck, C.M., Vega, R.R., Gold, J.R. and Portnoy, D.S., 2018. Genetic mapping and comparative genomics to inform restoration enhancement and culture of southern flounder, Paralichthys lethostigma. BMC genomics, 19(1), p.163.** [LINK](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-018-4541-0)
+
+**Schmid, S., Neuenschwander, S., Pitteloud, C., Heckel, G., Pajkovic, M., Arlettaz, R. and Alvarez, N., 2018. Spatial and temporal genetic dynamics of the grasshopper Oedaleus decorus revealed by museum genomics. Ecology and evolution, 8(3), pp.1480-1495.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1002/ece3.3699)
+
+**Liu, X. and Karrenberg, S., 2018. Genetic architecture of traits associated with reproductive barriers in Silene: coupling, sex chromosomes and variation. Molecular ecology.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1111/mec.14562)
+
+**Sandoval‐Castillo, J., Robinson, N.A., Hart, A.M., Strain, L.W. and Beheregaray, L.B., Seascape genomics reveals adaptive divergence in a connected and commercially important mollusc, the greenlip abalone (Haliotis laevigata), along a longitudinal environmental gradient. Molecular Ecology.** [LINK](http://onlinelibrary.wiley.com/doi/10.1111/mec.14526/full)
 
 **Turner, K.G., Huang, D.I., Cronk, Q.C. and Rieseberg, L.H., 2017. Homogenization of Populations in the Wildflower, Texas Bluebonnet (Lupinus texensis). Journal of Heredity.** [LINK](https://academic.oup.com/jhered/advance-article/doi/10.1093/jhered/esx094/4733275)
 
