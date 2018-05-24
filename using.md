@@ -4,6 +4,12 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
+### Total Citations = 60
+
+Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803244071106482641&as_sdt=5,40&sciodt=0,40&hl=en)!
+
+### Selected Citations
+
 **Menon, M., Bagley, J.C., Friedline, C.J., Whipple, A.V., Schoettle, A.W., Leal‐Sàenz, A., Wehenkel, C., Molina‐Freaner, F., Flores‐Rentería, L., Gonzalez‐Elizondo, M.S. and Sniezko, R.A., 2018. The role of hybridization during ecological divergence of southwestern white pine (Pinus strobiformis) and limber pine (P. flexilis). Molecular ecology, 27(5), pp.1245-1260.** [LINK](https://www.fs.fed.us/rm/pubs_journals/2017/rmrs_2017_menon_m001.pdf)
 
 **O’Leary, S.J., Hollenbeck, C.M., Vega, R.R., Gold, J.R. and Portnoy, D.S., 2018. Genetic mapping and comparative genomics to inform restoration enhancement and culture of southern flounder, Paralichthys lethostigma. BMC genomics, 19(1), p.163.** [LINK](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-018-4541-0)
