@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.4.0a'
+VERSION='2.4.0b'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -653,14 +653,13 @@ else
 	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
 fi
 
-if [ -z "$CUTOFF" ]; then
+if [ -z "$CUTOFF2" ]; then
 	if [ "$NumInd" -gt 10 ]; then
 		NUM=$(($NumInd / 2))
 	else
 		NUM=$NumInd
 	fi
-
-	if 
+ 
 		for ((i = 2; i <= $NUM; i++));
 			do
 			echo $i >> ufile
