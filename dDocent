@@ -660,10 +660,10 @@ if [ -z "$CUTOFF2" ]; then
 		NUM=$NumInd
 	fi
  
-		for ((i = 2; i <= $NUM; i++));
-			do
-			echo $i >> ufile
-		done
+	for ((i = 2; i <= $NUM; i++));
+	do
+	echo $i >> ufile
+	done
 
 	cat ufile | parallel -j $NUMProc --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniqCperindv | wc -l" | mawk  '{gsub("xxx","\t",$0); print;}'| sort -g > uniqseq.peri.data
 	rm ufile
@@ -704,6 +704,7 @@ echo "Now sit back, relax, and wait for your analysis to finish."
 
 #Now that data cutoffs have been chosen, reduce data set to specified set of unique reads, convert to FASTA format,
 #and remove reads with substantial amounts of adapters
+
 if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
   parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | sed 's/NNNNNNNNNN/-/' >  total.uniqs
   cut -f 1 -d "-" total.uniqs > total.u.F
