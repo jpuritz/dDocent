@@ -632,7 +632,7 @@ if [ -z "$CUTOFF" ]; then
 	set ylabel "Number of Unique Sequences"
 	plot 'uniqseq.data' with lines notitle
 	pause -1
-	EOF
+EOF
 
 
 	echo -en "\007"
@@ -680,7 +680,7 @@ if [ -z "$CUTOFF2" ]; then
 	set ylabel "Number of Unique Sequences"
 	plot 'uniqseq.peri.data' with lines notitle
 	pause -1
-	EOF
+EOF
 	
 	echo -en "\007"
 	echo -en "\007"
