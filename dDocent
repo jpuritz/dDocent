@@ -113,13 +113,6 @@ if ! awk --version | fgrep -v GNU &>/dev/null; then
          awk=awk
 fi
 
-if [ "$Flimit" != "unlimited" ]; then
-        Nlimit=$(( $NumInd * 10 ))
-        if [ "$Flimit" -lt "$Nlimit" ]; then
-                ulimit -n $Flimit
-        fi
-fi
-
 if [ $NUMDEP -gt 0 ]; then
 	echo -e "\nPlease install all required software before running dDocent again."
 	exit 1
