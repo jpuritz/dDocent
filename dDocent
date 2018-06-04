@@ -297,7 +297,7 @@ echo "Using BWA to map reads."
         	else
         		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz 2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	fi
-        	samtools sort -@$NUMProc $i.bam -o $i.bam 
+        	samtools sort -@$NUMProc $i.bam -o $i.bam 2>>$i.bam.log
 		mv $i.bam $i-RG.bam
 		samtools index $i-RG.bam
         	done
