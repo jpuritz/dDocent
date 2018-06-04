@@ -225,9 +225,9 @@ echo "Type_of_Assembly" >> dDocent.runs
 echo $ATYPE >> dDocent.runs
 echo "Clustering_Similarity%" >> dDocent.runs
 echo $simC >> dDocent.runs
-echo "K1" >> dDocent.runs
+echo "Minimum within individaul coverage level to include a read for assembly (K1)" >> dDocent.runs
 echo $CUTOFF >> dDocent.runs
-echo "K2" >> dDocent.runs
+echo "Minimum number of individuals a read must be present in to include for assembly (K2)" >> dDocent.runs
 echo $CUTOFF2 >> dDocent.runs
 echo "Mapping_Reads?" >> dDocent.runs
 echo $MAP >> dDocent.runs
