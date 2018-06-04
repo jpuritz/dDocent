@@ -549,6 +549,7 @@ TrimReads () {
 }
 
 
+getAssemblyInfo(){
 #Have user estimate/enter assembly parameters if unentered
 
 if [ -z "$CUTOFF" ]; then
@@ -636,6 +637,8 @@ EOF
 
 fi
 
+}
+
 #Main function for assembly
 Assemble()
 {
@@ -703,6 +706,9 @@ if [ ! -f "uniq.seqs" ]; then
 	cat *.uniq.seqs > uniq.seqs
 fi
 	
+if [ -z "$CUTOFF" ]; then
+getAssemblyInfo
+fi
 
 if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
   	parallel --no-notice -j $NUMProc --env special_uniq special_uniq $CUTOFF {} ::: *.uniq.seqs  | sort --parallel=$NUMProc -S 2G | uniq -c > uniqCperindv
