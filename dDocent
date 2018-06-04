@@ -191,8 +191,10 @@ if [ -n "$1" ]; then
 	optO=$(grep -A1 Gap $CONFIG | tail -1)
 	SNP=$(grep -A1 SNP $CONFIG | tail -1)
 	MAIL=$(grep -A1 Email $CONFIG | tail -1)
-	if [ -z $CUTOFF ]; then
-		#Prints instructions on how to move analysis to background and disown process
+	if [[ -z $CUTOFF || -z $CUTOFF2 ]]; then
+		echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."
+	#Prints instructions on how to move analysis to background and disown process
+	else	
 		echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
 		echo "It is recommended that you move this script to a background operation and disable terminal input and output."
 		echo "All data and logfiles will still be recorded."
@@ -202,8 +204,7 @@ if [ -n "$1" ]; then
 		echo "Type 'disown -h' again without the quotes and press enter"
 		echo ""
 		echo "Now sit back, relax, and wait for your analysis to finish."
-	else
-		echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."
+	
 	fi
 
 else
