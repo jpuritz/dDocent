@@ -377,7 +377,7 @@ Follow the instructions and then simply wait for `dDocent` to finish.
 
 ### Running with configuration file
 
-If `dDocent` is not being used for *de novo* assembly, it may be run in non-interactive mode and configuration parameters can be entered with a configuration file.  The file can be named anything, but must follow the **EXACT** format below:
+`dDocent` can also be run in non-interactive mode and configuration parameters can be entered with a configuration file.  The file can be named anything, but must follow the **EXACT** format below:
 
 ```bash
 Number of Processors
@@ -392,6 +392,10 @@ Type_of_Assembly
 PE
 Clustering_Similarity%
 0.86
+Minimum within individaul coverage level to include a read for assembly (K1)
+2
+Minimum number of individuals a read must be present in to include for assembly (K2)
+2
 Mapping_Reads?
 yes
 Mapping_Match_Value
