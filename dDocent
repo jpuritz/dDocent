@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 ##########dDocent##########
-VERSION='2.4.0b'
+VERSION='2.4.0c'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -573,7 +573,7 @@ if [ -z "$CUTOFF" ]; then
 	set ylabel "Number of Unique Sequences"
 	plot 'uniqseq.data' with lines notitle
 	pause -1
-	EOF
+EOF
 
 
 	echo -en "\007"
