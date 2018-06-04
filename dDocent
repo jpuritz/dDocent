@@ -181,6 +181,8 @@ if [ -n "$1" ]; then
     	MAXMemory=$(grep -A1 Memory $CONFIG | tail -1)
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
+	CUTOFF=$(grep -A1 'Minimum within' $CONFIG | tail -1)
+	CUTOFF2=$(grep -A1 'Minimum number' $CONFIG | tail -1)
 	ATYPE=$(grep -A1 Type $CONFIG | tail -1)
 	simC=$(grep -A1 Simi $CONFIG | tail -1)
 	MAP=$(grep -A1 Mapping_R $CONFIG | tail -1)
@@ -189,7 +191,7 @@ if [ -n "$1" ]; then
 	optO=$(grep -A1 Gap $CONFIG | tail -1)
 	SNP=$(grep -A1 SNP $CONFIG | tail -1)
 	MAIL=$(grep -A1 Email $CONFIG | tail -1)
-	if [ "$ASSEMBLY" == "no" ]; then
+	if [ -z $CUTOFF ]; then
 		#Prints instructions on how to move analysis to background and disown process
 		echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
 		echo "It is recommended that you move this script to a background operation and disable terminal input and output."
