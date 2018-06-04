@@ -279,6 +279,10 @@ cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T $NUMProc -c $s
 
 sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original > reference.fasta
 
+if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
+	sed -i 's/dDocent/dDocentR/g' reference.fasta
+fi
+
 samtools faidx reference.fasta
 bwa index reference.fasta
 
