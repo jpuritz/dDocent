@@ -274,7 +274,7 @@ echo "Using BWA to map reads."
         fi
 #This next section of code checks to see if the reference was assembled by dDocent 
 #and if so, modifies the expected insert length distribution for BWA's metric for proper pairing
-        if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
+        if head -1 reference.fasta | grep -e 'dDocent_' reference.fasta 1>/dev/null; then
         	rm lengths.txt &> /dev/null
         	for i in "${NAMES[@]}";
         		do
