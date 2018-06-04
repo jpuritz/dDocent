@@ -2,7 +2,7 @@
 export LC_ALL=en_US.UTF-8
 
 if [[ -z "$7" ]]; then
-echo "Usage is RefMapOpt minK1 maxK1 minK2 maxK2 cluster_similarity Num_of_Processors Assembly_Type optional_list_of_individuals"
+echo "Usage is RefMapOpt minK1 maxK1 minK2 maxK2 cluster_similarity Assembly_Type Num_of_Processors optional_list_of_individuals"
 exit 1
 fi
 
@@ -26,14 +26,17 @@ if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru
     NUMDEP=$((NUMDEP + 1))
     fi
 
-ATYPE=$7
+simC=$5
+
+ATYPE=$6
+
 if [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" && $ATYPE != "HYB" && $ATYPE != "ROL" ]]; then
 echo "Usage is RefMapTest minK1 maxK1 minK2 maxK2 cluster_similarity Num_of_Processors Assembly_Type optional_list_of_individuals"
 echo "Please make sure to choose assembly type."
 exit 1
 fi
 
-NUMProc=$6
+NUMProc=$7
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
@@ -318,7 +321,7 @@ do
 	do
 	PP=$(($r + $j))
 	if [ "$PP" != "2" ]; then
-	Reference $r $j $5
+	Reference $r $j $simC
     	rm lengths.txt &> /dev/null
     		for k in "${RANDNAMES[@]}";
     		do
@@ -337,7 +340,7 @@ do
     	rm $r.$j.results 2>/dev/null
     		for k in "${RANDNAMES[@]}"
     		do
-		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" ]]; then
+		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" || "$ATYPE" == "RPE" ]]; then
 			if [ -f "$k.R2.fq.gz" ]; then
 				bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
 			else
@@ -350,7 +353,7 @@ do
     			bwa mem reference.fasta $k.R1.fq.gz -L 20,5 -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
     		fi
     	fi
-		samtools sort -@24 $k.bam -o $k.bam 
+		samtools sort -@$NUMProc $k.bam -o $k.bam 
 		samtools index $k.bam
     		MM=$(samtools flagstat $k.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
     		CM=$(samtools idxstats $k.bam | mawk '$3 > 0' | wc -l)
