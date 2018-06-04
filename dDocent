@@ -712,7 +712,7 @@ if [ ! -f "uniq.seqs" ]; then
 	cat *.uniq.seqs > uniq.seqs
 fi
 	
-if [ -z "$CUTOFF" ]; then
+if [[ -z $CUTOFF || -z $CUTOFF2 ]]; then
 getAssemblyInfo
 fi
 
