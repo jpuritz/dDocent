@@ -154,12 +154,13 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
           	CLUST2=$(($CLUST / 100 + 1))
 		
-     		for ((i = 1; i <= $CLUST2; i++));
-                do
-                	j=$(($i * 100))
+		cluterp(){
+			j=$(($1 * 100))
                 	k=$(($j - 100))
-                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
-          	done
+                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
+			}
+		export -f clusterp 
+		seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env clusterp clusterp {}
           
          	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
         else
@@ -176,15 +177,16 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
           	CLUST2=$(($CLUST / 100 + 1))
 		
-     		for ((i = 1; i <= $CLUST2; i++));
-                do
-                	j=$(($i * 100))
+		cluterp(){
+			j=$(($1 * 100))
                 	k=$(($j - 100))
-                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
-          	done
+                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
+			}
+		export -f clusterp 
+		seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env clusterp clusterp {}
           
-         	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
-        fi
+         	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}        
+	fi
 
         cat rbasm.out.[0-9]* > rbasm.out
         rm rbasm.out.*
