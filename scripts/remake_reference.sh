@@ -144,8 +144,8 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	export -f pmerge
 	
 	clusterp(){
-		j=$(($1 * 100))
-                k=$(($j - 100))
+		j=$(python -c "print ($1 * 100)")
+                k=$(python -c "print ($j - 100)")
                 mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
 	}
 		export -f clusterp 
