@@ -155,8 +155,8 @@ mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
 #If this is a PE assebmle
-if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then                                                                                                                           [106/2513]
-        #Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
+if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then                                                                                                                          
+#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
         if [ "$ATYPE" == "PE" ]; then
                 sed -e 's/NNNNNNNNNN/   /g' uniq.fasta | cut -f1 > uniq.F.fasta
                 CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
