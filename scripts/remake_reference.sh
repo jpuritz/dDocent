@@ -140,7 +140,15 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
            rainbow merge -o rbasm.out.$1 -a -i rbdiv.out.$1 -r 2 -N10000 -R10000 -l 20 -f 0.75
            fi
         }
+	
 	export -f pmerge
+	
+	clusterp(){
+		j=$(($1 * 100))
+                k=$(($j - 100))
+                mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
+	}
+		export -f clusterp 
         #Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
         if [ "$ATYPE" == "PE" ]; then
 		sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
@@ -154,12 +162,6 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
           	CLUST2=$(($CLUST / 100 + 1))
 		
-		cluterp(){
-			j=$(($1 * 100))
-                	k=$(($j - 100))
-                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
-			}
-		export -f clusterp 
 		seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env clusterp clusterp {}
           
          	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
@@ -176,13 +178,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
           	CLUST2=$(($CLUST / 100 + 1))
-		
-		cluterp(){
-			j=$(($1 * 100))
-                	k=$(($j - 100))
-                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
-			}
-		export -f clusterp 
+	
 		seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env clusterp clusterp {}
           
          	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}        
