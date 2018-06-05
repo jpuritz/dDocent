@@ -144,11 +144,12 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	export -f pmerge
 	
 	clusterp(){
-		j=$(python -c "print ("$1" * 100)")
+		num=$( echo $1 | sed 's/^0*//g')
+		j=$(python -c "print ("$num" * 100)")
                 k=$(python -c "print ("$j" - 100)")
                 mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
 	}
-		export -f clusterp 
+	export -f clusterp 
         #Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
         if [ "$ATYPE" == "PE" ]; then
 		sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
@@ -185,7 +186,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	fi
 
         cat rbasm.out.[0-9]* > rbasm.out
-        rm rbasm.out.*
+        rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
 
 	#This AWK code replaces rainbow's contig selection perl script
   	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
