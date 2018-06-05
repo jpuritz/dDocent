@@ -152,16 +152,16 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	  	sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
-          	CLUST2=$(($CLUST / 1000 + 1))
-
-          	for ((i = 1; i <= $CLUST2; i++));
+          	CLUST2=$(($CLUST / 100 + 1))
+		
+     		for ((i = 1; i <= $CLUST2; i++));
                 do
-                	j=$(($i * 1000))
-                	k=$(($j - 1000))
+                	j=$(($i * 100))
+                	k=$(($j - 100))
                 	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
           	done
           
-         	seq 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
+         	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
         else
         	sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | cut -f1 | sort --parallel=$NUMProc -S 2G| uniq | mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' > uniq.F.fasta
 		CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
@@ -174,16 +174,16 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	  	sort -k2,2 -g -S 2G --parallel=$NUMProc contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
-          	CLUST2=$(($CLUST / 1000 + 1))
-
-          	for ((i = 1; i <= $CLUST2; i++));
-          	do
-                	j=$(($i * 1000))
-                	k=$(($j - 1000))
-			mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
+          	CLUST2=$(($CLUST / 100 + 1))
+		
+     		for ((i = 1; i <= $CLUST2; i++));
+                do
+                	j=$(($i * 100))
+                	k=$(($j - 100))
+                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
           	done
-
-          	seq 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
+          
+         	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
         fi
 
         cat rbasm.out.[0-9]* > rbasm.out
