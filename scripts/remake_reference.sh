@@ -186,7 +186,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
           	seq 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
         fi
 
-        cat rbasm.out.* > rbasm.out
+        cat rbasm.out.[0-9]* > rbasm.out
         rm rbasm.out.*
 
 	#This AWK code replaces rainbow's contig selection perl script
