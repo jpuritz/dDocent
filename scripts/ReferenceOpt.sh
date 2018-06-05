@@ -135,14 +135,13 @@ mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
 #If this is a PE assebmle
-if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then                                                                                                                           [106/2513]
-        #Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
+if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
+#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
         if [ "$ATYPE" == "PE" ]; then
                 sed -e 's/NNNNNNNNNN/   /g' uniq.fasta | cut -f1 > uniq.F.fasta
                 CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
                 cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
-                mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.clu
-ster.ids
+                mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
                 paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
         #CD-hit output is converted to rainbow format
                 sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/     /g' > rcluster
