@@ -46,7 +46,12 @@ CUTOFF=$1
 CUTOFF2=$2
 simC=$3
 FRL=$(zcat ${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
-
+pmerge(){
+	if [ -s "rbdiv.out.$1" ]; then
+	rainbow merge -o rbasm.out.$1 -a -i rbdiv.out.$1 -r 2 -N10000 -R10000 -l 20 -f 0.75
+ 	fi
+ }
+export -f pmerge
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#If PE assembly, creates a concatenated file of every unique for each individual in parallel
@@ -156,7 +161,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
                 	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
           	done
 
-          seq 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
+          	seq 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
         else
           sed -e 's/NNNNNNNNNN/ /g' totaluniqseq | cut -f1 | sort --parallel=$NUMProc -S 2G| uniq | mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' > uniq.F.fasta
           CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
