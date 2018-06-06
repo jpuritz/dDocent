@@ -395,7 +395,7 @@ if [ "$SNP" != "no" ]; then
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
 		else
-    			echo -e "\n\nERROR: freebayes instance DID NOT COMPLETE\n\nSee Below"
+    			echo -e "\n\nERROR: freebayes instance DID NOT COMPLETE\n\nSee below:"
 			echo $? > freebayes.error
 			exit 1
 		fi	
