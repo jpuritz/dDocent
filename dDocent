@@ -179,7 +179,7 @@ if [ -n "$1" ]; then
 	CONFIG=$1
 	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
     	MAXMemory1=$(grep -A1 Memory $CONFIG | tail -1)
-	MAXMemory=$(( $MAXMemory1 / $NUMProc ))
+	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
 	CUTOFF=$(grep -A1 'Minimum within' $CONFIG | tail -1)
@@ -1017,7 +1017,7 @@ echo "For example, to limit dDocent to ten gigabytes, enter 10"
 echo -e "This option does not work with all distributions of Linux.  If runs are hanging at variant calling, enter 0"
 echo -e "Then press [ENTER]"
         read MAXMemory1
-	MAXMemory=$(( $MAXMemory1 / $NUMProc ))
+	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 
 while [[ -z $MAXMemory ]];
 	do
@@ -1026,7 +1026,7 @@ while [[ -z $MAXMemory ]];
 	echo -e "This option does not work with all distributions of Linux.  If runs are hanging at variant calling, enter 0"
 	echo -e "Then press [ENTER]"
 	read MAXMemory1
-	MAXMemory=$(( $MAXMemory1 / $NUMProc ))
+	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 	done
 
 #Asks if user wants to trim reads.  This allows this part of the pipeline to be skipped during subsequent analyses
