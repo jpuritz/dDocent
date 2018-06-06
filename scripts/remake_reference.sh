@@ -137,8 +137,8 @@ rm uniq.fq*
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	pmerge(){
            	num=$( echo $1 | sed 's/^0*//g')
-		j=$(python -c "print ("$num" * 100)")
-                k=$(python -c "print ("$j" - 100)")
+		j=$(python -c "print ("$num" * 50)")
+                k=$(python -c "print ("$j" - 50)")
                 mawk -v x="$j" -v y="$k" '$5 <= x && $5 > y'  rbdiv.out > rbdiv.out.$1
 	   
 	   	if [ -s "rbdiv.out.$1" ]; then
@@ -159,7 +159,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	  	sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
-          	CLUST2=$(($CLUST / 100 + 1))
+          	CLUST2=$(($CLUST / 50 + 1))
           
          	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
         else
