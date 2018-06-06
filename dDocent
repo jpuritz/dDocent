@@ -410,7 +410,7 @@ if [ "$SNP" != "no" ]; then
 
 
 	if [ -f "freebayes.error" ]; then
-               	echo -e "\nA previous freebayes instance failed.  dDocent will now recalibrate run parameters to use less memory."
+               	echo -e "\nA previous freebayes instance failed.  dDocent will now recalibrate run parameters to use less memory.\n"
 		rm mapped.*.bed
 		rm freebayes.error
 		LIM=$(( $NUMProc * 2 ))
@@ -437,7 +437,7 @@ if [ "$SNP" != "no" ]; then
         fi
 
 	if [ -f "freebayes.error" ]; then
-		echo =e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory."
+		echo -e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory.\n"
                 rm freebayes.error
 		
 		LIM=$(( $NUMProc * 4 ))
@@ -462,7 +462,7 @@ if [ "$SNP" != "no" ]; then
 	fi
 
 	if [ -f "freebayes.error" ]; then
-		echo "FreeBayes has now failed a third  time, likely because of memory issues.  More resources must be allocated to finish this analysis."
+		echo -e "\n\n\nFreeBayes has now failed a third  time, likely because of memory issues.  More resources must be allocated to finish this analysis."
 		ERROR3=1
 		export ERROR3
 	else
