@@ -141,7 +141,16 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
            rainbow merge -o rbasm.out.$1 -a -i rbdiv.out.$1 -r 2 -N10000 -R10000 -l 20 -f 0.75
            fi
         }
+	
 	export -f pmerge
+	
+	clusterp(){
+		num=$( echo $1 | sed 's/^0*//g')
+		j=$(python -c "print ("$num" * 100)")
+                k=$(python -c "print ("$j" - 100)")
+                mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$1
+	}
+	export -f clusterp 
         #Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
         if [ "$ATYPE" == "PE" ]; then
 		sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
@@ -153,16 +162,11 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	  	sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
-          	CLUST2=$(($CLUST / 1000 + 1))
-
-          	for ((i = 1; i <= $CLUST2; i++));
-                do
-                	j=$(($i * 1000))
-                	k=$(($j - 1000))
-                	mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
-          	done
+          	CLUST2=$(($CLUST / 100 + 1))
+		
+		seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env clusterp clusterp {}
           
-         	seq 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
+         	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
         else
         	sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | cut -f1 | sort --parallel=$NUMProc -S 2G| uniq | mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' > uniq.F.fasta
 		CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
@@ -175,20 +179,15 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	  	sort -k2,2 -g -S 2G --parallel=$NUMProc contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
           	CLUST=(`tail -1 rbdiv.out | cut -f5`)
-          	CLUST2=$(($CLUST / 1000 + 1))
-
-          	for ((i = 1; i <= $CLUST2; i++));
-          	do
-                	j=$(($i * 1000))
-                	k=$(($j - 1000))
-			mawk -v x=$j '$5 <= x'  rbdiv.out | mawk -v x=$k '$5 > x' > rbdiv.out.$i
-          	done
-
-          	seq 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
-        fi
+          	CLUST2=$(($CLUST / 100 + 1))
+	
+		seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env clusterp clusterp {}
+          
+         	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}        
+	fi
 
         cat rbasm.out.[0-9]* > rbasm.out
-        rm rbasm.out.*
+        rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
 
 	#This AWK code replaces rainbow's contig selection perl script
   	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
