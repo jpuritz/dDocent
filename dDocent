@@ -395,7 +395,7 @@ if [ "$SNP" != "no" ]; then
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
 		else
-    			echo "ERROR: freebayes instance DID NOT COMPLETE"
+    			echo -e "\n\nERROR: freebayes instance DID NOT COMPLETE\n\n"
 			echo $? > freebayes.error
 			exit 1
 		fi	
@@ -406,7 +406,7 @@ if [ "$SNP" != "no" ]; then
 	
 	rm freebayes.error freebayes.log &> /dev/null
 	
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NUMProc --no-notice call_genos {} 2>> freebayes.log
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NUMProc --no-notice call_genos {} 
 
 
 	if [ -f "freebayes.error" ]; then
@@ -433,7 +433,7 @@ if [ "$SNP" != "no" ]; then
 		echo "Using FreeBayes to call SNPs"
 		NumP=$(( $NUMProc / 4 ))
 		NumP=$(( $NumP * 3 ))
-		ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice call_genos {} 2>> freebayes.log
+		ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice call_genos {} 
         fi
 
 	if [ -f "freebayes.error" ]; then
@@ -458,7 +458,7 @@ if [ "$SNP" != "no" ]; then
 		
             	NumP=$(( $NumP / 4 ))
                 NumP=$(( $NumP * 3 ))
-                ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice call_genos {} 2>> freebayes.log
+                ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice call_genos {} 
 	fi
 
 	if [ -f "freebayes.error" ]; then
