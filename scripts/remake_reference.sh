@@ -139,7 +139,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
            	num=$( echo $1 | sed 's/^0*//g')
 		j=$(python -c "print ("$num" * 100)")
                 k=$(python -c "print ("$j" - 100)")
-                mawk -v x="$j" -v y="$j" '$5 <= x && $5 > y'  rbdiv.out > rbdiv.out.$1
+                mawk -v x="$j" -v y="$k" '$5 <= x && $5 > y'  rbdiv.out > rbdiv.out.$1
 	   
 	   	if [ -s "rbdiv.out.$1" ]; then
            		rainbow merge -o rbasm.out.$1 -a -i rbdiv.out.$1 -r 2 -N10000 -R10000 -l 20 -f 0.75
