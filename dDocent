@@ -955,6 +955,11 @@ fi
 samtools faidx reference.fasta &> index.log
 bwa index reference.fasta &>> index.log
 
+SEQS=$(mawk 'END {print NR}' uniq.k.$CUTOFF.c.$CUTOFF2.seqs)
+TIGS=$(grep ">" -c reference.fasta)
+
+echo -e "\ndDocent assembled $SEQS into $TIGS contigs"
+
 }
 
 ##Create alignment intervals
