@@ -127,7 +127,7 @@ sort -k1 -r -n --parallel=$NUMProc -S 2G uniq.k.$CUTOFF.c.$CUTOFF2.seqs |cut -f2
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
-$awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' uniq.full.fasta > uniq.fq
+seqtk seq -F I uniq.full.fasta > uniq.fq
 java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
 mawk '!/>/' uniq.fasta > totaluniqseq
@@ -202,8 +202,8 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	mv rainbow.RC.fasta rainbow.fasta
 
 	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
-	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f1 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.F.fq
-	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f2 | $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' > ref.R.fq
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f1 | seqtk seq -F I - > ref.F.fq
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f2 | seqtk seq -F I - > ref.R.fq
 
 	seqtk seq -r ref.R.fq > ref.RC.fq
 	mv ref.RC.fq ref.R.fq
@@ -233,7 +233,7 @@ if [[ "$ATYPE" == "HYB" ]];then
 		mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq.ua > uniq.full.ua.fasta
 		LENGTH=$(mawk '!/>/' uniq.full.ua.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 		LENGTH=$(($LENGTH * 3 / 4))
-		$awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' uniq.full.ua.fasta > uniq.ua.fq
+		seqtk seq -F I uniq.full.ua.fasta > uniq.ua.fq
 		java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.ua.fq uniq.ua.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
 		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
 		mawk '!/>/' uniq.ua.fasta > totaluniqseq.ua
