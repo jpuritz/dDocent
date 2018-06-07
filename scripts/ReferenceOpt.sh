@@ -134,12 +134,17 @@ mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq
 mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
-#If this is a PE assebmle
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	pmerge(){
-           	num=$( echo $1 | sed 's/^0*//g')
-		j=$(python -c "print ("$num" * 50)")
-                k=$(python -c "print ("$j" - 50)")
+		num=$( echo $1 | sed 's/^0*//g')
+		if [ "$num" -le 100 ]; then
+			j=$num
+			k=$(($num -1))
+		else
+			num=$(($num - 99))
+           		j=$(python -c "print ("$num" * 100)")
+                	k=$(python -c "print ("$j" - 100)")
+		fi
                 mawk -v x="$j" -v y="$k" '$5 <= x && $5 > y'  rbdiv.out > rbdiv.out.$1
 	   
 	   	if [ -s "rbdiv.out.$1" ]; then
@@ -156,14 +161,8 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	  	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
 	  	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
 	  	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
-		#CD-hit output is converted to rainbow format
-	  	sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/	/g' > rcluster
-	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
-          	CLUST=(`tail -1 rbdiv.out | cut -f5`)
-          	CLUST2=$(($CLUST / 50 + 1))
           
-         	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
-        else
+     	else
         	sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | cut -f1 | sort --parallel=$NUMProc -S 2G| uniq | mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' > uniq.F.fasta
 		CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
 		cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
@@ -171,15 +170,17 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
   		paste sort.contig.cluster.ids <(mawk '!/>/' uniq.F.fasta) > contig.cluster.Funiq
   		sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | sort --parallel=$NUMProc -k1 -S 2G | mawk '{print $0 "\t" NR}'  > totaluniqseq.CN
   		join -t $'\t' -1 3 -2 1 contig.cluster.Funiq totaluniqseq.CN -o 2.3,1.2,2.1,2.2 > contig.cluster.totaluniqseq
-		#CD-hit output is converted to rainbow format
-	  	sort -k2,2 -g -S 2G --parallel=$NUMProc contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/	/g' > rcluster
-	  	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
-          	CLUST=(`tail -1 rbdiv.out | cut -f5`)
-          	CLUST2=$(($CLUST / 50 + 1))
-         	
-		seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}        
-	fi
-
+	fi	
+	
+	#CD-hit output is converted to rainbow format
+	sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/	/g' > rcluster
+	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
+        CLUST=(`tail -1 rbdiv.out | cut -f5`)
+	CLUST1=$(( $CLUST / 100 + 1))
+	CLUST2=$(( $CLUST1 + 100 ))
+	
+	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
+	
         cat rbasm.out.[0-9]* > rbasm.out
         rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
 
