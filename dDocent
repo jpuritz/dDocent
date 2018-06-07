@@ -268,8 +268,8 @@ fi
 if [ "$MAP" != "no" ]; then
 echo -e "\nUsing BWA to map reads."
 	if [ reference.fasta -nt reference.fasta.fai ]; then
-        samtools faidx reference.fasta
-        bwa index reference.fasta &> index.log
+        samtools faidx reference.fasta &> index.log
+        bwa index reference.fasta &>> index.log
 	fi
 #dDocent now checks for trimmed read files before attempting mapping
         if [[ "$MAP" != "no" && ! -f "${NAMES[@]:(-1)}".R1.fq.gz ]]; then
@@ -566,7 +566,7 @@ TrimReads () {
 
 	cat namelist | parallel -j $NUMProc "zcat {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-    MLen=$(($MLen / 2))
+    	MLen=$(($MLen / 2))
 	TW="MINLEN:$MLen"
 	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}	
 	mkdir unpaired &>/dev/null
@@ -795,7 +795,7 @@ mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.f
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
 $awk 'BEGIN {RS = ">" ; FS = "\n"} NR > 1 {print "@"$1"\n"$2"\n+""\n"gensub(/./, "I", "g", $2)}' uniq.full.fasta > uniq.fq
-java -Xmx2g -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH
+java -Xmx2g -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &> assemble.trim.log
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
 mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
@@ -952,8 +952,8 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 	sed -i 's/dDocent/dDocentR/g' reference.fasta
 fi
 
-samtools faidx reference.fasta
-bwa index reference.fasta
+samtools faidx reference.fasta &> index.log
+bwa index reference.fasta &>> index.log
 
 }
 
