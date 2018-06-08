@@ -193,12 +193,11 @@ if [ -n "$1" ]; then
 	SNP=$(grep -A1 SNP $CONFIG | tail -1)
 	MAIL=$(grep -A1 Email $CONFIG | tail -1)
 	
-	if [ "$ASSEMBLY" == "yes" ]; then
-		if [[ -z $CUTOFF || -z $CUTOFF2 ]]; then
-		echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."
+	if [ "$ASSEMBLY" == "yes" ] && [[ -z $CUTOFF || -z $CUTOFF2 ]]; then
+		
+		echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."	
+	else	
 		#Prints instructions on how to move analysis to background and disown process
-		fi
-		else	
 		echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
 		echo "It is recommended that you move this script to a background operation and disable terminal input and output."
 		echo "All data and logfiles will still be recorded."
