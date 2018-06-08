@@ -178,7 +178,7 @@ echo -e "\ndDocent run started" $STARTTIME "\n"
 if [ -n "$1" ]; then
 	CONFIG=$1
 	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
-    	MAXMemory1=$(grep -A1 Memory $CONFIG | tail -1)
+    	MAXMemory1=$(grep -A1 Memory $CONFIG | sed 's/[g,G]//g' | tail -1)
 	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
@@ -219,7 +219,7 @@ echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
 echo $NUMProc >> dDocent.runs
 echo "Maximum Memory" >> dDocent.runs
-echo $MAXMemory >> dDocent.runs
+echo $MAXMemory | sed 's/[g,G]//g' >> dDocent.runs
 echo "Trimming" >> dDocent.runs
 echo $TRIM >> dDocent.runs
 echo "Assembly?" >> dDocent.runs
@@ -1021,6 +1021,7 @@ echo "For example, to limit dDocent to ten gigabytes, enter 10"
 echo -e "This option does not work with all distributions of Linux.  If runs are hanging at variant calling, enter 0"
 echo -e "Then press [ENTER]"
         read MAXMemory1
+	MAXMemory1=$( echo $MAXMemory1 | sed 's/[g,G]//g' )
 	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 
 while [[ -z $MAXMemory ]];
