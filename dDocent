@@ -266,7 +266,7 @@ fi
 
 #Checks to see if reads will be mapped.
 if [ "$MAP" != "no" ]; then
-echo -e "\nUsing BWA to map reads."
+echo -e "\nUsing BWA to map reads"
 	if [ reference.fasta -nt reference.fasta.fai ]; then
         samtools faidx reference.fasta &> index.log
         bwa index reference.fasta &>> index.log
@@ -772,7 +772,7 @@ echo "Press control and Z simultaneously"
 echo "Type 'bg' without the quotes and press enter"
 echo "Type 'disown -h' again without the quotes and press enter"
 echo ""
-echo "Now sit back, relax, and wait for your analysis to finish."
+echo "Now sit back, relax, and wait for your analysis to finish"
 
 #Now that data cutoffs have been chosen, reduce data set to specified set of unique reads, convert to FASTA format,
 #and remove reads with substantial amounts of adapters
