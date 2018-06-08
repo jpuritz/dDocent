@@ -249,7 +249,7 @@ echo $MAIL >> dDocent.runs
 ##Section of logic statements that dictates the order and function of processing the pipeline
 
 if [[ "$TRIM" == "yes" && "$ASSEMBLY" == "yes" ]]; then
-        echo "Trimming reads and simultaneously assembling reference sequences"        
+        echo -e "\nTrimming reads and simultaneously assembling reference sequences"        
         TrimReads & 2> trim.log
         Assemble
         #setupRainbow 2> rainbow.log
