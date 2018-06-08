@@ -664,6 +664,19 @@ EOF
 
 fi
 
+if [ -z "$CONFIG" ]; then
+#Prints instructions on how to move analysis to background and disown process
+echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
+echo "It is recommended that you move this script to a background operation and disable terminal input and output."
+echo "All data and logfiles will still be recorded."
+echo "To do this:"
+echo "Press control and Z simultaneously"
+echo "Type 'bg' without the quotes and press enter"
+echo "Type 'disown -h' again without the quotes and press enter"
+echo ""
+echo "Now sit back, relax, and wait for your analysis to finish"
+fi
+
 }
 
 #Main function for assembly
@@ -765,18 +778,6 @@ else
 	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
 fi
 
-if [ -z "$CONFIG" ]; then
-#Prints instructions on how to move analysis to background and disown process
-echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
-echo "It is recommended that you move this script to a background operation and disable terminal input and output."
-echo "All data and logfiles will still be recorded."
-echo "To do this:"
-echo "Press control and Z simultaneously"
-echo "Type 'bg' without the quotes and press enter"
-echo "Type 'disown -h' again without the quotes and press enter"
-echo ""
-echo "Now sit back, relax, and wait for your analysis to finish"
-fi
 #Now that data cutoffs have been chosen, reduce data set to specified set of unique reads, convert to FASTA format,
 #and remove reads with substantial amounts of adapters
 
