@@ -257,7 +257,7 @@ if [[ "$TRIM" == "yes" && "$ASSEMBLY" == "yes" ]]; then
 fi
 
 if [[ "$TRIM" == "yes" && "$ASSEMBLY" != "yes" ]]; then
-        echo "Trimming reads"
+        echo -e "\nTrimming reads"
         TrimReads 2> trim.log
 fi                
                 
