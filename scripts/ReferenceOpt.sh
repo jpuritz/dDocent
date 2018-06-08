@@ -3,7 +3,11 @@ export LC_ALL=en_US.UTF-8
 
 if [[ -z "$6" ]]; then
 echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors"
-exit 1
+echo -e "\n\n"
+echo "Optionally, a new range of similarities can be entered as well:"
+echo "ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors minSim maxSim increment"
+echo -e "\nFor example, to scale between 0.95 and 0.99 using 0.005 increments:\nReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors 0.95 0.99 0.005"
+exit
 fi
 
 if ! awk --version | fgrep -v GNU &>/dev/null; then
@@ -29,6 +33,19 @@ if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru
 
 ATYPE=$5
 NUMProc=$6
+
+if [[ -z "$7" ]]; then
+
+	minSim=0.8
+	maxSim=0.98
+	incSim=0.02
+else
+
+	minSim=$7 
+	maxSim=$8
+	incSim=$9
+fi
+
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
@@ -302,10 +319,7 @@ for ((P = $1; P <= $2; P++))
 	do
 	X=$(($P + $i))
 	if [ "$X" != "2" ]; then
-	echo "K1 is $P" "K2 is $i" "c is 0.80"
-	SEQS=$(Reference $P $i 0.8)
-	echo $P $i 0.80 $SEQS >> kopt.data
-		for j in {0.82,0.84,0.86,0.88,0.9,0.92,0.94,0.96,0.98}
+		for j in $(seq $minSim $incSim $maxSim)
 		do
 		echo "K1 is $P" "K2 is $i" "c is $j"
 		SEQS=$(Reference $P $i $j)
