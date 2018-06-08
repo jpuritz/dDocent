@@ -219,7 +219,7 @@ echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
 echo $NUMProc >> dDocent.runs
 echo "Maximum Memory" >> dDocent.runs
-echo $MAXMemory | sed 's/[g,G]//g' >> dDocent.runs
+echo $MAXMemory1 | sed 's/[g,G]//g' >> dDocent.runs
 echo "Trimming" >> dDocent.runs
 echo $TRIM >> dDocent.runs
 echo "Assembly?" >> dDocent.runs
