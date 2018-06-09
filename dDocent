@@ -78,7 +78,14 @@ FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed 's/v//' `)
         	echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
         	echo "Please install at least version 1.0.0"
         	exit 1
-        fi         	
+        fi  
+SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed 's/1.2-r//g' | sed 's/-dirty//g' `)
+	if [ "$SEQTK" -lt "102" ]; then
+		echo "The version of seqtk installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.2-r102-dirty"
+        	exit 1
+	fi
+	
 VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
 	if [ "$VCFTV" -lt "10" ]; then
         	echo "The version of VCFtools installed in your" '$PATH' "is not optimized for dDocent."
