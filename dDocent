@@ -192,7 +192,12 @@ echo -e "\ndDocent run started" $STARTTIME "\n"
 #Checks if a configuration file is being used, if not asks for user input
 if [ -n "$1" ]; then
 	CONFIG=$1
-	NUMProc=$(grep -A1 Processor $CONFIG | tail -1 ) &> /dev/null 
+	if [ ! -f $CONFIG ]; then
+		echo -e "\nThe configuration file $CONFIG does not exist."
+		exit 1
+	fi
+	
+	NUMProc=$(grep -A1 Processor $CONFIG 2> /dev/null | tail -1 ) 
 	if [[ $NUMProc -lt 999999 && $NUMproc -gt 1 ]]; then 
 		MAXMemory1=$(grep -A1 Memory $CONFIG | sed 's/[g,G]//g' | tail -1)
 	else
@@ -202,7 +207,7 @@ if [ -n "$1" ]; then
 	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
-	CUTOFF=$(grep -A1 'Minimum within' $CONFIG | tail -1) &> /dev/null
+	CUTOFF=$(grep -A1 'Minimum within' $CONFIG  2> /dev/null | tail -1)
 	if [[ $CUTOFF -lt 9999 && $NUMproc -gt 0 ]]; then 
 		CUTOFF2=$(grep -A1 'Minimum number' $CONFIG | tail -1)
 	else
