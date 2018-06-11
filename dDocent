@@ -193,7 +193,12 @@ echo -e "\ndDocent run started" $STARTTIME "\n"
 if [ -n "$1" ]; then
 	CONFIG=$1
 	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
-    	MAXMemory1=$(grep -A1 Memory $CONFIG | sed 's/[g,G]//g' | tail -1)
+	if [[ $NUMProc -lt 999999 && $NUMproc -gt 1 ]]; then 
+		MAXMemory1=$(grep -A1 Memory $CONFIG | sed 's/[g,G]//g' | tail -1)
+	else
+		echo "/nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
+		exit 1
+	fi
 	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
