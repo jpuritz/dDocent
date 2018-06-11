@@ -192,18 +192,23 @@ echo -e "\ndDocent run started" $STARTTIME "\n"
 #Checks if a configuration file is being used, if not asks for user input
 if [ -n "$1" ]; then
 	CONFIG=$1
-	NUMProc=$(grep -A1 Processor $CONFIG | tail -1)
+	NUMProc=$(grep -A1 Processor $CONFIG | tail -1 2> /dev/null) 
 	if [[ $NUMProc -lt 999999 && $NUMproc -gt 1 ]]; then 
 		MAXMemory1=$(grep -A1 Memory $CONFIG | sed 's/[g,G]//g' | tail -1)
 	else
-		echo "/nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
+		echo -e "/nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
 		exit 1
 	fi
 	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
-	CUTOFF=$(grep -A1 'Minimum within' $CONFIG | tail -1)
-	CUTOFF2=$(grep -A1 'Minimum number' $CONFIG | tail -1)
+	CUTOFF=$(grep -A1 'Minimum within' $CONFIG | tail -1 2> /dev/null)
+	if [[ $CUTOFF -lt 9999 && $NUMproc -gt 0 ]]; then 
+		CUTOFF2=$(grep -A1 'Minimum number' $CONFIG | tail -1)
+	else
+		echo -e "/nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
+		exit 1
+	fi
 	ATYPE=$(grep -A1 Type $CONFIG | tail -1)
 	simC=$(grep -A1 Simi $CONFIG | tail -1)
 	MAP=$(grep -A1 Mapping_R $CONFIG | tail -1)
