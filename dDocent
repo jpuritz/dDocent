@@ -171,7 +171,7 @@ if [[ "$1" == "help" || "$1" == "-help" || "$1" == "--help" || "$1" == "-h" || "
 
 	echo -e "\nTo run dDocent, simply type '"dDocent"' and press [ENTER]"
 	echo -e "\nAlternatively, dDocent can be run with a configuration file.  Usuage is:"
-	echo -e "dDocent config_file"
+	echo -e "\ndDocent config_file\n\n"
 	exit 0
 fi
 
