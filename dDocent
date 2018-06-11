@@ -198,7 +198,7 @@ if [ -n "$1" ]; then
 	fi
 	
 	NUMProc=$(grep -A1 Processor $CONFIG 2> /dev/null | tail -1 ) 
-	if [[ $NUMProc -lt 999999 && $NUMproc -gt 1 ]]; then 
+	if [[ $NUMProc -lt 999999 && $NUMProc -gt 1 ]]; then 
 		MAXMemory1=$(grep -A1 Memory $CONFIG | sed 's/[g,G]//g' | tail -1)
 	else
 		echo -e "\nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
