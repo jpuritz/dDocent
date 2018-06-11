@@ -208,11 +208,13 @@ if [ -n "$1" ]; then
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
 	CUTOFF=$(grep -A1 'Minimum within' $CONFIG  2> /dev/null | tail -1)
-	if [ "$ASSEMBLY" == "yes" ] && [[ $CUTOFF -lt 9999 && $CUTOFF -gt 0 ]]; then 
+	if [[ $CUTOFF -lt 9999 && $CUTOFF -gt 0 ]]; then 
 		CUTOFF2=$(grep -A1 'Minimum number' $CONFIG | tail -1)
 	else
-		echo -e "\nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
-		exit 1
+		if [ "$ASSEMBLY" == "yes" ]; then
+			echo -e "\nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
+			exit 1
+		fi
 	fi
 	ATYPE=$(grep -A1 Type $CONFIG | tail -1)
 	simC=$(grep -A1 Simi $CONFIG | tail -1)
