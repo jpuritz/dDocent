@@ -10,7 +10,7 @@ VERSION='2.5.1'
 
 #Prints out title and contact info
 echo -e "dDocent" $VERSION "\n"
-echo -e "Contact jpuritz@gmail.com with any problems \n\n "
+echo -e "Contact jpuritz@uri.edu with any problems \n\n "
 
 ###Code to check for the required software for dDocent
 
@@ -165,6 +165,13 @@ else
 	echo "Please rename individuals to: Locality_Individual.F.fq.gz"
 	echo "For example: LocA_001.F.fq.gz"
 	exit 1
+fi
+
+if [[ "$1" == "help" || "$1" == "-help" || "$1" == "--help" || "$1" == "-h" || "$1" == "--h" ]]; then
+
+	echo -e "\nTo run dDocent, simply type '"dDocent"' and press [ENTER]"
+	echo -e "\nAlternatively, dDocent can be run with a configuration file.  Usuage is:"
+	echo -e "dDocent config_file"
 fi
 
 #Wrapper for main program functions.  This allows the entire file to be read first before execution
