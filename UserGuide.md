@@ -147,7 +147,7 @@ Where R1 are trimmed forward reads and R2 are trimmed paired-end reads (If PE se
 
 Simply type:
 
-````
+```
 dDocent
 ```
 Now, dDocent will start interactive configuration by asking you questions:
