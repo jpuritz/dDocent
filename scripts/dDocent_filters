@@ -111,13 +111,13 @@ mawk '!/D/' $1.site.depth | mawk -v x=$IND '{print $1/x}' > meandepthpersite
 DP=$(perl -e "print ($DP+ 1.645*$SD) / $IND")
 PP=$(mawk '!/SUM/' $1.site.depth | sort -rn | perl -e '$d=.05;@l=<>;print $l[int($d*$#l)]' )
 PP=$(perl -e "print int($PP / $IND)")
-#GP=$(perl -e "print int($PP * 1.10)")
-export PP
+GP=$(perl -e "print int($PP * 1.10)")
+export GP
 
 gnuplot << \EOF >> $2.filterstats
 set terminal dumb size 120, 30
 set autoscale
-high=system("echo $PP")
+high=system("echo $GP")
 set xrange [10:high] 
 unset label
 set title "Histogram of mean depth per site"
@@ -134,7 +134,7 @@ EOF
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale
-high=system("echo $PP")
+high=system("echo $GP")
 set xrange [10:high] 
 unset label
 set title "Histogram of mean depth per site"
@@ -215,4 +215,3 @@ echo -e "Remaining sites\n" $FILTERED "\n" >> $2.filterstats
 echo -e "Filtered VCF file is called Output_prefix.FIL.recode.vcf\n"
 echo "Filter stats stored in $2.filterstats"
 
-fi
