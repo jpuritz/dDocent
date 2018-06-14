@@ -153,21 +153,6 @@ NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
 
-vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $PP --exclude-positions $1.lowQDloci --recode 2> /dev/null
-
-OLD=$(mawk '!/#/' $1 | wc -l)
-FILTERED=$(mawk '!/#/' $2.FIL.recode.vcf  | wc -l)
-NUMFIL=$(($OLD - $FILTERED))
-
-echo -e "Total number of sites filtered\n" $NUMFIL "of" $OLD "\n"
-echo -e "Total number of sites filtered\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
-
-echo -e "Remaining sites\n" $FILTERED "\n"
-echo -e "Remaining sites\n" $FILTERED "\n" >> $2.filterstats
-
-echo -e "Filtered VCF file is called Output_prefix.FIL.recode.vcf\n"
-echo "Filter stats stored in $2.filterstats"
-
 else
 	if [[ -z "$5" ]]; then
 	echo "Please enter new cutoff"
@@ -183,6 +168,8 @@ OLD=$(mawk '!/#/' $2.fil.vcf | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
+
+fi
 
 vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL1 --max-meanDP $PP --exclude-positions $1.lowQDloci --recode 2> /dev/null
 vcftools --vcf $2.FIL1.recode.vcf --site-depth --out $2.FIL1 2> /dev/null
@@ -212,4 +199,3 @@ echo -e "Remaining sites\n" $FILTERED "\n" >> $2.filterstats
 echo -e "Filtered VCF file is called Output_prefix.FIL.recode.vcf\n"
 echo "Filter stats stored in $2.filterstats"
 
-fi
