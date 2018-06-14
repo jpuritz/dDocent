@@ -126,7 +126,7 @@ set xlabel "Mean Depth"
 #set yr [0:100000]
 binwidth=1
 bin(x,width)=width*floor(x/width) + binwidth/2.0
-set xtics high/20
+set xtics floor(high/20)
 plot 'meandepthpersite' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 pause -1
 EOF
@@ -143,7 +143,7 @@ set xlabel "Mean Depth"
 #set yr [0:100000]
 binwidth=1
 bin(x,width)=width*floor(x/width) + binwidth/2.0
-set xtics high/20
+set xtics floor(high/20)
 plot 'meandepthpersite' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 pause -1
 EOF
