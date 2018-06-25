@@ -4,11 +4,13 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-### Total Citations = 60
+### Total Citations = 65
 
 Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803244071106482641&as_sdt=5,40&sciodt=0,40&hl=en)!
 
 ### Selected Citations
+
+**Schiebelhut, L.M., Puritz, J.B. and Dawson, M.N., 2018. Decimation by sea star wasting disease and rapid genetic change in a keystone species, Pisaster ochraceus. Proceedings of the National Academy of Sciences, p.201800285.[LINK](./PNAS.pdf)**
 
 **Menon, M., Bagley, J.C., Friedline, C.J., Whipple, A.V., Schoettle, A.W., Leal‐Sàenz, A., Wehenkel, C., Molina‐Freaner, F., Flores‐Rentería, L., Gonzalez‐Elizondo, M.S. and Sniezko, R.A., 2018. The role of hybridization during ecological divergence of southwestern white pine (Pinus strobiformis) and limber pine (P. flexilis). Molecular ecology, 27(5), pp.1245-1260.** [LINK](https://www.fs.fed.us/rm/pubs_journals/2017/rmrs_2017_menon_m001.pdf)
 
