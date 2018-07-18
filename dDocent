@@ -1033,7 +1033,13 @@ else
 fi
 
 #Tries to get number of processors, if not asks user
-NUMProc=( `grep -c ^processor /proc/cpuinfo 2> /dev/null` ) 
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	NUMProc=( `sysctl hw.ncpu | cut -f2 -d " " `)
+else
+	NUMProc=( `grep -c ^processor /proc/cpuinfo 2> /dev/null` ) 
+fi
+
 NUMProc=$(($NUMProc + 0)) 
 
 echo "dDocent detects $NUMProc processors available on this system."
