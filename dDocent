@@ -208,6 +208,7 @@ if [ -n "$1" ]; then
 	MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
 	if [[ "$OSTYPE" == "darwin"* ]]; then
 		MAXMemory=0
+		MAXMemory1=0
 	fi
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
