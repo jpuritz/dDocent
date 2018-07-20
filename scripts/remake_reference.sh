@@ -49,13 +49,13 @@ SED2='s/\s/\t/g'
 CUTOFF=$1
 CUTOFF2=$2
 simC=$3
-FRL=$(zcat ${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
+FRL=$(gunzip -c ${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
 
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#If PE assembly, creates a concatenated file of every unique for each individual in parallel
-		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
-		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
+		cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
+		cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
 		if [ "$ATYPE" = "RPE" ]; then
 			cat namelist | parallel --no-notice -j $NUMProc "paste {}.forward {}.reverse | $sort -k1 -S 100M > {}.fr"
 			cat namelist | parallel --no-notice -j $NUMProc "cut -f1 {}.fr | uniq -c > {}.f.uniq && cut -f2 {}.fr > {}.r"
@@ -70,13 +70,13 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	fi
 	if [ "$ATYPE" == "SE" ]; then
 	#if SE assembly, creates files of every unique read for each individual in parallel
-		cat namelist | parallel --no-notice -j $NUMProc "zcat {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
+		cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
 	if [[ "$ATYPE" == "OL" || "$ATYPE" == "ROL" ]]; then
 	#If OL assembly, dDocent assumes that the marjority of PE reads will overlap, so the software PEAR is used to merge paired reads into single reads
 		for i in "${NAMES[@]}";
       do
-      zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+      gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
       done	
     MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 		LENGTH=$(( $MaxLen / 3))
@@ -91,7 +91,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	#If HYB assembly, dDocent assumes some PE reads will overlap but that some will not, so the OL method performed and remaining reads are then put through PE method
 		for i in "${NAMES[@]}";
       do
-      zcat $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+      gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
       done	
     MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     LENGTH=$(( $MaxLen / 3))
@@ -293,7 +293,7 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 fi
 
 samtools faidx reference.fasta &> index.log
-bwa index reference.fasta &>> index.log
+bwa index reference.fasta >> index.log 2>&1
 
 }
 Reference $CUTOFF $CUTOFF2 $simC
