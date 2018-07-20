@@ -1,6 +1,30 @@
 ---
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## In Defense of Science 
+
 
 We are deeply concerned by the Trump administration's move to gag 
 scientists working at various governmental agencies. The US government 
