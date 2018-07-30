@@ -392,7 +392,7 @@ Type_of_Assembly
 PE
 Clustering_Similarity%
 0.86
-Minimum within individaul coverage level to include a read for assembly (K1)
+Minimum within individual coverage level to include a read for assembly (K1)
 2
 Minimum number of individuals a read must be present in to include for assembly (K2)
 2
