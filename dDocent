@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.6.0'
+VERSION='2.6.1'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -265,10 +265,20 @@ echo "Type_of_Assembly" >> dDocent.runs
 echo $ATYPE >> dDocent.runs
 echo "Clustering_Similarity%" >> dDocent.runs
 echo $simC >> dDocent.runs
-echo "Minimum within individaul coverage level to include a read for assembly (K1)" >> dDocent.runs
-echo $CUTOFF >> dDocent.runs
-echo "Minimum number of individuals a read must be present in to include for assembly (K2)" >> dDocent.runs
-echo $CUTOFF2 >> dDocent.runs
+if [ -n "$CUTOFF" ]; then
+	echo "Minimum within individaul coverage level to include a read for assembly (K1)" >> dDocent.runs
+	echo $CUTOFF >> dDocent.runs
+else
+	echo "Minimum within individaul coverage level to include a read for assembly (K1)" >> dDocent.runs
+	echo "CUTOFF1_NOTSET" >> dDocent.runs
+fi
+if [ -n "$CUTOFF2" ]; then
+	echo "Minimum number of individuals a read must be present in to include for assembly (K2)" >> dDocent.runs
+	echo $CUTOFF2 >> dDocent.runs
+else
+	echo "Minimum number of individuals a read must be present in to include for assembly (K2)" >> dDocent.runs
+	echo "CUTOFF2_NOTSET" >> dDocent.runs
+fi
 echo "Mapping_Reads?" >> dDocent.runs
 echo $MAP >> dDocent.runs
 echo "Mapping_Match_Value" >> dDocent.runs
@@ -703,6 +713,10 @@ fi
 
 
 #Prints instructions on how to move analysis to background and disown process
+
+sed -i '$s/CUTOFF1_NOTSET/'$CUTOFF'/g' dDocent.runs
+sed -i '$s/CUTOFF2_NOTSET/'$CUTOFF2'/g' dDocent.runs
+
 echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
 echo "It is recommended that you move this script to a background operation and disable terminal input and output."
 echo "All data and logfiles will still be recorded."
