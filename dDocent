@@ -714,8 +714,8 @@ fi
 
 #Prints instructions on how to move analysis to background and disown process
 
-sed -i '$s/CUTOFF1_NOTSET/'$CUTOFF'/g' dDocent.runs
-sed -i '$s/CUTOFF2_NOTSET/'$CUTOFF2'/g' dDocent.runs
+sed -i 's/CUTOFF1_NOTSET/'$CUTOFF'/g' dDocent.runs
+sed -i 's/CUTOFF2_NOTSET/'$CUTOFF2'/g' dDocent.runs
 
 echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
 echo "It is recommended that you move this script to a background operation and disable terminal input and output."
