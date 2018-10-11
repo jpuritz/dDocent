@@ -544,7 +544,7 @@ ERRORS=$(($ERROR1 + $ERROR2 + $ERROR3))
 if [ ! -d "logfiles" ]; then
 mkdir logfiles
 fi
-mv *.txt *.log log ./logfiles 2> /dev/null
+mv *.txt *.log log ./trim_reports ./logfiles 2> /dev/null
 
 #Sending a completion email
 
@@ -564,11 +564,12 @@ trim_reads(){
 	
 	if [ -f $1.R.fq.gz ]; then	
 		# paired
-		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction $TW -j $1 &> $1.trim.log
+		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction $TW -j $1.json -h $1.html &> $1.trim.log
 	else 
 		#single
-		fastp -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 $TW -j $1 &> $1.trim.log
-	fi 
+		fastp -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 $TW -j $1.json -h $1.html &> $1.trim.log
+	fi
+	mv $1.html ./trim_reports &>/dev/null && mv $1.json ./trim_reports &>/dev/null
 }
 	
 	export -f trim_reads
@@ -602,10 +603,9 @@ TrimReads () {
 	cat namelist | parallel -j $NUMProc "gunzip -c {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     	MLen=$(($MLen / 2))
-	TW="--length_required $MLen"
-	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}	
-	mkdir unpaired &>/dev/null
-	mv *unpaired*.gz ./unpaired &>/dev/null	
+	TW="--length_required $MLen"	
+	mkdir trim_reports &>/dev/null
+	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}
 }
 
 
