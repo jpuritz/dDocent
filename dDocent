@@ -544,7 +544,7 @@ ERRORS=$(($ERROR1 + $ERROR2 + $ERROR3))
 if [ ! -d "logfiles" ]; then
 mkdir logfiles
 fi
-mv *.txt *.log log ./logfiles 2> /dev/null
+mv *.txt *.log log ./trim_reports ./logfiles 2> /dev/null
 
 #Sending a completion email
 
