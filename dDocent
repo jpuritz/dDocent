@@ -28,6 +28,12 @@ do
 	fi
 done
 
+if find ${PATH//:/ } -maxdepth 1 -name fastp 2> /dev/null| grep -q 'fastp' ; then
+	FASTP=$(find ${PATH//:/ } -maxdepth 1 -name fastp 2> /dev/null | head -1)
+else
+   	echo "The dependency fsatp is not installed or is not in your" '$PATH'"."
+    	NUMDEP=$((NUMDEP + 1))
+fi
 
 SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
 SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
@@ -560,11 +566,12 @@ fi
 
 ##Function definitions
 
-#Function for trimming reads using trimmomatic
+#Function for trimming reads using fastp
 trim_reads(){
 	FASTP=$(find ${PATH//:/ } -maxdepth 1 -name fastp 2> /dev/null | head -1)
+	
 	if [ -f $1.R.fq.gz ]; then	
-	# paired
+		# paired
 		$FASTP --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction --thread 2 $TW -j $1 &> $1.trim.log
 	else 
 		#single
