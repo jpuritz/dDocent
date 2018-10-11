@@ -28,7 +28,6 @@ do
 	fi
 done
 
-
 SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
 SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
 	if [ "$SAMV1"  -ge "1" ]; then
@@ -560,13 +559,15 @@ fi
 
 ##Function definitions
 
-#Function for trimming reads using trimmomatic
+#Function for trimming reads using fastp
 trim_reads(){
-
+	
 	if [ -f $1.R.fq.gz ]; then	
-		fastp -i $1.F.fq.gz -I $1.R.fq.gz -o $1.R1.fq.gz -O $1.R2.fq.gz -j $1 &> $1.trim.log
+		# paired
+		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction $TW -j $1 &> $1.trim.log
 	else 
-		fastp -i $1.F.fq.gz -o $1.R1.fq.gz -j $1 &> $1.trim.log
+		#single
+		fastp -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 $TW -j $1 &> $1.trim.log
 	fi 
 }
 	
@@ -601,7 +602,7 @@ TrimReads () {
 	cat namelist | parallel -j $NUMProc "gunzip -c {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     	MLen=$(($MLen / 2))
-	TW="MINLEN:$MLen"
+	TW="--length_required $MLen"
 	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}	
 	mkdir unpaired &>/dev/null
 	mv *unpaired*.gz ./unpaired &>/dev/null	
