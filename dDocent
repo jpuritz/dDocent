@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.6.1'
+VERSION='2.7.0'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -16,7 +16,7 @@ echo -e "Contact jpuritz@uri.edu with any problems \n\n "
 ###Code to check for the required software for dDocent
 
 echo "Checking for required software"
-DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools parallel vcfcombine pearRM)
+DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools parallel vcfcombine pearRM fastp)
 NUMDEP=0
 for i in "${DEP[@]}"
 do
@@ -28,19 +28,6 @@ do
 	fi
 done
 
-if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'trim' ; then
-	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
-	else
-    echo "The dependency trimmomatic is not installed or is not in your" '$PATH'"."
-    NUMDEP=$((NUMDEP + 1))
-	fi
-
-if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru' ; then
-	ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
-	else
-    echo "The file listing adapters (included with trimmomatic) is not installed or is not in your" '$PATH'"."
-    NUMDEP=$((NUMDEP + 1))
-    fi
 
 SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
 SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
@@ -575,13 +562,11 @@ fi
 
 #Function for trimming reads using trimmomatic
 trim_reads(){
-	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
-    	ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
 
 	if [ -f $1.R.fq.gz ]; then	
-		java -Xmx2g -jar $TRIMMOMATIC PE -threads 2 -phred33 $1.F.fq.gz $1.R.fq.gz $1.R1.fq.gz $1.unpairedF.fq.gz $1.R2.fq.gz $1.unpairedR.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log
+		fastp -i $1.F.fq.gz -I $1.R.fq.gz -o $1.R1.fq.gz -O $1.R2.fq.gz -j $1 &> $1.trim.log
 	else 
-		java -Xmx2g -jar $TRIMMOMATIC SE -threads 2 -phred33 $1.F.fq.gz $1.R1.fq.gz ILLUMINACLIP:$ADAPTERS:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:5:10 $TW &> $1.trim.log
+		fastp -i $1.F.fq.gz -o $1.R1.fq.gz -j $1 &> $1.trim.log
 	fi 
 }
 	
@@ -850,7 +835,12 @@ mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.f
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
 seqtk seq -F I uniq.full.fasta > uniq.fq
-java -Xmx2g -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &> assemble.trim.log
+if [ "$NUMProc" -gt 8 ]; then
+	NP=8
+else
+	NP=$NumProc
+fi
+fastp -i uniq.fq -o uniq.fq1 -w $NP -Q &> assemble.trim.log
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
 mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
@@ -955,7 +945,12 @@ if [[ "$ATYPE" == "HYB" ]];then
 		LENGTH=$(mawk '!/>/' uniq.full.ua.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 		LENGTH=$(($LENGTH * 3 / 4))
 		seqtk seq -F I uniq.full.ua.fasta > uniq.ua.fq
-		java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.ua.fq uniq.ua.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
+		if [ "$NUMProc" -gt 8 ]; then
+			NP=8
+		else
+			NP=$NumProc
+		fi
+		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &>/dev/null
 		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
 		mawk '!/>/' uniq.ua.fasta > totaluniqseq.ua
 		rm uniq.ua.fq*
@@ -1221,3 +1216,4 @@ fi
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
+
