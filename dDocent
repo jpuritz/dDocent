@@ -562,11 +562,13 @@ fi
 
 #Function for trimming reads using trimmomatic
 trim_reads(){
-
+	FASTP=$(find ${PATH//:/ } -maxdepth 1 -name fastp 2> /dev/null | head -1)
 	if [ -f $1.R.fq.gz ]; then	
-		fastp -i $1.F.fq.gz -I $1.R.fq.gz -o $1.R1.fq.gz -O $1.R2.fq.gz -j $1 &> $1.trim.log
+	# paired
+		$FASTP --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction --thread 2 $TW -j $1 &> $1.trim.log
 	else 
-		fastp -i $1.F.fq.gz -o $1.R1.fq.gz -j $1 &> $1.trim.log
+		#single
+		$FASTP -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --thread 2 $TW -j $1 &> $1.trim.log
 	fi 
 }
 	
@@ -601,7 +603,7 @@ TrimReads () {
 	cat namelist | parallel -j $NUMProc "gunzip -c {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     	MLen=$(($MLen / 2))
-	TW="MINLEN:$MLen"
+	TW="--length_required $MLen"
 	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}	
 	mkdir unpaired &>/dev/null
 	mv *unpaired*.gz ./unpaired &>/dev/null	
