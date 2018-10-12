@@ -564,10 +564,10 @@ trim_reads(){
 	
 	if [ -f $1.R.fq.gz ]; then	
 		# paired
-		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction $TW -j $1.json -h $1.html &> $1.trim.log
+		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction $TW -q 15 -u 50 -j $1.json -h $1.html &> $1.trim.log
 	else 
 		#single
-		fastp -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 $TW -j $1.json -h $1.html &> $1.trim.log
+		fastp -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 -q 15 -u 50  $TW -j $1.json -h $1.html &> $1.trim.log
 	fi
 	mv $1.html ./trim_reports &>/dev/null && mv $1.json ./trim_reports &>/dev/null
 }
