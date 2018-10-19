@@ -17,7 +17,7 @@ subtitle: Everything there is to know
 	* [Requirements](#requirements)
 		* [Raw Sequences](#raw-sequences)
 		* [Naming convention](#naming-convention)
-	* [Running](#running-dDocent)
+	* [Running](#running)
 		* [Running with a configuration file](#running-with-configuration-file)
 * [Outputs](#outputs)
 	* [Data Outputs](#data-outputs)
