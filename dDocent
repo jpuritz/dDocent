@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.7.0'
+VERSION='2.7.1'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -410,7 +410,7 @@ if [ "$SNP" != "no" ]; then
 	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 	}' 
 	
-	FB2=$(( $NUMProc / 4 ))
+	FB2=$(( $NUMProc / 8 ))
 	export FB2
 	echo -e "\nUsing FreeBayes to call SNPs"
 
@@ -429,26 +429,83 @@ if [ "$SNP" != "no" ]; then
 		freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
+    			rm split.$1.bam*
 		else
     			echo -e "\n\nERROR: freebayes instance DID NOT COMPLETE\n\nSee below:"
-			echo $? > freebayes.error
+			echo -e "$?" "\t" "$1" >> freebayes.error
 			exit 1
 		fi	
-		rm split.$1.bam*
+		
 	}
 	
 	export -f call_genos
+      	call_genos2(){
+                samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
+                samtools index split.$1.bam
+                freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10
+                if [ $? -eq 0 ]; then
+                        rm split.$1.bam*
+                else
+                        echo -e "$?" "\t" "$1" >> freebayes.error
+                        exit 1
+                fi
+        }
+        export -f call_genos2
+        finish_genos(){
+                echo "Redoing a failed instance of FreeBayes"
+                mkdir Finish.$1
+                cd Finish.$1
+                cp ../split.$1.bam split.bam
+                cp ../mapped.$1.bed mapped.bed
+ 		bedtools intersect -b mapped.bed -a ../cov.stats > cov.stats
+                CC=$( mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/4}' cov.stats)
+        	$sort -V -k1,1 -k2,2 cov.stats | mawk -v cutoff=$CC 'BEGIN{i=1}
+        	{
+        		len=$3-$2;lc=len*$4;cov = cov + lc
+        		if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+        		else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
+        	}'
+                ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos2 --memfree $MAXMemory -j 4 --no-notice "call_genos2 {} 2> /dev/null"
+                if [ -f "freebayes.error" ]; then
+                        echo -e "\n\n\nFreeBayes has failed when trying to finish a previously failed instance.  Memory and processor settings need to be drastically reconfigured"
+                        ERROR3=1
+                        export ERROR3
+                else
+                        echo "The failed instance of FreeBayes was successfully rerun"
+                        ERROR3=0
+                        export ERROR3
+                        mv raw.1.vcf raw.01.vcf 2>/dev/null
+                        mv raw.2.vcf raw.02.vcf 2>/dev/null
+                        mv raw.3.vcf raw.03.vcf 2>/dev/null
+                        mv raw.4.vcf raw.04.vcf 2>/dev/null
+                        vcfcombine raw.*.vcf | sed -e 's/       \.\:/   \.\/\.\:/g' > RedoRawSNPs.vcf
+                        mv RedoRawSNPs.vcf ../raw.$1.vcf
+        fi
+                cd ..
+                rm -rf Finish.$1
+	}
+	
+	export -f finish_genos
 	
 	rm freebayes.error freebayes.log &> /dev/null
 	
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NUMProc --no-notice "call_genos {} 2> /dev/null"
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=5 --env call_genos --memfree $MAXMemory -j $NUMProc --no-notice "call_genos {} 2> /dev/null"
 
 
 	if [ -f "freebayes.error" ]; then
-               	echo -e "\nA previous freebayes instance failed.  dDocent will now recalibrate run parameters to use less memory.\n"
-		rm mapped.*.bed
-		rm freebayes.error
-		LIM=$(( $NUMProc * 2 ))
+		FAILS=$( cat freebayes.error | wc -l )
+		if [ $FAILS -lt 5 ]; then
+			mv freebayes.error freebayes.redos
+			for i in `cut -f2 freebayes.redos`
+			do
+			finish_genos $i
+			done
+			rm freebayes.redos
+		else	
+			echo -e "\nmultiple instances of freebayes failed.  dDocent will now recalibrate run parameters to use less memory.\n"
+			rm mapped.*.bed
+			rm freebayes.error
+			LIM=$(( $NUMProc * 2 ))
         	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
@@ -465,17 +522,26 @@ if [ "$SNP" != "no" ]; then
 
         	FB2=$(( $NUMProc / 10 ))
         	export FB2
-		echo "Using FreeBayes to call SNPs again"
-		NumP=$(( $NUMProc / 4 ))
-		NumP=$(( $NumP * 3 ))
-		ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null" 
+			echo "Using FreeBayes to call SNPs again"
+			NumP=$(( $NUMProc / 4 ))
+			NumP=$(( $NumP * 3 ))
+			ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=5 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null" 
         fi
+    fi
 
 	if [ -f "freebayes.error" ]; then
-		echo -e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory.\n"
-                rm freebayes.error
-		
-		LIM=$(( $NUMProc * 4 ))
+		FAILS=$( cat freebayes.error | wc -l )
+		if [ $FAILS -lt 5 ]; then
+			mv freebayes.error freebayes.redos
+			for i in `cut -f2 freebayes.redos`
+			do
+			finish_genos $i
+			done
+			rm freebayes.redos
+		else	
+			echo -e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory.\n"
+        		rm freebayes.error
+			LIM=$(( $NUMProc * 4 ))
         	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
@@ -492,8 +558,9 @@ if [ "$SNP" != "no" ]; then
 		
             	NumP=$(( $NumP / 4 ))
                 NumP=$(( $NumP * 3 ))
-		echo "Using FreeBayes to call SNPs again"
-                ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null"
+			echo "Using FreeBayes to call SNPs again"
+            ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null"
+        fi
 	fi
 
 	if [ -f "freebayes.error" ]; then
@@ -501,7 +568,7 @@ if [ "$SNP" != "no" ]; then
 		ERROR3=1
 		export ERROR3
 	else
-            	ERROR3=0
+        ERROR3=0
 		export ERROR3
         fi
 
@@ -1209,11 +1276,13 @@ fi
 
 #Actually starts program
 if [ -n "$1" ]; then
-	main $1 2>&1 | tee -a dDocent_main.LOG #Log all output
+	main $1 2>&1 | tee temp.LOG #Log all output
 else
-	main 2>&1 | tee -a dDocent_main.LOG  #Log all output
+	main 2>&1 | tee temp.LOG #Log all output
 fi
 
+mawk '!/#.*%/' temp.LOG >> dDocent_main.LOG
+rm temp.LOG
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
