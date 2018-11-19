@@ -66,7 +66,7 @@ FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed 's/v//' `)
         	echo "Please install at least version 1.0.0"
         	exit 1
         fi  
-SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed 's/1.[1-9]-r//g' | sed 's/-dirty//g' `)
+SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed 's/1.[0-9]-r//g' | sed 's/-dirty//g' `)
 	if [ "$SEQTK" -lt "102" ]; then
 		echo "The version of seqtk installed in your" '$PATH' "is not optimized for dDocent."
         	echo "Please install at least version 1.2-r102-dirty"
