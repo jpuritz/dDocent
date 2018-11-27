@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.7.2'
+VERSION='2.7.3'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -426,12 +426,14 @@ if [ "$SNP" != "no" ]; then
 	call_genos(){
 		samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
 		samtools index split.$1.bam
-		freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
+		freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 2> fb.$1.error.log
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
     			rm split.$1.bam*
+			rm fb.$1.error.log
 		else
     			echo -e "\n\nERROR: freebayes instance DID NOT COMPLETE\n\nSee below:"
+			cat fb.$1.error.log
 			echo -e "$?" "\t" "$1" >> freebayes.error
 			exit 1
 		fi	
