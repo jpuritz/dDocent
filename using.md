@@ -4,11 +4,19 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-### Total Citations = 78
+### Total Citations = 82
 
 Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803244071106482641&as_sdt=5,40&sciodt=0,40&hl=en)!
 
 ### Selected Citations
+
+**Westergaard, K.B., Zemp, N., Bruederle, L.P., Stenøien, H.K., Widmer, A. and Fior, S., 2018. Population genomic evidence for plant glacial survival in Scandinavia. Molecular Ecology.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1111/mec.14994)
+
+**Manuzzi, A., Zane, L., Muñoz-Merida, A., Griffiths, A.M. and Veríssimo, A., 2018. Population genomics and phylogeography of a benthic coastal shark (Scyliorhinus canicula) using 2b-RAD single nucleotide polymorphisms. Biological Journal of the Linnean Society.** [LINK](https://academic.oup.com/biolinnean/advance-article/doi/10.1093/biolinnean/bly185/5244343)
+
+**Batley, K.C., Jonathan, S.C., Kemper, C., Attard, C.R., Zanardo, N., Tomo, I., Beheregaray, L.B. and Möller, L.M., Genome‐wide association study of an unusual dolphin mortality event reveals candidate genes for susceptibility and resistance to cetacean morbillivirus. Evolutionary Applications.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1111/eva.12747)
+
+**Franchini, P., Jones, J.C., Xiong, P., Kneitz, S., Gompert, Z., Warren, W.C., Walter, R.B., Meyer, A. and Schartl, M., 2018. Long-term experimental hybridisation results in the evolution of a new sex chromosome in swordtail fish. Nature communications, 9(1), p.5136.** [LINK](https://www.nature.com/articles/s41467-018-07648-2)
 
 **Ackiss, A.S., Bird, C.E., Akita, Y., Santos, M.D., Tachihara, K. and Carpenter, K.E., 2018. Genetic patterns in peripheral marine populations of the fusilier fish Caesio cuning within the Kuroshio Current. Ecology and Evolution.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1002/ece3.4644)
 
