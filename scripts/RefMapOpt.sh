@@ -7,25 +7,118 @@ echo "Usage is RefMapOpt minK1 maxK1 minK2 maxK2 cluster_similarity Assembly_Typ
 exit 1
 fi
 
+echo "Checking for required software"
+DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools parallel vcfcombine pearRM fastp)
+NUMDEP=0
+for i in "${DEP[@]}"
+do
+	if which $i &> /dev/null; then
+		foo=0
+	else
+    		echo "The dependency" $i "is not installed or is not in your" '$PATH'"."
+    		NUMDEP=$((NUMDEP + 1))
+	fi
+done
+
+SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
+SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
+	if [ "$SAMV1"  -ge "1" ]; then
+		if [ "$SAMV2"  -lt "3" ]; then
+        	echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.3.0"
+			echo -en "\007"
+			echo -en "\007"
+			exit 1
+		fi
+	
+	else
+		    echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.3.0"
+			echo -en "\007"
+			echo -en "\007"
+			exit 1
+	fi
+
+RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
+	if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
+        	echo "The version of Rainbow installed in your" '$PATH' "is not optimized for dDocent."
+        	echo -en "\007"
+			echo -en "\007"
+			echo -en "\007"
+        	echo "Is the version of rainbow installed newer than 2.0.2?  Enter yes or no."
+			read TEST
+			if [ "$TEST" != "yes" ]; then 
+        		echo "Please install a version newer than 2.0.2"
+        		exit 1
+        	fi
+        fi
+FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed 's/v//' `)	
+	if [ "$FREEB" != "1" ]; then
+        	echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.0.0"
+        	exit 1
+        fi  
+SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed 's/1.[0-9]-r//g' | sed 's/-dirty//g' `)
+	if [ "$SEQTK" -lt "102" ]; then
+		echo "The version of seqtk installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.2-r102-dirty"
+        	exit 1
+	fi
+	
+VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
+	if [ "$VCFTV" -lt "10" ]; then
+        	echo "The version of VCFtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 0.1.11"
+        	exit 1
+        elif [ "$VCFTV" == "11" ]; then
+                VCFGTFLAG="--geno" 
+        elif [ "$VCFTV" -ge "12" ]; then
+                VCFGTFLAG="--max-missing"
+	fi
+BWAV=$(bwa 2>&1 | mawk '/Versi/' | sed 's/Version: //g' | sed 's/0.7.//g' | sed 's/-.*//g' | cut -c 1-2)
+	if [ "$BWAV" -lt "13" ]; then
+        	echo "The version of bwa installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 0.7.13"
+        	exit 1
+	fi
+
+BTC=$( bedtools --version | mawk '{print $2}' | sed 's/v//g' | cut -f1,2 -d"." | sed 's/2\.//g' )
+	if [ "$BTC" -ge "26" ]; then
+		BEDTOOLSFLAG="NEW"
+		elif [ "$BTC" == "23" ]; then
+		BEDTOOLSFLAG="OLD"
+		elif [ "$BTC" != "23" ]; then
+		echo "The version of bedtools installed in your" '$PATH' "is not optimized for dDocent."
+		echo "Please install version 2.23.0 or version 2.26.0 and above"
+		exit 1	
+	fi
+	
+FASTP=$(fastp -v 2>&1 | cut -f2 -d " ")
+FASTP1=$(echo $FASTP | cut -f1 -d ".")
+FASTP2=$(echo $FASTP | cut -f2 -d ".")
+FASTP3=$(echo $FASTP | cut -f3 -d ".")
+	if [ "$FASTP1" -lt "2" ]; then
+		if [ "$FASTP2" -lt "20" ]; then
+			if [ "$FASTP2" -lt "5" ]; then
+				echo "The version of fastp installed in your" '$PATH' "is not optimized for dDocent."
+				echo "Please install version 0.19.5 or above"
+				exit 1
+			fi
+		fi
+	fi
+	
 if ! sort --version | fgrep GNU &>/dev/null; then
 	sort=gsort
 else
 	sort=sort
 fi
 
-if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'trim' ; then
-	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
-	else
-    echo "The dependency trimmomatic is not installed or is not in your" '$PATH'"."
-    NUMDEP=$((NUMDEP + 1))
-	fi
-	
-if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru' ; then
-	ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
-	else
-    echo "The file listing adapters (included with trimmomatic) is not installed or is not in your" '$PATH'"."
-    NUMDEP=$((NUMDEP + 1))
-    fi
+if [ $NUMDEP -gt 0 ]; then
+	echo -e "\nPlease install all required software before running RefMapOpt again."
+	exit 1
+else
+	echo -e "\nAll required software is installed!"
+fi
 
 simC=$5
 
@@ -150,8 +243,13 @@ mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.f
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
 seqtk seq -F I uniq.full.fasta > uniq.fq
-java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
-mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
+if [ "$NUMProc" -gt 8 ]; then
+	NP=8
+else
+	NP=$NumProc
+fi
+fastp -i uniq.fq -o uniq.fq1 -w $NP -Q &> assemble.trim.log
+mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.fasta
 mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
@@ -256,9 +354,14 @@ if [[ "$ATYPE" == "HYB" ]];then
 		LENGTH=$(mawk '!/>/' uniq.full.ua.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 		LENGTH=$(($LENGTH * 3 / 4))
 		seqtk seq -F I uniq.full.ua.fasta > uniq.ua.fq
-		java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.ua.fq uniq.ua.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
-		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
-		mawk '!/>/' uniq.ua.fasta > totaluniqseq.ua
+		if [ "$NUMProc" -gt 8 ]; then
+			NP=8
+		else
+			NP=$NumProc
+		fi
+		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &> assemble.trim.log
+		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.ua.fasta
+		mawk '!/>/' uniq.ua.fasta > totaluniqseq
 		rm uniq.ua.fq*
 		#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
 		sed -e 's/NNNNNNNNNN/	/g' uniq.ua.fasta | cut -f1 > uniq.F.ua.fasta
