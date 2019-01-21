@@ -60,6 +60,13 @@ else
 	incSim=$9
 fi
 
+if [ $NUMDEP -gt 0 ]; then
+	echo -e "\nPlease install all required software before running ReferenceOpt again."
+	exit 1
+else
+	echo -e "\nAll required software is installed!"
+fi
+
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
