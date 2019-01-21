@@ -17,20 +17,33 @@ else
 	sort=sort
 fi
 
-
-if find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null| grep -q 'trim' ; then
-	TRIMMOMATIC=$(find ${PATH//:/ } -maxdepth 1 -name trimmomatic*jar 2> /dev/null | head -1)
+DEP=(mawk samtools rainbow gnuplot seqtk cd-hit-est parallel pearRM fastp)
+NUMDEP=0
+for i in "${DEP[@]}"
+do
+	if which $i &> /dev/null; then
+		foo=0
 	else
-    echo "The dependency trimmomatic is not installed or is not in your" '$PATH'"."
-    NUMDEP=$((NUMDEP + 1))
+    		echo "The dependency" $i "is not installed or is not in your" '$PATH'"."
+    		NUMDEP=$((NUMDEP + 1))
 	fi
-	
-if find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | grep -q 'Tru' ; then
-	ADAPTERS=$(find ${PATH//:/ } -maxdepth 1 -name TruSeq2-PE.fa 2> /dev/null | head -1)
-	else
-    echo "The file listing adapters (included with trimmomatic) is not installed or is not in your" '$PATH'"."
-    NUMDEP=$((NUMDEP + 1))
-    fi
+done
+
+
+FASTP=$(fastp -v 2>&1 | cut -f2 -d " ")
+FASTP1=$(echo $FASTP | cut -f1 -d ".")
+FASTP2=$(echo $FASTP | cut -f2 -d ".")
+FASTP3=$(echo $FASTP | cut -f3 -d ".")
+	if [ "$FASTP1" -lt "2" ]; then
+		if [ "$FASTP2" -lt "20" ]; then
+			if [ "$FASTP2" -lt "5" ]; then
+				echo "The version of fastp installed in your" '$PATH' "is not optimized for dDocent."
+				echo "Please install version 0.19.5 or above"
+				exit 1
+			fi
+		fi
+	fi
+
 
 ATYPE=$5
 NUMProc=$6
@@ -147,10 +160,14 @@ mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.f
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
 seqtk seq -F I uniq.full.fasta > uniq.fq
-java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.fq uniq.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
-mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
-mawk '!/>/' uniq.fasta > totaluniqseq
-rm uniq.fq*
+if [ "$NUMProc" -gt 8 ]; then
+	NP=8
+else
+	NP=$NumProc
+fi
+fastp -i uniq.fq -o uniq.fq1 -w $NP -Q &> assemble.trim.log
+mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.fasta
+mawk '!/>/' uniq.fasta > totaluniqseqrm uniq.fq*
 
 #If this is a PE assebmle
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
@@ -253,8 +270,13 @@ if [[ "$ATYPE" == "HYB" ]];then
 		LENGTH=$(mawk '!/>/' uniq.full.ua.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 		LENGTH=$(($LENGTH * 3 / 4))
 		seqtk seq -F I uniq.full.ua.fasta > uniq.ua.fq
-		java -jar $TRIMMOMATIC SE -threads $NUMProc -phred33 uniq.ua.fq uniq.ua.fq1 ILLUMINACLIP:$ADAPTERS:2:30:10 MINLEN:$LENGTH &>/dev/null
-		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
+		if [ "$NUMProc" -gt 8 ]; then
+			NP=8
+		else
+			NP=$NumProc
+		fi
+		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &> assemble.trim.log
+		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.ua.fasta
 		mawk '!/>/' uniq.ua.fasta > totaluniqseq.ua
 		rm uniq.ua.fq*
 		#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
