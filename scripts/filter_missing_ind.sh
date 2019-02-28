@@ -34,6 +34,7 @@ set xlabel "% of missing data"
 #set yr [0:100000]
 binwidth=0.01
 bin(x,width)=width*floor(x/width) + binwidth/2.0
+set lmargin 10
 plot 'totalmissing' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 pause -1
 EOF
