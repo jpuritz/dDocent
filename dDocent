@@ -714,6 +714,7 @@ if [ -z "$CUTOFF" ]; then
 	set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
 	set xlabel "Coverage"
 	set ylabel "Number of Unique Sequences"
+	set lmargin 10
 	plot 'uniqseq.data' with lines notitle
 	pause -1
 EOF
@@ -767,6 +768,7 @@ if [ -z "$CUTOFF2" ]; then
 	set title "Number of Unique Sequences present in more than X Individuals"
 	set xlabel "Number of Individuals"
 	set ylabel "Number of Unique Sequences"
+	set lmargin 10
 	plot 'uniqseq.peri.data' with lines notitle
 	pause -1
 EOF
