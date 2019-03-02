@@ -139,7 +139,7 @@ if [ "$TEST" -gt 0 ]; then
     exit 1
 fi
 
-if  [ -f "*.F.fq.gz" ]; then
+if ls *.F.fq.gz 1> /dev/null 2>&1; then
     NumInd=$(ls *.F.fq.gz 2> /dev/null | wc -l)
 else
     NumInd=$(ls untrimmed/*.F.fq.gz 2> /dev/null | wc -l)
@@ -158,14 +158,14 @@ if [ "$Flimit" != "unlimited" ]; then
 fi
 
 #Create list of sample names
-if  [ -f "*.F.fq.gz" ]; then
-    find ./*.F.fq.gz  -printf "%f\n" > namelist 2> /dev/null
-    sed -i'' -e 's/.F.fq.gz//g' namelist
+if ls *.F.fq.gz 1> /dev/null 2>&1; then
+    #find ./*.F.fq.gz  -printf "%f\n" > namelist 2> /dev/null
+    ls *.F.fq.gz | sed -e 's/.F.fq.gz//g' > namelist
     #Create an array of sample names
     NUMNAMES=$(mawk '/_/' namelist | wc -l)
 else
-    find untrimmed/*.F.fq.gz  -printf "%f\n" > namelist 2> /dev/null
-    sed -i'' -e 's/.F.fq.gz//g' namelist
+    #find untrimmed/*.F.fq.gz  -printf "%f\n" > namelist 2> /dev/null
+    ls untrimmed/*.F.fq.gz | sed -e 's/.F.fq.gz//g' | sed -e 's/untrimmed\///g' > namelist
     #Create an array of sample names
     NUMNAMES=$(mawk '/_/' namelist | wc -l)
 fi
@@ -683,22 +683,24 @@ TrimReads () {
     #STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
     #This functionality is now parallelized and will run if only SE sequences are used.
     NAMES=( `cat "namelist" `)
-    STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "gunzip -c {}.F.fq.gz | head -1" | mawk '$0 !~ /\/1$/ && $0 !~ /\/1[ ,	]/ && $0 !~ / 1:.*[A-Z]*/' | wc -l )
+    STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "gunzip -c untrimmed/{}.F.fq.gz | head -1" | mawk '$0 !~ /\/1$/ && $0 !~ /\/1[ ,	]/ && $0 !~ / 1:.*[A-Z]*/' | wc -l )
     FB1=$(( $NUMProc / 2 ))
     if [ $STACKS -gt 0 ]; then
         echo "Removing the _1 character and replacing with /1 in the name of every sequence"
-        cat namelist | parallel -j $FB1 --no-notice "gunzip -c {}.F.fq.gz | sed -e 's:_1$:/1:g' > {}.F.fq"
-        rm -f *.F.fq.gz
+        cat namelist | parallel -j $FB1 --no-notice "gunzip -c untrimmed/{}.F.fq.gz | sed -e 's:_1$:/1:g' > {}.F.fq"
+        rm -f untrimmed/*.F.fq.gz
         cat namelist | parallel -j $FB1 --no-notice "gzip {}.F.fq"
+	mv *.F.fq.gz untrimmed/
     fi
 
     if [ -f "${NAMES[@]:(-1)}".R.fq.gz ]; then
-        STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "gunzip -c {}.R.fq.gz | head -1" | mawk '$0 !~ /\/2$/ && $0 !~ /\/2[ ,	]/ && $0 !~ / 2:.*[A-Z]*/'| wc -l )
+        STACKS=$(cat namelist| parallel -j $NUMProc --no-notice "gunzip -c untrimmed/{}.R.fq.gz | head -1" | mawk '$0 !~ /\/2$/ && $0 !~ /\/2[ ,	]/ && $0 !~ / 2:.*[A-Z]*/'| wc -l )
         if [ $STACKS -gt 0 ]; then
             echo "Removing the _2 character and replacing with /2 in the name of every sequence"
             cat namelist | parallel -j $FB1 --no-notice "gunzip -c untrimmed/{}.R.fq.gz | sed -e 's:_2$:/2:g' > untrimmed/{}.R.fq"
             rm -f *.R.fq.gz
             cat namelist | parallel -j $FB1 --no-notice "gzip untrimmed/{}.R.fq"
+	    mv *.R.fq.gz untrimmed/
         fi
     fi
 
@@ -824,7 +826,7 @@ Assemble(){
     PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
     SED1='s/^[ \t]*//'
     SED2='s/\s/\t/g'
-    FRL=$(gunzip -c ${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
+    FRL=$(gunzip -c untrimmed/${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
 
     special_uniq(){
         mawk -v x=$1 '$1 >= x' $2  |cut -f2 | sed -e 's/NNNNNNNNNN/	/g' | cut -f1 | uniq
@@ -832,11 +834,11 @@ Assemble(){
 }
 export -f special_uniq
 
-if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
+if [ untrimmed/${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
     if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
         #If PE assembly, creates a concatenated file of every unique for each individual in parallel
-        cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
-        cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
+        cat namelist | parallel --no-notice -j $NUMProc "gunzip -c untrimmed/{}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
+        cat namelist | parallel --no-notice -j $NUMProc "gunzip -c untrimmed/{}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
         if [ "$ATYPE" = "RPE" ]; then
             cat namelist | parallel --no-notice -j $NUMProc "paste {}.forward {}.reverse | $sort -k1 -S 200M > {}.fr"
             cat namelist | parallel --no-notice -j $NUMProc "cut -f1 {}.fr | uniq -c > {}.f.uniq && cut -f2 {}.fr > {}.r"
@@ -853,7 +855,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
     
     #if SE assembly, creates files of every unique read for each individual in parallel
     if [ "$ATYPE" == "SE" ]; then
-        cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
+        cat namelist | parallel --no-notice -j $NUMProc "gunzip -c untrimmed/{}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
     fi
     
     #If OL assembly, dDocent assumes that the marjority of PE reads will overlap, so the software PEAR is used to merge paired reads into single reads
@@ -867,7 +869,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
         
         for i in "${NAMES[@]}"
             do
-            pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH 
+            pearRM -f untrimmed/$i.F.fq.gz -r untrimmed/$i.R.fq.gz -o $i -j $NUMProc -n $LENGTH 
             done
             
     cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
@@ -877,14 +879,14 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
     if [ "$ATYPE" == "HYB" ]; then
         for i in "${NAMES[@]}";
             do
-                gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+                gunzip -c untrimmed/$i.R.fq.gz | head -2 | tail -1 >> lengths.txt
             done	
         MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
         LENGTH=$(( $MaxLen / 3))
 
         for i in "${NAMES[@]}"
             do
-                pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &>kopt.log
+                pearRM -f untrimmed/$i.F.fq.gz -r untrimmed/$i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &>kopt.log
             done
 
         cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
@@ -1149,7 +1151,7 @@ if [ "$Indcorrect" == "no" ]; then
     exit 1
 elif [ "$Indcorrect" == "yes" ]; then
     echo "Proceeding with $NumInd individuals"
-    [ ! -d "$PDW/untrimmed" ] && mkdir -p untrimmed && mv *.fq.gz ./untrimmed
+    [ ! -d "untrimmed" ] && mkdir -p untrimmed && mv *.fq.gz ./untrimmed
 else
     echo "Incorrect Input"
     exit 1
