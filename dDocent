@@ -364,8 +364,8 @@ if [ "$MAP" != "no" ]; then
                 mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > mapped/$i.bam 2>mapped/logs/$i.bam.log
             fi
             samtools sort -@$NUMProc mapped/$i.bam -o mapped/$i.bam 2>>mapped/logs/$i.bam.log
-        mv $i.bam $i-RG.bam
-        samtools index $i-RG.bam
+        mv mapped/$i.bam mapped/$i-RG.bam
+        samtools index mapped/$i-RG.bam
             done
             else
         
@@ -373,14 +373,14 @@ if [ "$MAP" != "no" ]; then
                 do
                 if [ -f "trimmed/$i.R2.fq.gz" ]; then
                     bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" *reference.fasta trimmed/$i.R1.fq.gz trimmed/$i.R2.fq.gz  2> bwa.$i.log |    \
-                    mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > $i.bam 2>$i.bam.log
+                    mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > mapped/$i.bam 2>$i.bam.log
                 else
                     bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" *reference.fasta $i.R1.fq.gz  2> bwa.$i.log |    \
-                    mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > $i.bam 2>$i.bam.log
+                    mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > mapped/$i.bam 2>$i.bam.log
                 fi
-                samtools sort -@$NUMProc $i.bam -o $i.bam 2>>$i.bam.log
-                mv $i.bam $i-RG.bam
-                samtools index $i-RG.bam
+                samtools sort -@$NUMProc mapped/$i.bam -o mapped/$i.bam 2>>$i.bam.log
+                mv mapped/$i.bam mapped/$i-RG.bam
+                samtools index mapped/$i-RG.bam
         done
     fi
 fi
@@ -390,7 +390,7 @@ fi
 
 if [ "$MAP" != "no" ]; then
     echo -e "\nCreating alignment intervals"
-    ls *-RG.bam >bamlist.list
+    ls mapped/*-RG.bam >bamlist.list
     CreateIntervals 
 fi
 
@@ -398,7 +398,7 @@ fi
 
 if [ "$SNP" != "no" ]; then
     #Create list of BAM files
-    ls *-RG.bam >bamlist.list
+    ls mapped/*-RG.bam >bamlist.list
     #If mapping is not being performed, but intervals do not exist they are created
     if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
         CreateIntervals 
@@ -409,17 +409,17 @@ if [ "$SNP" != "no" ]; then
     fi
     #Check to make sure interval files have been created
     if [[ "$MAP" == "no" && ! -f "mapped.bed" ]]; then
-        bedtools merge -i cat-RRG.bam -bed >  mapped.bed
+        bedtools merge -i mapped/cat-RRG.bam -bed >  mapped.bed
     fi
     #This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
     #This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
-    if [ "cat-RRG.bam" -nt "cov.stats" ]; then
+    if [ "mapped/cat-RRG.bam" -nt "cov.stats" ]; then
         FB2=$(( $NUMProc / 2 ))
         if [ "$BEDTOOLSFLAG" == "OLD" ]; then
-            cat namelist | parallel -j $FB2 "coverageBed -abam {}-RG.bam -b mapped.bed -counts > {}.cov.stats"
+            cat namelist | parallel -j $FB2 "coverageBed -abam mapped/{}-RG.bam -b mapped.bed -counts > {}.cov.stats"
         else
             mawk -v OFS='\t' {'print $1,$2'} reference.fasta.fai > genome.file
-            cat namelist | parallel -j $FB2 "bedtools coverage -b {}-RG.bam -a mapped.bed -counts -sorted -g genome.file > {}.cov.stats"
+            cat namelist | parallel -j $FB2 "bedtools coverage -b mapped/{}-RG.bam -a mapped.bed -counts -sorted -g genome.file > {}.cov.stats"
         fi
         cat *.cov.stats | $sort -k1,1 -k2,2n | bedtools merge -i - -c 4 -o sum > cov.stats
     fi
@@ -450,7 +450,7 @@ if [ "$SNP" != "no" ]; then
 
     ###New implementation of SNP calling here to save on memory	
     call_genos(){
-        samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
+        samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam mapped/cat-RRG.bam
         samtools index split.$1.bam
         freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 2> fb.$1.error.log
         if [ $? -eq 0 ]; then
@@ -664,7 +664,7 @@ trim_reads(){
         # paired
         fastp --in1 untrimmed/$1.F.fq.gz --in2 untrimmed/$1.R.fq.gz \
         --out1 trimmed/$1.R1.fq.gz --out2 trimmed/$1.R2.fq.gz \
-        --cut_font 20 --cut_tail 20 --cut_window_size 5 \
+        --cut_front 20 --cut_tail 20 --cut_window_size 5 \
         --cut_mean_quality 15 --correction $TW -q 15 -u 50 \
         -j trimmed/reports/json/$1.json -h trimmed/reports/$1.html \
         --detect_adapter_for_pe &> trimmed/logs/$1.trim.log
@@ -1134,10 +1134,10 @@ echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
 ##is used to create a single list of intervals, saving a large amount of computational time.
 
 CreateIntervals(){
-    samtools merge -@$NUMProc -b bamlist.list -f cat-RRG.bam &>/dev/null
-    samtools index cat-RRG.bam 
+    samtools merge -@$NUMProc -b bamlist.list -f mapped/cat-RRG.bam &>/dev/null
+    samtools index mapped/cat-RRG.bam 
     wait
-    bedtools merge -i cat-RRG.bam -bed >  mapped.bed
+    bedtools merge -i mapped/cat-RRG.bam -bed >  mapped.bed
 }
 
 #This checks that dDocent has detected the proper number of individuals and exits if incorrect
