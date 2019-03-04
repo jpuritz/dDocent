@@ -4,13 +4,19 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-### Total Citations = 82
+### Total Citations = 90
 
 Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803244071106482641&as_sdt=5,40&sciodt=0,40&hl=en)!
 
 ### Selected Citations
 
-**Westergaard, K.B., Zemp, N., Bruederle, L.P., Stenøien, H.K., Widmer, A. and Fior, S., 2018. Population genomic evidence for plant glacial survival in Scandinavia. Molecular Ecology.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1111/mec.14994)
+**Nice, C.C., Fordyce, J.A., Bell, K.L., Forister, M.L., Gompert, Z. and DeVries, P.J., 2019. Vertical differentiation in tropical forest butterflies: a novel mechanism generating insect diversity?. Biology Letters, 15(1), p.20180723.** [LINK](https://royalsocietypublishing.org/doi/abs/10.1098/rsbl.2018.0723)
+
+**Alex Sotola, V., Ruppel, D.S., Bonner, T.H., Nice, C.C. and Martin, N.H., 2019. Asymmetric introgression between fishes in the Red River basin of Texas is associated with variation in water quality. Ecology and Evolution.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1002/ece3.4901)
+
+**Anderson, J.D., O'Leary, S.J. and Cooper, P.T., 2019. Population Structure of Atlantic Croakers from the Gulf of Mexico: Evaluating a Single‐Stock Hypothesis Using a Genomic Approach. Marine and Coastal Fisheries, 11(1), pp.3-16** [LINK](https://afspubs.onlinelibrary.wiley.com/doi/abs/10.1002/mcf2.10055)
+
+**Westergaard, K.B., Zemp, N., Bruederle, L.P., Stenøien, H.K., Widmer, A. and Fior, S., 2019. Population genomic evidence for plant glacial survival in Scandinavia. Molecular Ecology.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1111/mec.14994)
 
 **Manuzzi, A., Zane, L., Muñoz-Merida, A., Griffiths, A.M. and Veríssimo, A., 2018. Population genomics and phylogeography of a benthic coastal shark (Scyliorhinus canicula) using 2b-RAD single nucleotide polymorphisms. Biological Journal of the Linnean Society.** [LINK](https://academic.oup.com/biolinnean/advance-article/doi/10.1093/biolinnean/bly185/5244343)
 
