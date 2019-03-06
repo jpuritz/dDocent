@@ -4,11 +4,13 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-### Total Citations = 90
+### Total Citations = 91
 
 Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803244071106482641&as_sdt=5,40&sciodt=0,40&hl=en)!
 
 ### Selected Citations
+
+**Hollenbeck, C.M., Portnoy, D.S. and Gold, J.R., 2019. Evolution of population structure in an estuarine‐dependent marine fish. Ecology and Evolution.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1002/ece3.4936)
 
 **Nice, C.C., Fordyce, J.A., Bell, K.L., Forister, M.L., Gompert, Z. and DeVries, P.J., 2019. Vertical differentiation in tropical forest butterflies: a novel mechanism generating insect diversity?. Biology Letters, 15(1), p.20180723.** [LINK](https://royalsocietypublishing.org/doi/abs/10.1098/rsbl.2018.0723)
 
