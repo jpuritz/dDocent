@@ -659,22 +659,22 @@ fi
 #Function for trimming reads using fastp
 trim_reads(){
     mkdir -p trimmed/logs
-    mkdir -p trimmed/reports/json
+    mkdir -p trimmed/reports
     if [ -f untrimmed/$1.R.fq.gz ]; then	
         # paired
         fastp --in1 untrimmed/$1.F.fq.gz --in2 untrimmed/$1.R.fq.gz \
         --out1 trimmed/$1.R1.fq.gz --out2 trimmed/$1.R2.fq.gz \
-        --cut_front 20 --cut_tail 20 --cut_window_size 5 \
-        --cut_mean_quality 15 --correction $TW -q 15 -u 50 \
-        -j trimmed/reports/json/$1.json -h trimmed/reports/$1.html \
+        --cut_front --cut_tail --cut_window_size 5 \
+        --cut_mean_quality 20 --correction $TW -q 15 -u 50 \
+        -j trimmed/reports/$1.json -h trimmed/reports/$1.html \
         --detect_adapter_for_pe &> trimmed/logs/$1.trim.log
     else 
         #single
         fastp -i untrimmed/$1.F.fq.gz \
         -o trimmed/$1.R1.fq.gz \
-        --cut_front 20 --cut_tail 20 --cut_window_size 5 \
-        --cut_mean_quality 15 -q 15 -u 50  $TW \
-        -j trimmed/reports/json/$1.json -h trimmed/reports/$1.html &> trimmed/logs/$1.trim.log
+        --cut_front --cut_tail --cut_window_size 5 \
+        --cut_mean_quality 20 -q 15 -u 50  $TW \
+        -j trimmed/reports/$1.json -h trimmed/reports/$1.html &> trimmed/logs/$1.trim.log
     fi
 }
 export -f trim_reads
@@ -708,10 +708,239 @@ TrimReads () {
     MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
         MLen=$(($MLen / 2))
     TW="--length_required $MLen"	
-    mkdir trim_reports &>/dev/null
     cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}
+    rm trimmed/reports/*.json
+    
+    ## html plaintext logs
+    # initialize html
+cat <<EOF> dDocent.trimlog.html    
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>dDocent Trimming Logs</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+* {box-sizing: border-box}
+body {font-family: "Lato", sans-serif;}
+
+/* Style the tab */
+.tab {
+  float: left;
+  border: none;
+  background-color: ##cecece;
+  width: 15%;
+  height: 800px;
+  overflow-y: auto;
 }
 
+/* Style the buttons inside the tab */
+.tab button {
+  display: block;
+  background-color: inherit;
+  color: white;
+  padding: 12px 8px;
+  width: 100%;
+  border: none;
+  outline: none;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #c3c3c3;
+}
+
+/* Create an active/current "tab button" class */
+.tab button.active {
+  background-color: #a4a4a4;
+}
+
+/* Style the tab content */
+.tabcontent {
+  float: left;
+  padding: 0px 12px 80px 80px;
+  border: none;
+  width: 70%;
+  border-left: none;
+  height: 300px;
+}
+</style>
+</head>
+<body>
+<h1>dDocent Trimming Report</h1>
+<div class="tab">
+  <button class="tablinks" onclick="openReport(event, 'Errors')" id="defaultOpen">Errors</button>
+EOF
+for i in trimmed/logs/*.trim.log 
+    do
+    filename=$(basename $i .trim.log)
+    printf "\n<button class=\"tablinks\" onclick=\"openReport(event, \'%s\')\">%s</button>" $filename $filename >> dDocent.trimlog.html
+done
+printf "</div>" >> dDocent.trimlog.html
+
+### populate with info
+printf "\n<div id=\"Errors\" class=\"tabcontent\">" >> dDocent.trimlog.html
+printf "<h2>Errors</h2>" >> dDocent.trimlog.html
+if [ -f trim.log ]; then
+    j=trim.log
+    while IFS= read -r line
+    do
+        printf '\n%s</br>' "$line" >> dDocent.trimlog.html
+    done <"$j"
+fi
+printf "\n</div>" >> dDocent.trimlog.html
+
+### individual tab content
+for i in *.trim.log 
+    do
+    filename=$(basename $i .trim.log)
+    printf "<div id=\"%s\" class=\"tabcontent\">" $filename >> dDocent.trimlog.html
+    printf "<h2>%s</h2>" $filename >> dDocent.trimlog.html
+    while IFS= read -r line
+    do
+        printf '\n%s</br>' "$line" >> dDocent.trimlog.html
+    done <"$i"
+    printf "\n</div>" >>dDocent.trimlog.html
+#    rm $i    
+done
+
+cat << EOF >> dDocent.trimlog.html
+<script>
+function openReport(evt, sampleName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(sampleName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+   
+</body>
+</html> 
+EOF
+
+## modify fastp reports to include navbar ##     
+
+# generate the generic header
+cat << EOF > trimmed/reports/header.txt
+<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+
+<script type="text/javascript">
+    function showOrHide(divname) {
+        div = document.getElementById(divname);
+        if(div.style.display == 'none')
+            div.style.display = 'block';
+        else
+            div.style.display = 'none';
+    }
+</script>
+<style type="text/css">
+td {border:1px solid #dddddd;padding:5px;font-size:12px;}
+table {border:1px solid #999999;padding:2x;border-collapse:collapse; width:800px}
+.col1 {width:240px; font-weight:bold;}
+.adapter_col {width:500px; font-size:10px;}
+img {padding:30px;}
+#menu {font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace;}
+#menu a {color:#0366d6; font-size:18px;font-weight:600;line-height:28px;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'}
+a:visited {color: #999999}
+.alignleft {text-align:left;}
+.alignright {text-align:right;}
+.figure {width:800px;height:600px;}
+.header {color:#ffffff;padding:1px;height:20px;background:#000000;}
+.section_title {color:#ffffff;font-size:20px;padding:5px;text-align:left;background:#663355; margin-top:10px;}
+.subsection_title {font-size:16px;padding:5px;margin-top:10px;text-align:left;color:#663355}
+#container {text-align:center;padding:3px 3px 3px 10px;font-family:Arail,'Liberation Mono', Menlo, Courier, monospace;}
+.menu_item {text-align:left;padding-top:5px;font-size:18px;}
+.highlight {text-align:left;padding-top:30px;padding-bottom:30px;font-size:20px;line-height:35px;}
+#helper {text-align:left;border:1px dotted #fafafa;color:#777777;font-size:12px;}
+#footer {text-align:left;padding:15px;color:#ffffff;font-size:10px;background:#663355;font-family:Arail,'Liberation Mono', Menlo, Courier, monospace;}
+.kmer_table {text-align:center;font-size:8px;padding:2px;}
+.kmer_table td{text-align:center;font-size:8px;padding:0px;color:#ffffff}
+.sub_section_tips {color:#999999;font-size:10px;padding-left:5px;padding-bottom:3px;}
+</style>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  font-family: "Lato", sans-serif;
+}
+
+.sidenav {
+  width: 10%;
+  position: fixed;
+  z-index: 1;
+  top: 20px;
+  left: 10px;
+  background: #eee;
+  overflow-x: hidden;
+  height: 95%;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.sidenav a {
+  padding: 6px 8px 16px 16px;
+  text-decoration: none;
+  font-size: 22px;
+  color: #2196F3;
+  display: block;
+}
+
+.sidenav a:hover {
+  color: #064579;
+}
+
+.main {
+  margin-left: 20%; /* Same width as the sidebar + left position in px */
+  margin-right: 20%;
+  font-size: 28px; /* Increased text to enable scrolling */
+  padding: 0px 10px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+</style>
+</head>
+<body>
+<div class="sidenav">
+EOF
+
+# populate navbar
+for i in trimmed/reports/*.html
+    do
+    filename=$(basename $i .html)
+    printf "<a href=\"./trimmed/reports/%s\">%s</a>\n" $filename.trim.html $filename >> trimmed/reports/header.txt
+    done
+printf "</div>\n</head><body><div class=\"main\">" >> trimmed/reports/header.txt
+
+for i in trimmed/reports/*.html
+    do
+    filename=$(basename $i .html)
+    printf "<html><head><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\" />\n<title>%s fastp report</title>" $filename > trimmed/reports/$filename.trim.html
+    cat header.txt >> $filename.trim.html
+    printf "<h1 style=\"text-align:left;\"><a href=\"https://github.com/OpenGene/fastp\" target=\"_blank\" style=\"olor:#663355;text-decoration:none;\">%s fastp trimming report</a>" $filename >> trimmed/reports/$filename.trim.html
+    cat $i | tail -n +38 >> trimmed/reports/$filename.trim.html
+    rm $i
+done
+rm trimmed/reports/header.txt
+
+}
 
 getAssemblyInfo(){
 #Have user estimate/enter assembly parameters if unentered
@@ -1334,6 +1563,3 @@ rm temp.LOG
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
-
- 
- 
