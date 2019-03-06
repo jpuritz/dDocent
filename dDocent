@@ -329,33 +329,33 @@ if [ "$MAP" != "no" ]; then
     fi
     
 #dDocent now checks for trimmed read files before attempting mapping
-        if [[ "$MAP" != "no" && ! -f "trimmed/${NAMES[@]:(-1)}".R1.fq.gz ]]; then
-            echo "dDocent cannot locate trimmed reads files"
-            echo "Please rerun dDocent with quality trimming"
-            exit 1
-        fi
-        mkdir -p mapped/logs
-        
+    if [[ "$MAP" != "no" && ! -f "trimmed/${NAMES[@]:(-1)}".R1.fq.gz ]]; then
+        echo "dDocent cannot locate trimmed reads files"
+        echo "Please rerun dDocent with quality trimming"
+        exit 1
+    fi
+    mkdir -p mapped/logs
+    
 #This next section of code checks to see if the reference was assembled by dDocent 
 #and if so, modifies the expected insert length distribution for BWA's metric for proper pairing
-        if head -1 *reference.fasta | grep -e 'dDocent_' *reference.fasta 1>/dev/null; then
-            rm lengths.txt &> /dev/null
-            for i in "${NAMES[@]}";
-            do
-                if [ -f "untrimmed/$i.R.fq.gz" ]; then
-                    gunzip -c untrimmed/$i.R.fq.gz | head -2 | tail -1 >> lengths.txt
-                fi
-                done
-            if [ -f "lengths.txt" ]; then
-                MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-                INSERT=$(($MaxLen * 2 ))
-                INSERTH=$(($INSERT + 100 ))
-                INSERTL=$(($INSERT - 100 ))
-                SD=$(($INSERT / 5))
+    if head -1 *reference.fasta | grep -e 'dDocent_' *reference.fasta 1>/dev/null; then
+        rm lengths.txt &> /dev/null
+        for i in "${NAMES[@]}";
+        do
+            if [ -f "untrimmed/$i.R.fq.gz" ]; then
+                gunzip -c untrimmed/$i.R.fq.gz | head -2 | tail -1 >> lengths.txt
             fi
+            done
+        if [ -f "lengths.txt" ]; then
+            MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+            INSERT=$(($MaxLen * 2 ))
+            INSERTH=$(($INSERT + 100 ))
+            INSERTL=$(($INSERT - 100 ))
+            SD=$(($INSERT / 5))
+        fi
 #BWA for mapping for all samples.  As of version 2.0 can handle SE or PE reads by checking for PE read files
-            for i in "${NAMES[@]}"
-            do
+        for i in "${NAMES[@]}"
+        do
             if [ -f "trimmed/$i.R2.fq.gz" ]; then
                 bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" *reference.fasta trimmed/$i.R1.fq.gz trimmed/$i.R2.fq.gz  2> mapped/logs/bwa.$i.log |   \
                 mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > mapped/$i.bam 2>mapped/logs/$i.bam.log
@@ -363,14 +363,13 @@ if [ "$MAP" != "no" ]; then
                 bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" *reference.fasta trimmed/$i.R1.fq.gz 2> mapped/logs/bwa.$i.log |     \
                 mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > mapped/$i.bam 2>mapped/logs/$i.bam.log
             fi
-            samtools sort -@$NUMProc mapped/$i.bam -o mapped/$i.bam 2>>mapped/logs/$i.bam.log
+        samtools sort -@$NUMProc mapped/$i.bam -o mapped/$i.bam 2>>mapped/logs/$i.bam.log
         mv mapped/$i.bam mapped/$i-RG.bam
         samtools index mapped/$i-RG.bam
-            done
-            else
-        
-            for i in "${NAMES[@]}"
-                do
+        done
+    else
+        for i in "${NAMES[@]}"
+            do
                 if [ -f "trimmed/$i.R2.fq.gz" ]; then
                     bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" *reference.fasta trimmed/$i.R1.fq.gz trimmed/$i.R2.fq.gz  2> bwa.$i.log |    \
                     mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > mapped/$i.bam 2>$i.bam.log
@@ -378,12 +377,121 @@ if [ "$MAP" != "no" ]; then
                     bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" *reference.fasta $i.R1.fq.gz  2> bwa.$i.log |    \
                     mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT *reference.fasta - > mapped/$i.bam 2>$i.bam.log
                 fi
-                samtools sort -@$NUMProc mapped/$i.bam -o mapped/$i.bam 2>>$i.bam.log
-                mv mapped/$i.bam mapped/$i-RG.bam
-                samtools index mapped/$i-RG.bam
+            samtools sort -@$NUMProc mapped/$i.bam -o mapped/$i.bam 2>>$i.bam.log
+            mv mapped/$i.bam mapped/$i-RG.bam
+            samtools index mapped/$i-RG.bam
         done
     fi
 fi
+
+# initialize html
+cat <<EOF> dDocent.mapping_log.html    
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>dDocent Mapping Logs</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+* {box-sizing: border-box}
+body {font-family: "Lato", sans-serif;}
+
+/* Style the tab */
+.tab {
+  float: left;
+  border: none;
+  background-color: ##cecece;
+  width: 15%;
+  height: 800px;
+  overflow-y: auto;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  display: block;
+  background-color: inherit;
+  color: white;
+  padding: 12px 8px;
+  width: 100%;
+  border: none;
+  outline: none;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #c3c3c3;
+}
+
+/* Create an active/current "tab button" class */
+.tab button.active {
+  background-color: #a4a4a4;
+}
+
+/* Style the tab content */
+.tabcontent {
+  float: left;
+  padding: 0px 12px 80px 80px;
+  border: none;
+  width: 70%;
+  border-left: none;
+  height: 300px;
+}
+</style>
+</head>
+<body>
+<h1>dDocent Trimming Report</h1>
+<div class="tab">
+  <button class="tablinks" onclick="openReport(event, 'Errors')" id="defaultOpen">Errors</button>
+EOF
+for i in mapped/logs/*.bam.log 
+    do
+    filename=$(basename $i .bam.log)
+    printf "\n<button class=\"tablinks\" onclick=\"openReport(event, \'%s\')\">%s</button>" $filename $filename >> dDocent.mapping_log.html
+done
+printf "</div>" >> dDocent.mapping_log.html
+
+# individual tab content
+for i in mapped/logs/*.bam.log 
+    do
+    filename=$(basename $i .bam.log)
+    printf "<div id=\"%s\" class=\"tabcontent\">" $filename >> dDocent.mapping_log.html
+    printf "<h2>%s</h2>" $filename >> dDocent.mapping_log.html
+    while IFS= read -r line
+    do
+        printf '\n%s</br>' "$line" >> dDocent.mapping_log.html
+    done <"$i"
+    printf "\n</div>" >>dDocent.mapping_log.html
+    rm mapped/logs/$i    
+done
+rm -r mapped/logs/
+cat << EOF >> dDocent.mapping_log.html
+<script>
+function openReport(evt, sampleName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(sampleName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+   
+</body>
+</html> 
+EOF
 
 ##Creating mapping intervals if needed, CreateIntervals function is defined later in script
 #If mapping is being performed, intervals are created automatically
@@ -805,8 +913,8 @@ for i in *.trim.log
     do
         printf '\n%s</br>' "$line" >> dDocent.trimlog.html
     done <"$i"
-    printf "\n</div>" >>dDocent.trimlog.html 
-    rm $i    
+    printf "\n</div>" >>dDocent.trimlog.html
+    rm -r trimmed/logs/$i    
 done
 
 cat << EOF >> dDocent.trimlog.html
@@ -1563,3 +1671,6 @@ rm temp.LOG
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
+
+ 
+ 
