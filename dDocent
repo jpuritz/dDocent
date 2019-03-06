@@ -746,10 +746,8 @@ fi
 ERRORS=$(($ERROR1 + $ERROR2 + $ERROR3))
 
 #Move various log files to own directory
-if [ ! -d "logfiles" ]; then
-    mkdir logfiles
-fi
-mv *.txt *.log log ./trim_reports ./logfiles 2> /dev/null
+mkdir -p logfiles
+mv *.txt *.log *.html log ./trimmed/reports ./logfiles 2> /dev/null
 
 #Sending a completion email
 
