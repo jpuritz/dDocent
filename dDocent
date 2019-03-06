@@ -805,8 +805,8 @@ for i in *.trim.log
     do
         printf '\n%s</br>' "$line" >> dDocent.trimlog.html
     done <"$i"
-    printf "\n</div>" >>dDocent.trimlog.html
-#    rm $i    
+    printf "\n</div>" >>dDocent.trimlog.html 
+    rm $i    
 done
 
 cat << EOF >> dDocent.trimlog.html
