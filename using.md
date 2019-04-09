@@ -4,11 +4,13 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-### Total Citations = 91
+### Total Citations = 95
 
 Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803244071106482641&as_sdt=5,40&sciodt=0,40&hl=en)!
 
 ### Selected Citations
+
+**Barker, A.M., Adams, D.H., Driggers III, W.B., Frazier, B.S. and Portnoy, D.S., 2019. Hybridization between sympatric hammerhead sharks in the western North Atlantic Ocean. Biology letters, 15(4), p.20190004.** [LINK](https://royalsocietypublishing.org/doi/abs/10.1098/rsbl.2019.0004)
 
 **Hollenbeck, C.M., Portnoy, D.S. and Gold, J.R., 2019. Evolution of population structure in an estuarine‐dependent marine fish. Ecology and Evolution.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1002/ece3.4936)
 
