@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
 v="2.7.8"
 
-if [[ -z "$5" ]]; then
-echo "Usage is sh remake_reference.sh K1 K2 similarity% Assembly_Type Number_of_Processors"
-exit 1
+if [[ -z "$6" ]]; then
+echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors"
+echo -e "\n\n"
+echo "Optionally, a new range of similarities can be entered as well:"
+echo "ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors minSim maxSim increment"
+echo -e "\nFor example, to scale between 0.95 and 0.99 using 0.005 increments:\nReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors 0.95 0.99 0.005"
+exit
 fi
 
 if ! sort --version | fgrep GNU &>/dev/null; then
@@ -41,7 +44,23 @@ FASTP3=$(echo $FASTP | cut -f3 -d ".")
 			fi
 		fi
 	fi
-	
+
+
+ATYPE=$5
+NUMProc=$6
+
+if [[ -z "$7" ]]; then
+
+	minSim=0.8
+	maxSim=0.98
+	incSim=0.02
+else
+
+	minSim=$7 
+	maxSim=$8
+	incSim=$9
+fi
+
 if [ $NUMDEP -gt 0 ]; then
 	echo -e "\nPlease install all required software before running ReferenceOpt again."
 	exit 1
@@ -49,14 +68,7 @@ else
 	echo -e "\nAll required software is installed!"
 fi
 
-echo -e "\ndDocent remake_reference version $v"
-
-ATYPE=$4
-NUMProc=$5
-CUTOFF=$1
-CUTOFF2=$2
-simC=$3
-
+echo "dDocent ReferenceOpt version $v"
 
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
@@ -65,6 +77,7 @@ NAMES=( `cat "namelist" `)
 getAssemblyInfo(){
 echo "nope!"
 }
+
 
 Reference(){
 
@@ -362,9 +375,49 @@ bwa index reference.fasta >> index.log 2>&1
 SEQS=$(mawk 'END {print NR}' uniq.k.$CUTOFF.c.$CUTOFF2.seqs)
 TIGS=$(grep ">" -c reference.fasta)
 
-echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
-
+#echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
+echo $SEQS
 }
 
-Reference $CUTOFF $CUTOFF2 $simC
+rm kopt.data &>/dev/null
 
+for ((P = $1; P <= $2; P++))
+	do
+	for ((i = $3; i <= $4; i++))
+	do
+	X=$(($P + $i))
+	if [ "$X" != "2" ]; then
+		for j in $(seq $minSim $incSim $maxSim)
+		do
+		echo "K1 is $P" "K2 is $i" "c is $j"
+		SEQS=$(Reference $P $i $j)
+		echo $P $i $j $SEQS >> kopt.data
+		done
+	fi	
+	done
+done
+
+cut -f4 -d " " kopt.data > plot.kopt.data
+gnuplot << \EOF
+set terminal dumb size 120, 30
+set autoscale
+unset label
+set title "Histogram of number of reference contigs"
+set ylabel "Number of Occurrences"
+set xlabel "Number of reference contigs"
+max = `sort -g plot.kopt.data | tail -1`
+binwidth = max/250.0
+bin(x,width)=width*floor(x/width) + binwidth/2.0
+#set xtics 10
+plot 'plot.kopt.data' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+
+AF=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' plot.kopt.data)
+echo "Average contig number = $AF"
+echo "The top three most common number of contigs"
+echo -e "X\tContig number"
+perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' plot.kopt.data | sort -k1 -g -r | head -3
+echo "The top three most common number of contigs (with values rounded)"
+echo -e "X\tContig number"
+while read NAME; do python -c "print(round($NAME,-2))"; done < plot.kopt.data | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | sort -g -r | head -3 | sed "s/^[ \t]*//"

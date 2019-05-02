@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
+v="2.7.8"
 
 if [[ -z "$6" ]]; then
 echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors"
@@ -67,11 +68,22 @@ else
 	echo -e "\nAll required software is installed!"
 fi
 
+echo -e "\ndDocent ReferenceOpt version $v"
+
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
 
+getAssemblyInfo(){
+echo "nope!"
+}
+
+
 Reference(){
+
+CUTOFF=$1
+CUTOFF2=$2
+simC=$3
 
 AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
 AWK2='!/>/'
@@ -80,10 +92,12 @@ AWK4='{for(i=0;i<$1;i++)print}'
 PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
 SED1='s/^[ \t]*//'
 SED2='s/\s/\t/g'
-CUTOFF=$1
-CUTOFF2=$2
-simC=$3
 FRL=$(gunzip -c ${NAMES[0]}.F.fq.gz | mawk '{ print length() | "sort -rn" }' | head -1)
+
+special_uniq(){
+	mawk -v x=$1 '$1 >= x' $2  |cut -f2 | sed -e 's/NNNNNNNNNN/	/g' | cut -f1 | uniq
+}
+export -f special_uniq
 
 if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
@@ -91,7 +105,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 		cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
 		cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.R.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
 		if [ "$ATYPE" = "RPE" ]; then
-			cat namelist | parallel --no-notice -j $NUMProc "paste {}.forward {}.reverse | $sort -k1 -S 100M > {}.fr"
+			cat namelist | parallel --no-notice -j $NUMProc "paste {}.forward {}.reverse | $sort -k1 -S 200M > {}.fr"
 			cat namelist | parallel --no-notice -j $NUMProc "cut -f1 {}.fr | uniq -c > {}.f.uniq && cut -f2 {}.fr > {}.r"
 			cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK4' {}.f.uniq > {}.f.uniq.e" 
 			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.f.uniq.e {}.r | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | sed -e '$SED1' | sed -e '$SED2'> {}.uniq.seqs"
@@ -102,33 +116,34 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 		rm *.forward
 		rm *.reverse
 	fi
+	
 	if [ "$ATYPE" == "SE" ]; then
 	#if SE assembly, creates files of every unique read for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
-	if [[ "$ATYPE" == "OL" || "$ATYPE" == "ROL" ]]; then
+	
+	if [ "$ATYPE" == "OL" ]; then
 	#If OL assembly, dDocent assumes that the marjority of PE reads will overlap, so the software PEAR is used to merge paired reads into single reads
 		for i in "${NAMES[@]}";
-      do
-      gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
-      done	
-    MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+        		do
+        		gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+        		done	
+        	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 		LENGTH=$(( $MaxLen / 3))
 		for i in "${NAMES[@]}"
 			do
-			echo "Running PEAR on sample" $i
-			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &> $i.kopt.log
+			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH 
 			done
 		cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
 	if [ "$ATYPE" == "HYB" ]; then
 	#If HYB assembly, dDocent assumes some PE reads will overlap but that some will not, so the OL method performed and remaining reads are then put through PE method
 		for i in "${NAMES[@]}";
-      do
-      gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
-      done	
-    MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-    LENGTH=$(( $MaxLen / 3))
+      		do
+      		gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+      		done	
+    		MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+    		LENGTH=$(( $MaxLen / 3))
 		for i in "${NAMES[@]}"
 			do
 			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &>kopt.log
@@ -140,20 +155,41 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 		cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.ua.seqs"
 		rm *.forward
 		rm *.reverse
-	fi		
+	fi	
 	
 fi
 
 #Create a data file with the number of unique sequences and the number of occurrences
+
+if [ -f "uniq.seqs.gz" ]; then
+	if [ uniq.seqs.gz -nt uniq.seqs ]; then
+	gunzip uniq.seqs.gz 2>/dev/null
+	fi
+fi
+
+if [ ! -f "uniq.seqs" ]; then
+	cat *.uniq.seqs > uniq.seqs
+fi
+	
+if [[ -z $CUTOFF || -z $CUTOFF2 ]]; then
+getAssemblyInfo
+fi
+
+if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
+  	parallel --no-notice -j $NUMProc --env special_uniq special_uniq $CUTOFF {} ::: *.uniq.seqs  | $sort --parallel=$NUMProc -S 2G | uniq -c > uniqCperindv
+else
+	parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
+fi
+
+#Now that data cutoffs have been chosen, reduce data set to specified set of unique reads, convert to FASTA format,
+#and remove reads with substantial amounts of adapters
+
 if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
   parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | sed 's/NNNNNNNNNN/-/' >  total.uniqs
   cut -f 1 -d "-" total.uniqs > total.u.F
   cut -f 2 -d "-" total.uniqs > total.u.R
   paste total.u.F total.u.R | $sort -k1 --parallel=$NUMProc -S 2G > total.fr
-  special_uniq(){
-    mawk -v x=$1 '$1 >= x' $2  |cut -f2 | sed -e 's/NNNNNNNNNN/	/g' | cut -f1 | uniq
-  }
-  export -f special_uniq
+ 
   parallel --no-notice --env special_uniq special_uniq $CUTOFF {} ::: *.uniq.seqs  | $sort --parallel=$NUMProc -S 2G | uniq -c > total.f.uniq
   join -1 2 -2 1 -o 1.1,1.2,2.2 total.f.uniq total.fr | mawk '{print $1 "\t" $2 "NNNNNNNNNN" $3}' | mawk -v x=$CUTOFF2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
   rm total.uniqs total.u.* total.fr total.f.uniq* 
@@ -161,8 +197,7 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 else
 	parallel --no-notice mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$CUTOFF2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
 fi
-
-$sort -k1 -r -n --parallel=$NUMProc -S 2G uniq.k.$CUTOFF.c.$CUTOFF2.seqs |cut -f2 > totaluniqseq
+$sort -k1 -r -n uniq.k.$CUTOFF.c.$CUTOFF2.seqs | cut -f 2 > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
@@ -170,13 +205,13 @@ seqtk seq -F I uniq.full.fasta > uniq.fq
 if [ "$NUMProc" -gt 8 ]; then
 	NP=8
 else
-	NP=$NumProc
+	NP=$NUMProc
 fi
 fastp -i uniq.fq -o uniq.fq1 -w $NP -Q &> assemble.trim.log
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.fasta
-mawk '!/>/' uniq.fasta > totaluniqseqrm uniq.fq*
+mawk '!/>/' uniq.fasta > totaluniqseq
+rm uniq.fq*
 
-#If this is a PE assebmle
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	pmerge(){
 		num=$( echo $1 | sed 's/^0*//g')
@@ -282,8 +317,8 @@ if [[ "$ATYPE" == "HYB" ]];then
 		else
 			NP=$NumProc
 		fi
-		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &> assemble.trim.log
-		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.ua.fasta
+		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &>/dev/null
+		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
 		mawk '!/>/' uniq.ua.fasta > totaluniqseq.ua
 		rm uniq.ua.fq*
 		#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
@@ -326,8 +361,7 @@ fi
 if [[ "$ATYPE" != "PE" && "$ATYPE" != "RPE" && "$ATYPE" != "HYB" ]]; then
 	cp uniq.fasta totalover.fasta
 fi
-
-cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T $NUMProc -c $simC &>cdhit.log
+cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $simC &>cdhit2.log
 
 sed -e 's/^C/NC/g' -e 's/^A/NA/g' -e 's/^G/NG/g' -e 's/^T/NT/g' -e 's/T$/TN/g' -e 's/A$/AN/g' -e 's/C$/CN/g' -e 's/G$/GN/g' reference.fasta.original > reference.fasta
 
@@ -335,10 +369,14 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 	sed -i 's/dDocent/dDocentR/g' reference.fasta
 fi
 
-SEQS=$(cat reference.fasta | wc -l)
-SEQS=$(($SEQS / 2 ))
-echo $SEQS
+samtools faidx reference.fasta &> index.log
+bwa index reference.fasta >> index.log 2>&1
 
+SEQS=$(mawk 'END {print NR}' uniq.k.$CUTOFF.c.$CUTOFF2.seqs)
+TIGS=$(grep ">" -c reference.fasta)
+
+#echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
+echo $TIGS
 }
 
 rm kopt.data &>/dev/null
