@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.8.0'; export VERSION
+VERSION='2.7.0'
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -27,6 +27,7 @@ do
     		NUMDEP=$((NUMDEP + 1))
 	fi
 done
+
 
 SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
 SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
@@ -66,7 +67,7 @@ FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed 's/v//' `)
         	echo "Please install at least version 1.0.0"
         	exit 1
         fi  
-SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed 's/1.[0-9]-r//g' | sed 's/-dirty//g' `)
+SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed 's/1.[1-9]-r//g' | sed 's/-dirty//g' `)
 	if [ "$SEQTK" -lt "102" ]; then
 		echo "The version of seqtk installed in your" '$PATH' "is not optimized for dDocent."
         	echo "Please install at least version 1.2-r102-dirty"
@@ -100,21 +101,7 @@ BTC=$( bedtools --version | mawk '{print $2}' | sed 's/v//g' | cut -f1,2 -d"." |
 		echo "Please install version 2.23.0 or version 2.26.0 and above"
 		exit 1	
 	fi
-	
-FASTP=$(fastp -v 2>&1 | cut -f2 -d " ")
-FASTP1=$(echo $FASTP | cut -f1 -d ".")
-FASTP2=$(echo $FASTP | cut -f2 -d ".")
-FASTP3=$(echo $FASTP | cut -f3 -d ".")
-	if [ "$FASTP1" -lt "2" ]; then
-		if [ "$FASTP2" -lt "20" ]; then
-			if [ "$FASTP2" -lt "5" ]; then
-				echo "The version of fastp installed in your" '$PATH' "is not optimized for dDocent."
-				echo "Please install version 0.19.5 or above"
-				exit 1
-			fi
-		fi
-	fi
-	
+		
 if ! sort --version | fgrep GNU &>/dev/null; then
 	sort=gsort
 else
@@ -186,7 +173,7 @@ main(){
 STARTTIME=$(date)
 
 
-echo -e "\ndDocent version $VERSION started" $STARTTIME "\n"
+echo -e "\ndDocent run started" $STARTTIME "\n"
 
 
 #dDocent can now accept a configuration file instead of running interactively
@@ -252,7 +239,7 @@ else
 fi
 
 #Creates (or appends to) a dDcoent run file recording variables
-echo "Variables used in dDocent (version $VERSION) run at" $STARTTIME >> dDocent.runs
+echo "Variables used in dDocent Run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
 echo $NUMProc >> dDocent.runs
 echo "Maximum Memory" >> dDocent.runs
@@ -424,7 +411,7 @@ if [ "$SNP" != "no" ]; then
 	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 	}' 
 	
-	FB2=$(( $NUMProc / 8 ))
+	FB2=$(( $NUMProc / 4 ))
 	export FB2
 	echo -e "\nUsing FreeBayes to call SNPs"
 
@@ -440,88 +427,29 @@ if [ "$SNP" != "no" ]; then
 	call_genos(){
 		samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
 		samtools index split.$1.bam
-		freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 2> fb.$1.error.log
+		freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
-    			rm split.$1.bam*
-			rm fb.$1.error.log
 		else
     			echo -e "\n\nERROR: freebayes instance DID NOT COMPLETE\n\nSee below:"
-			cat fb.$1.error.log
-			echo -e "$?" "\t" "$1" >> freebayes.error
+			echo $? > freebayes.error
 			exit 1
 		fi	
-		
+		rm split.$1.bam*
 	}
 	
 	export -f call_genos
-      	call_genos2(){
-                samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
-                samtools index split.$1.bam
-                freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10
-                if [ $? -eq 0 ]; then
-                        rm split.$1.bam*
-                else
-                        echo -e "$?" "\t" "$1" >> freebayes.error
-                        exit 1
-                fi
-        }
-        export -f call_genos2
-        finish_genos(){
-                echo "Redoing a failed instance of FreeBayes"
-                mkdir Finish.$1
-                cd Finish.$1
-                cp ../split.$1.bam split.bam
-                cp ../mapped.$1.bed mapped.bed
- 		bedtools intersect -b mapped.bed -a ../cov.stats > cov.stats
-                CC=$( mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/4}' cov.stats)
-        	$sort -V -k1,1 -k2,2 cov.stats | mawk -v cutoff=$CC 'BEGIN{i=1}
-        	{
-        		len=$3-$2;lc=len*$4;cov = cov + lc
-        		if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
-        		else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
-        	}'
-                ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos2 --memfree $MAXMemory -j 4 --no-notice "call_genos2 {} 2> /dev/null"
-                if [ -f "freebayes.error" ]; then
-                        echo -e "\n\n\nFreeBayes has failed when trying to finish a previously failed instance.  Memory and processor settings need to be drastically reconfigured"
-                        ERROR3=1
-                        export ERROR3
-                else
-                        echo "The failed instance of FreeBayes was successfully rerun"
-                        ERROR3=0
-                        export ERROR3
-                        mv raw.1.vcf raw.01.vcf 2>/dev/null
-                        mv raw.2.vcf raw.02.vcf 2>/dev/null
-                        mv raw.3.vcf raw.03.vcf 2>/dev/null
-                        mv raw.4.vcf raw.04.vcf 2>/dev/null
-                        vcfcombine raw.*.vcf | sed -e 's/       \.\:/   \.\/\.\:/g' > RedoRawSNPs.vcf
-                        mv RedoRawSNPs.vcf ../raw.$1.vcf
-        fi
-                cd ..
-                rm -rf Finish.$1
-	}
-	
-	export -f finish_genos
 	
 	rm freebayes.error freebayes.log &> /dev/null
 	
-	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=5 --env call_genos --memfree $MAXMemory -j $NUMProc --no-notice "call_genos {} 2> /dev/null"
+	ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NUMProc --no-notice "call_genos {} 2> /dev/null"
 
 
 	if [ -f "freebayes.error" ]; then
-		FAILS=$( cat freebayes.error | wc -l )
-		if [ $FAILS -lt 5 ]; then
-			mv freebayes.error freebayes.redos
-			for i in `cut -f2 freebayes.redos`
-			do
-			finish_genos $i
-			done
-			rm freebayes.redos
-		else	
-			echo -e "\nmultiple instances of freebayes failed.  dDocent will now recalibrate run parameters to use less memory.\n"
-			rm mapped.*.bed
-			rm freebayes.error
-			LIM=$(( $NUMProc * 2 ))
+               	echo -e "\nA previous freebayes instance failed.  dDocent will now recalibrate run parameters to use less memory.\n"
+		rm mapped.*.bed
+		rm freebayes.error
+		LIM=$(( $NUMProc * 2 ))
         	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
@@ -538,26 +466,17 @@ if [ "$SNP" != "no" ]; then
 
         	FB2=$(( $NUMProc / 10 ))
         	export FB2
-			echo "Using FreeBayes to call SNPs again"
-			NumP=$(( $NUMProc / 4 ))
-			NumP=$(( $NumP * 3 ))
-			ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=5 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null" 
+		echo "Using FreeBayes to call SNPs again"
+		NumP=$(( $NUMProc / 4 ))
+		NumP=$(( $NumP * 3 ))
+		ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null" 
         fi
-    fi
 
 	if [ -f "freebayes.error" ]; then
-		FAILS=$( cat freebayes.error | wc -l )
-		if [ $FAILS -lt 5 ]; then
-			mv freebayes.error freebayes.redos
-			for i in `cut -f2 freebayes.redos`
-			do
-			finish_genos $i
-			done
-			rm freebayes.redos
-		else	
-			echo -e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory.\n"
-        		rm freebayes.error
-			LIM=$(( $NUMProc * 4 ))
+		echo -e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory.\n"
+                rm freebayes.error
+		
+		LIM=$(( $NUMProc * 4 ))
         	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
@@ -574,9 +493,8 @@ if [ "$SNP" != "no" ]; then
 		
             	NumP=$(( $NumP / 4 ))
                 NumP=$(( $NumP * 3 ))
-			echo "Using FreeBayes to call SNPs again"
-            ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null"
-        fi
+		echo "Using FreeBayes to call SNPs again"
+                ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos --memfree $MAXMemory -j $NumP --no-notice "call_genos {} 2> /dev/null"
 	fi
 
 	if [ -f "freebayes.error" ]; then
@@ -584,7 +502,7 @@ if [ "$SNP" != "no" ]; then
 		ERROR3=1
 		export ERROR3
 	else
-        ERROR3=0
+            	ERROR3=0
 		export ERROR3
         fi
 
@@ -627,7 +545,7 @@ ERRORS=$(($ERROR1 + $ERROR2 + $ERROR3))
 if [ ! -d "logfiles" ]; then
 mkdir logfiles
 fi
-mv *.txt *.log log ./trim_reports ./logfiles 2> /dev/null
+mv *.txt *.log log ./logfiles 2> /dev/null
 
 #Sending a completion email
 
@@ -642,17 +560,14 @@ fi
 
 ##Function definitions
 
-#Function for trimming reads using fastp
+#Function for trimming reads using trimmomatic
 trim_reads(){
-	
+
 	if [ -f $1.R.fq.gz ]; then	
-		# paired
-		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction $TW -q 15 -u 50 -j $1.json -h $1.html --detect_adapter_for_pe &> $1.trim.log
+		fastp -i $1.F.fq.gz -I $1.R.fq.gz -o $1.R1.fq.gz -O $1.R2.fq.gz -j $1 &> $1.trim.log
 	else 
-		#single
-		fastp -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 -q 15 -u 50  $TW -j $1.json -h $1.html &> $1.trim.log
-	fi
-	mv $1.html ./trim_reports &>/dev/null && mv $1.json ./trim_reports &>/dev/null
+		fastp -i $1.F.fq.gz -o $1.R1.fq.gz -j $1 &> $1.trim.log
+	fi 
 }
 	
 	export -f trim_reads
@@ -686,9 +601,10 @@ TrimReads () {
 	cat namelist | parallel -j $NUMProc "gunzip -c {}.F.fq.gz | head -2 | tail -1 >> lengths.txt"
 	MLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
     	MLen=$(($MLen / 2))
-	TW="--length_required $MLen"	
-	mkdir trim_reports &>/dev/null
-	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}
+	TW="MINLEN:$MLen"
+	cat namelist | parallel --env trim_reads -j $FB1 trim_reads {}	
+	mkdir unpaired &>/dev/null
+	mv *unpaired*.gz ./unpaired &>/dev/null	
 }
 
 
@@ -714,7 +630,6 @@ if [ -z "$CUTOFF" ]; then
 	set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
 	set xlabel "Coverage"
 	set ylabel "Number of Unique Sequences"
-	set lmargin 10
 	plot 'uniqseq.data' with lines notitle
 	pause -1
 EOF
@@ -768,7 +683,6 @@ if [ -z "$CUTOFF2" ]; then
 	set title "Number of Unique Sequences present in more than X Individuals"
 	set xlabel "Number of Individuals"
 	set ylabel "Number of Unique Sequences"
-	set lmargin 10
 	plot 'uniqseq.peri.data' with lines notitle
 	pause -1
 EOF
@@ -916,8 +830,7 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 else
 	parallel --no-notice mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$CUTOFF2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
 fi
-#$sort -k1 -r -n uniq.k.$CUTOFF.c.$CUTOFF2.seqs | cut -f 2 > totaluniqseq
-$sort -k1 -r -n --parallel=$NUMProc -S 2G uniq.k.$CUTOFF.c.$CUTOFF2.seqs |cut -f2 > totaluniqseq
+$sort -k1 -r -n uniq.k.$CUTOFF.c.$CUTOFF2.seqs | cut -f 2 > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
@@ -925,10 +838,10 @@ seqtk seq -F I uniq.full.fasta > uniq.fq
 if [ "$NUMProc" -gt 8 ]; then
 	NP=8
 else
-	NP=$NUMProc
+	NP=$NumProc
 fi
 fastp -i uniq.fq -o uniq.fq1 -w $NP -Q &> assemble.trim.log
-mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.fasta
+mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 > uniq.fasta
 mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
 
@@ -983,55 +896,44 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
         rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
 
 	#This AWK code replaces rainbow's contig selection perl script
-	LENGTH=$(cut -f3 rbdiv.out |mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+  	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
+		if (NR == 1) e=$2;
+		else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+		else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+		else if ($1 ~/C/) clus=$2;
+		else if ($1 ~/L/) len=$2;
+		else if ($1 ~/S/) seq=$2;
+		else if ($1 ~/N/) freq=$2;
+		else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
+		else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
+		else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
+		}' > rainbow.fasta
 
-	LENGTH=$(( $LENGTH * 11 / 10 ))
+	seqtk seq -r rainbow.fasta > rainbow.RC.fasta
+	mv rainbow.RC.fasta rainbow.fasta
 
-	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk -v mlen=$LENGTH  '{
-                if (NR == 1) e=$2;
-                else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_A_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-                else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-                else if ($1 ~/C/) clus=$2;
-                else if ($1 ~/L/) len=$2;
-                else if ($1 ~/S/) seq=$2;
-                else if ($1 ~/N/) freq=$2;
-                else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
-                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus;lenf=len}
-                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len > mlen) {seq1 = seq; fclus=clus; len1=len}
-                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus; lenf=len}
-                else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
-                }' > rainbow.fasta
+	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f1 | seqtk seq -F I - > ref.F.fq
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f2 | seqtk seq -F I - > ref.R.fq
 
+	seqtk seq -r ref.R.fq > ref.RC.fq
+	mv ref.RC.fq ref.R.fq
+	LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+	LENGTH=$(( $LENGTH * 5 / 4))
+	
+	pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j $NUMProc -n $LENGTH &>kopt.log
 
-        seqtk seq -r rainbow.fasta > rainbow.RC.fasta
-        mv rainbow.RC.fasta rainbow.fasta
+	rm ref.F.fq ref.R.fq
 
-        #The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
+	mawk '/>/' overlap.fasta > overlap.loci.names
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
+	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
 
-        grep -A1 "dDocent_A_Contig_" rainbow.fasta | mawk '!/^--/' | sed -e 's/dDocent_A_Contig_/dDocent_Contig_/g' > rainbow.asm.fasta
-        grep -A1 "dDocent_Contig_" rainbow.fasta | mawk '!/^--/' > rainbow.n.fasta
+	cat other.FR overlap.fasta > totalover.fasta
 
-        sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f1 | seqtk seq -F I - > ref.F.fq
-        sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f2 | seqtk seq -F I - > ref.R.fq
-
-        seqtk seq -r ref.R.fq > ref.RC.fq
-        mv ref.RC.fq ref.R.fq
-        LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
-        LENGTH=$(( $LENGTH * 5 / 4))
-
-        pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j 20 -n $LENGTH &>kopt.log
-
-        rm ref.F.fq ref.R.fq
-
-        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
-        mawk '/>/' overlap.fasta > overlap.loci.names
-        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
-        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
-        paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
-
-        cat other.FR overlap.fasta rainbow.n.fasta > totalover.fasta
-
-        rm *.F *.R
+	rm *.F *.R
 fi
 
 if [[ "$ATYPE" == "HYB" ]];then
@@ -1046,7 +948,7 @@ if [[ "$ATYPE" == "HYB" ]];then
 		if [ "$NUMProc" -gt 8 ]; then
 			NP=8
 		else
-			NP=$NUMProc
+			NP=$NumProc
 		fi
 		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &>/dev/null
 		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
@@ -1306,14 +1208,11 @@ fi
 
 #Actually starts program
 if [ -n "$1" ]; then
-	main $1 2>&1 | tee temp.LOG #Log all output
+	main $1 2>&1 | tee -a dDocent_main.LOG #Log all output
 else
-	main 2>&1 | tee temp.LOG #Log all output
+	main 2>&1 | tee -a dDocent_main.LOG  #Log all output
 fi
 
-mawk '!/#.*%/' temp.LOG >> dDocent_main.LOG
-rm temp.LOG
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
-

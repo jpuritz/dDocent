@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
-v="2.7.8"
+v="2.8.0"
 
 if [[ -z "$6" ]]; then
 echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors"
@@ -264,45 +264,57 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
         rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
 
 	#This AWK code replaces rainbow's contig selection perl script
-  	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
-		if (NR == 1) e=$2;
-		else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-		else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-		else if ($1 ~/C/) clus=$2;
-		else if ($1 ~/L/) len=$2;
-		else if ($1 ~/S/) seq=$2;
-		else if ($1 ~/N/) freq=$2;
-		else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
-		else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
-		else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
-		}' > rainbow.fasta
+	LENGTH=$(cut -f3 rbdiv.out |mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 
-	seqtk seq -r rainbow.fasta > rainbow.RC.fasta
-	mv rainbow.RC.fasta rainbow.fasta
+	LENGTH=$(( $LENGTH * 11 / 10 ))
 
-	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
-	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f1 | seqtk seq -F I - > ref.F.fq
-	sed -e 's/NNNNNNNNNN/	/g' rainbow.fasta | cut -f2 | seqtk seq -F I - > ref.R.fq
+	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk -v mlen=$LENGTH  '{
+                if (NR == 1) e=$2;
+                else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_A_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+                else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+                else if ($1 ~/C/) clus=$2;
+                else if ($1 ~/L/) len=$2;
+                else if ($1 ~/S/) seq=$2;
+                else if ($1 ~/N/) freq=$2;
+                else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
+                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus;lenf=len}
+                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len > mlen) {seq1 = seq; fclus=clus; len1=len}
+                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus; lenf=len}
+                else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
+                }' > rainbow.fasta
 
-	seqtk seq -r ref.R.fq > ref.RC.fq
-	mv ref.RC.fq ref.R.fq
-	LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
-	LENGTH=$(( $LENGTH * 5 / 4))
-	
-	pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j $NUMProc -n $LENGTH &>kopt.log
 
-	rm ref.F.fq ref.R.fq
+        seqtk seq -r rainbow.fasta > rainbow.RC.fasta
+        mv rainbow.RC.fasta rainbow.fasta
 
-	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
-	mawk '/>/' overlap.fasta > overlap.loci.names
-	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
-	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
-	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
+        #The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
 
-	cat other.FR overlap.fasta > totalover.fasta
+        grep -A1 "dDocent_A_Contig_" rainbow.fasta | mawk '!/^--/' | sed -e 's/dDocent_A_Contig_/dDocent_Contig_/g' > rainbow.asm.fasta
+        grep -A1 "dDocent_Contig_" rainbow.fasta | mawk '!/^--/' > rainbow.n.fasta
 
-	rm *.F *.R
+        sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f1 | seqtk seq -F I - > ref.F.fq
+        sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f2 | seqtk seq -F I - > ref.R.fq
+
+        seqtk seq -r ref.R.fq > ref.RC.fq
+        mv ref.RC.fq ref.R.fq
+        LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+        LENGTH=$(( $LENGTH * 5 / 4))
+
+        pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j 20 -n $LENGTH &>kopt.log
+
+        rm ref.F.fq ref.R.fq
+
+        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
+        mawk '/>/' overlap.fasta > overlap.loci.names
+        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
+        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
+        paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
+
+        cat other.FR overlap.fasta rainbow.n.fasta > totalover.fasta
+
+        rm *.F *.R
 fi
+
 
 if [[ "$ATYPE" == "HYB" ]];then
 	parallel --no-notice mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.ua.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.ua.seqs
