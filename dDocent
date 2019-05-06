@@ -408,14 +408,16 @@ if [ "$SNP" != "no" ]; then
 		fi
 		cat *.cov.stats | $sort -k1,1 -k2,2n | bedtools merge -i - -c 4 -o sum > cov.stats
 	fi
-		
+	
+	SNPNUMProc=$(( $NUMProc * 4 )) 
+	
 	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 	
 		DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
-		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$NUMProc'"}')
+		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
 	else
 		DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.00005;@l=<>;print $l[int($d*@l)]')
-		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$NUMProc'"}')
+		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
 	fi
 	mawk -v x=$DP '$4 < x' cov.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
 	{
@@ -521,7 +523,7 @@ if [ "$SNP" != "no" ]; then
 			echo -e "\nmultiple instances of freebayes failed.  dDocent will now recalibrate run parameters to use less memory.\n"
 			rm mapped.*.bed
 			rm freebayes.error
-			LIM=$(( $NUMProc * 2 ))
+			LIM=$(( $SNPNUMProc * 4 ))
         	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
@@ -557,7 +559,7 @@ if [ "$SNP" != "no" ]; then
 		else	
 			echo -e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory.\n"
         		rm freebayes.error
-			LIM=$(( $NUMProc * 4 ))
+			LIM=$(( $LIM * 4 ))
         	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
