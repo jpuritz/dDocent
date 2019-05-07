@@ -645,11 +645,16 @@ mv *.txt *.log log ./trim_reports ./logfiles 2> /dev/null
 #Sending a completion email
 
 if [ $ERRORS -gt 0 ]; then
-        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/VCFtools.log` "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL
+        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/VCFtools.log` "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished with ERRORS!" $MAIL 2>/dev/null
 else
-        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/VCFtools.log` "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL
+        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/VCFtools.log` "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL 2>/dev/null
 fi
 
+if [ $ERRORS -gt 0 ]; then
+        echo -e "dDocent has finished with errors in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\nPlease check log files\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/VCFtools.log` "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." 
+else
+        echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" `mawk '/After filtering, kept .* out of a possible/' ./logfiles/VCFtools.log` "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." 
+fi
 
 }
 
