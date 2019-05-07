@@ -409,7 +409,7 @@ if [ "$SNP" != "no" ]; then
 		cat *.cov.stats | $sort -k1,1 -k2,2n | bedtools merge -i - -c 4 -o sum > cov.stats
 	fi
 	
-	SNPNUMProc=$(( $NUMProc * 4 )) 
+	SNPNUMProc=$(( $NUMProc * 8 )) 
 	
 	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 	
