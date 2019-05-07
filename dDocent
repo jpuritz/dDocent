@@ -251,6 +251,16 @@ else
 	GetInfo 
 fi
 
+#Set a variable for samtools threads
+
+if [ "$NUMProc" -gt 4 ]; then
+	SAMProc=4
+else
+	SAMProc=$NUMProc
+fi
+
+export SAMProc
+
 #Creates (or appends to) a dDcoent run file recording variables
 echo "Variables used in dDocent (version $VERSION) run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
@@ -291,6 +301,7 @@ echo "Calling_SNPs?" >> dDocent.runs
 echo $SNP >> dDocent.runs
 echo "Email" >> dDocent.runs
 echo $MAIL >> dDocent.runs
+
 
 
 ##Section of logic statements that dictates the order and function of processing the pipeline
@@ -347,11 +358,11 @@ echo -e "\nUsing BWA to map reads"
         	for i in "${NAMES[@]}"
         	do
         	if [ -f "$i.R2.fq.gz" ]; then
-        		bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz $i.R2.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        		bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz $i.R2.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$SAMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	else
-        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz 2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz 2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$SAMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	fi
-        	samtools sort -@$NUMProc $i.bam -o $i.bam 2>>$i.bam.log
+        	samtools sort -@$SAMProc $i.bam -o $i.bam 2>>$i.bam.log
 		mv $i.bam $i-RG.bam
 		samtools index $i-RG.bam
         	done
@@ -359,11 +370,11 @@ echo -e "\nUsing BWA to map reads"
         	for i in "${NAMES[@]}"
         	do
         	if [ -f "$i.R2.fq.gz" ]; then
-        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz $i.R2.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz $i.R2.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$SAMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	else
-        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$NUMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
+        		bwa mem -L 20,5 -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$SAMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
         	fi
-        	samtools sort -@$NUMProc $i.bam -o $i.bam 2>>$i.bam.log
+        	samtools sort -@$SAMProc $i.bam -o $i.bam 2>>$i.bam.log
 		mv $i.bam $i-RG.bam
 		samtools index $i-RG.bam
         	done
@@ -440,7 +451,7 @@ if [ "$SNP" != "no" ]; then
 
 ###New implementation of SNP calling here to save on memory	
 	call_genos(){
-		samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
+		samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
 		samtools index split.$1.bam
 		freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 2> fb.$1.error.log
 		if [ $? -eq 0 ]; then
@@ -458,7 +469,7 @@ if [ "$SNP" != "no" ]; then
 	
 	export -f call_genos
       	call_genos2(){
-                samtools view -@$FB2 -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
+                samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
                 samtools index split.$1.bam
                 freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10
                 if [ $? -eq 0 ]; then
