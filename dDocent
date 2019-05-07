@@ -451,9 +451,9 @@ if [ "$SNP" != "no" ]; then
 
 ###New implementation of SNP calling here to save on memory	
 	call_genos(){
-		samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
-		samtools index split.$1.bam
-		freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 2> fb.$1.error.log
+		#samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
+		#samtools index split.$1.bam
+		freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 2> fb.$1.error.log
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
     			rm split.$1.bam*
@@ -469,9 +469,9 @@ if [ "$SNP" != "no" ]; then
 	
 	export -f call_genos
       	call_genos2(){
-                samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
-                samtools index split.$1.bam
-                freebayes -b split.$1.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10
+                #samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
+                #samtools index split.$1.bam
+                freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10
                 if [ $? -eq 0 ]; then
                         rm split.$1.bam*
                 else
@@ -484,7 +484,7 @@ if [ "$SNP" != "no" ]; then
                 echo "Redoing a failed instance of FreeBayes"
                 mkdir Finish.$1
                 cd Finish.$1
-                cp ../split.$1.bam split.bam
+                #cp ../split.$1.bam split.bam
                 cp ../mapped.$1.bed mapped.bed
  		bedtools intersect -b mapped.bed -a ../cov.stats > cov.stats
                 CC=$( mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/4}' cov.stats)
