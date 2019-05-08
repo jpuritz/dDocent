@@ -462,7 +462,7 @@ if [ "$SNP" != "no" ]; then
 	{
 	len=$3-$2;lc=len*$4;cov = cov + lc
 	if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
-	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
+	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
 	}' 
 		
 	FB2=$(( $NUMProc / 8 ))
