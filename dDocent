@@ -460,7 +460,7 @@ if [ "$SNP" != "no" ]; then
 	mawk -v x=$DP '$4 < x' cov.split.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
 	{
 	len=$3-$2;lc=len*$4;cov = cov + lc
-	if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+	if ( cov < cutoff && cov < 10000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
 	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 	}' 
 		
