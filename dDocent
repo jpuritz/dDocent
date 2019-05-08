@@ -488,7 +488,6 @@ if [ "$SNP" != "no" ]; then
 		freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 -F 0.1 2> fb.$1.error.log
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
-    			rm split.$1.bam*
 			rm fb.$1.error.log
 		else
     			echo -e "\n\nERROR: freebayes instance DID NOT COMPLETE\n\nSee below:"
@@ -505,7 +504,7 @@ if [ "$SNP" != "no" ]; then
                 #samtools index split.$1.bam
                 freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10 -F 0.1
                 if [ $? -eq 0 ]; then
-                        rm mapped$1.bed
+                        rm mapped.$1.bed
                 else
                         echo -e "$?" "\t" "$1" >> freebayes.error
                         exit 1
@@ -517,7 +516,7 @@ if [ "$SNP" != "no" ]; then
                 mkdir Finish.$1
                 cd Finish.$1
                 cp ../mapped.$1.bed mapped.bed
-		ln -s ../cat-RRG.bam .
+		ln -s ../cat-RRG.bam* .
  		bedtools intersect -b mapped.bed -a ../cov.stats > cov.stats
                 CC=$( mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/4}' cov.stats)
         	$sort -V -k1,1 -k2,2 cov.stats | mawk -v cutoff=$CC 'BEGIN{i=1}
