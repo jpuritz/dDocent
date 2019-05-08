@@ -505,7 +505,7 @@ if [ "$SNP" != "no" ]; then
                 #samtools index split.$1.bam
                 freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10 -F 0.1
                 if [ $? -eq 0 ]; then
-                        rm split.$1.bam*
+                        rm mapped$1.bed
                 else
                         echo -e "$?" "\t" "$1" >> freebayes.error
                         exit 1
@@ -516,18 +516,18 @@ if [ "$SNP" != "no" ]; then
                 echo "Redoing a failed instance of FreeBayes"
                 mkdir Finish.$1
                 cd Finish.$1
-                #cp ../split.$1.bam split.bam
                 cp ../mapped.$1.bed mapped.bed
  		bedtools intersect -b mapped.bed -a ../cov.stats > cov.stats
                 CC=$( mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/4}' cov.stats)
         	$sort -V -k1,1 -k2,2 cov.stats | mawk -v cutoff=$CC 'BEGIN{i=1}
         	{
         		len=$3-$2;lc=len*$4;cov = cov + lc
-        		if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
-        		else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
-        	}'
-                ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos2 --memfree $MAXMemory -j 4 --no-notice "call_genos2 {} 2> /dev/null"
-                if [ -f "freebayes.error" ]; then
+        		if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+        		else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
+        	}'                
+		ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos2 --memfree $MAXMemory -j 4 --no-notice "call_genos2 {} 2> /dev/null"
+                
+		if [ -f "freebayes.error" ]; then
                         echo -e "\n\n\nFreeBayes has failed when trying to finish a previously failed instance.  Memory and processor settings need to be drastically reconfigured"
                         ERROR3=1
                         export ERROR3
