@@ -420,7 +420,7 @@ if [ "$SNP" != "no" ]; then
 		cat *.cov.stats | $sort -k1,1 -k2,2n | bedtools merge -i - -c 4 -o sum > cov.stats
 	fi
 	
-	SNPNUMProc=$(( $NUMProc * 4 )) 
+	SNPNUMProc=$(( $NUMProc * 2 )) 
 	
 	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
 	
@@ -447,8 +447,8 @@ if [ "$SNP" != "no" ]; then
         MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 	
 	#split cov.stats file into high and low coverage intervals
-	mawk '$4 > 100000' cov.stats > cov.high.stats
-	mawk '$4 <= 100000' cov.stats > cov.low.stats
+	mawk '$4 > 500000' cov.stats > cov.high.stats
+	mawk '$4 <= 500000' cov.stats > cov.low.stats
 	
 	#split high coverage intervals into smaller, read-length sized intervals
 	ML1=$(( $MaxLen + 1 ))
@@ -519,7 +519,7 @@ if [ "$SNP" != "no" ]; then
         	$sort -V -k1,1 -k2,2 cov.stats | mawk -v cutoff=$CC 'BEGIN{i=1}
         	{
         		len=$3-$2;lc=len*$4;cov = cov + lc
-        		if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+        		if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
         		else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
         	}'
                 ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos2 --memfree $MAXMemory -j 4 --no-notice "call_genos2 {} 2> /dev/null"
@@ -573,7 +573,7 @@ if [ "$SNP" != "no" ]; then
         	fi
         	mawk -v x=$DP '$4 < x' cov.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1}
         	{ len=$3-$2;lc=len*$4;cov = cov + lc
-        	if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+        	if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
         	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
         	}'
 
