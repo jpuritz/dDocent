@@ -461,7 +461,7 @@ if [ "$SNP" != "no" ]; then
 	mawk -v x=$DP '$4 < x' cov.split.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
 	{
 	len=$3-$2;lc=len*$4;cov = cov + lc
-	if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+	if ( cov < cutoff && cov < 50000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
 	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
 	}' 
 		
@@ -519,7 +519,7 @@ if [ "$SNP" != "no" ]; then
         	$sort -V -k1,1 -k2,2 cov.stats | mawk -v cutoff=$CC 'BEGIN{i=1}
         	{
         		len=$3-$2;lc=len*$4;cov = cov + lc
-        		if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+        		if ( cov < cutoff && cov < 50000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
         		else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
         	}'
                 ls mapped.*.bed | sed 's/mapped.//g' | sed 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos2 --memfree $MAXMemory -j 4 --no-notice "call_genos2 {} 2> /dev/null"
@@ -573,7 +573,7 @@ if [ "$SNP" != "no" ]; then
         	fi
         	mawk -v x=$DP '$4 < x' cov.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1}
         	{ len=$3-$2;lc=len*$4;cov = cov + lc
-        	if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+        	if ( cov < cutoff && cov < 50000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
         	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
         	}'
 
