@@ -451,7 +451,8 @@ if [ "$SNP" != "no" ]; then
 	mawk '$4 <= 100000' cov.stats > cov.low.stats
 	
 	#split high coverage intervals into smaller, read-length sized intervals
-	bedtools makewindows -b cov.high.stats -w $MaxLen > temp1.bed
+	ML1=$(( $MaxLen + 1 ))
+	bedtools makewindows -b cov.high.stats -w $MaxLen -s $ML1 > temp1.bed
 	bedtools intersect -a cov.stats -b temp1.bed > temp.cov.stats
 	
 	cat temp.cov.stats cov.low.stats > cov.split.stats
@@ -460,7 +461,7 @@ if [ "$SNP" != "no" ]; then
 	mawk -v x=$DP '$4 < x' cov.split.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
 	{
 	len=$3-$2;lc=len*$4;cov = cov + lc
-	if ( cov < cutoff && cov < 10000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
+	if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
 	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 	}' 
 		
