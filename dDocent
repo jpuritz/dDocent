@@ -451,9 +451,9 @@ if [ "$SNP" != "no" ]; then
 	mawk '$4 <= 500000' cov.stats > cov.low.stats
 	
 	#split high coverage intervals into smaller, 1/2 read-length sized intervals
-	MaxLen=$(( $MaxLen / 2 ))
-	ML1=$(( $MaxLen + 1 ))
-	bedtools makewindows -b cov.high.stats -w $MaxLen -s $ML1 > temp1.bed
+	MaxLen2=$(( $MaxLen / 2 ))
+	ML1=$(( $MaxLen2 + 1 ))
+	bedtools makewindows -b cov.high.stats -w $MaxLen2 -s $ML1 > temp1.bed
 	bedtools intersect -a cov.stats -b temp1.bed > temp.cov.stats
 	
 	cat temp.cov.stats cov.low.stats > cov.split.stats
@@ -583,9 +583,9 @@ if [ "$SNP" != "no" ]; then
 		{len=$3-$2;lc=len*$4;cov = cov + lc
 		if (NR == 1 && lc > tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; i=i+1; e=1}
 		else if ( cov < cutoff && lc < tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; e=0}
-		else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=0}
+		else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=1}
 		else if (lc > tt && e < 1 ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1;e=1}
-		else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
+		else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc;e=0}
 		}'
 
         	FB2=$(( $NUMProc / 10 ))
@@ -625,9 +625,9 @@ if [ "$SNP" != "no" ]; then
 		{len=$3-$2;lc=len*$4;cov = cov + lc
 		if (NR == 1 && lc > tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; i=i+1; e=1}
 		else if ( cov < cutoff && lc < tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; e=0}
-		else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=0}
+		else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=1}
 		else if (lc > tt && e < 1 ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1;e=1}
-		else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
+		else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc;e=0}
 		}'
 		
             	NumP=$(( $NumP / 4 ))
