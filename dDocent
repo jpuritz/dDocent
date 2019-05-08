@@ -430,13 +430,40 @@ if [ "$SNP" != "no" ]; then
 		DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.00005;@l=<>;print $l[int($d*@l)]')
 		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
 	fi
-	mawk -v x=$DP '$4 < x' cov.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
+	
+	#calculate read length
+	rm lengths.txt &> /dev/null
+	read_length(){
+        if [ -f "$1.R.fq.gz" ]; then
+        	gunzip -c $1.R.fq.gz | head -2 | tail -1 >> lengths.txt
+	else
+		gunzip -c $1.F.fq.gz | head -2 | tail -1 >> lengths.txt
+        fi
+        }
+	export -f read_length
+	
+	cat namelist| parallel --env read_length --memfree $MAXMemory -j $NUMProc --no-notice "read_length {}"
+	
+        MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+	
+	#split cov.stats file into high and low coverage intervals
+	mawk '$4 > 100000' cov.stats > cov.high.stats
+	mawk '$4 <= 100000'cov.stats > cov.low.stats
+	
+	#split high coverage intervals into smaller, read-length sized intervals
+	bedtools makewindows -b cov.high.stats -w $MaxLen > temp1.bed
+	bedtools intersect -a cov.stats -b test.bed > temp.cov.stats
+	
+	cat temp.cov.stats cov.low.stats > cov.split.stats
+	rm cov.high.stats cov.low.stats temp1.bed temp.cov.stats
+	
+	mawk -v x=$DP '$4 < x' cov.split.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
 	{
 	len=$3-$2;lc=len*$4;cov = cov + lc
 	if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
 	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 	}' 
-	
+		
 	FB2=$(( $NUMProc / 8 ))
 	export FB2
 	echo -e "\nUsing FreeBayes to call SNPs"
