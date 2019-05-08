@@ -452,7 +452,7 @@ if [ "$SNP" != "no" ]; then
 	
 	#split high coverage intervals into smaller, read-length sized intervals
 	bedtools makewindows -b cov.high.stats -w $MaxLen > temp1.bed
-	bedtools intersect -a cov.stats -b test.bed > temp.cov.stats
+	bedtools intersect -a cov.stats -b temp1.bed > temp.cov.stats
 	
 	cat temp.cov.stats cov.low.stats > cov.split.stats
 	rm cov.high.stats cov.low.stats temp1.bed temp.cov.stats
