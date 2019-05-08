@@ -450,7 +450,8 @@ if [ "$SNP" != "no" ]; then
 	mawk '$4 > 500000' cov.stats > cov.high.stats
 	mawk '$4 <= 500000' cov.stats > cov.low.stats
 	
-	#split high coverage intervals into smaller, read-length sized intervals
+	#split high coverage intervals into smaller, 1/2 read-length sized intervals
+	MaxLen=$(( $MaxLen / 2 ))
 	ML1=$(( $MaxLen + 1 ))
 	bedtools makewindows -b cov.high.stats -w $MaxLen -s $ML1 > temp1.bed
 	bedtools intersect -a cov.stats -b temp1.bed > temp.cov.stats
