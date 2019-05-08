@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.8.1'; export VERSION
+VERSION='2.8.2'; export VERSION
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -448,7 +448,7 @@ if [ "$SNP" != "no" ]; then
 	
 	#split cov.stats file into high and low coverage intervals
 	mawk '$4 > 100000' cov.stats > cov.high.stats
-	mawk '$4 <= 100000'cov.stats > cov.low.stats
+	mawk '$4 <= 100000' cov.stats > cov.low.stats
 	
 	#split high coverage intervals into smaller, read-length sized intervals
 	bedtools makewindows -b cov.high.stats -w $MaxLen > temp1.bed
