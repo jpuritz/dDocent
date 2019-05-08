@@ -458,14 +458,16 @@ if [ "$SNP" != "no" ]; then
 	cat temp.cov.stats cov.low.stats > cov.split.stats
 	rm cov.high.stats cov.low.stats temp1.bed temp.cov.stats
 	
-	echo "CC=" $CC
+	TT=$(( $MaxLen * 1000000 ))
 	
-	mawk -v x=$DP '$4 < x' cov.split.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1} 
-	{
-	len=$3-$2;lc=len*$4;cov = cov + lc
-	if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
-	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
-	}' 
+	mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
+	{len=$3-$2;lc=len*$4;cov = cov + lc
+	if (NR == 1 && lc > tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; i=i+1; e=1}
+	else if ( cov < cutoff && lc < tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; e=0}
+	else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=0}
+	else if (lc > tt && e < 1 ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1;e=1}
+	else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
+	}'
 		
 	FB2=$(( $NUMProc / 8 ))
 	export FB2
@@ -573,11 +575,17 @@ if [ "$SNP" != "no" ]; then
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.00005;@l=<>;print $l[int($d*@l)]')
                 	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$LIM'"}')
         	fi
-        	mawk -v x=$DP '$4 < x' cov.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1}
-        	{ len=$3-$2;lc=len*$4;cov = cov + lc
-        	if ( cov < cutoff && cov < 100000000) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
-        	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
-        	}'
+        	
+		TT=$(( $MaxLen * 1000000 ))
+	
+		mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
+		{len=$3-$2;lc=len*$4;cov = cov + lc
+		if (NR == 1 && lc > tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; i=i+1; e=1}
+		else if ( cov < cutoff && lc < tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; e=0}
+		else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=0}
+		else if (lc > tt && e < 1 ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1;e=1}
+		else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
+		}'
 
         	FB2=$(( $NUMProc / 10 ))
         	export FB2
@@ -609,11 +617,17 @@ if [ "$SNP" != "no" ]; then
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.00005;@l=<>;print $l[int($d*@l)]')
                 	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$LIM'"}')
         	fi
-        	mawk -v x=$DP '$4 < x' cov.stats |$sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC 'BEGIN{i=1}
-        	{ len=$3-$2;lc=len*$4;cov = cov + lc
-        	if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
-        	else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
-        	}'
+        	
+		TT=$(( $MaxLen * 1000000 ))
+	
+		mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
+		{len=$3-$2;lc=len*$4;cov = cov + lc
+		if (NR == 1 && lc > tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; i=i+1; e=1}
+		else if ( cov < cutoff && lc < tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; e=0}
+		else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=0}
+		else if (lc > tt && e < 1 ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1;e=1}
+		else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc}
+		}'
 		
             	NumP=$(( $NumP / 4 ))
                 NumP=$(( $NumP * 3 ))
