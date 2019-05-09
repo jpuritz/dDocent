@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.8.5'; export VERSION
+VERSION='2.8.6'; export VERSION
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -265,8 +265,6 @@ export SAMProc
 echo "Variables used in dDocent (version $VERSION) run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
 echo $NUMProc >> dDocent.runs
-echo "Maximum Memory" >> dDocent.runs
-echo $MAXMemory1 | sed 's/[g,G]//g' >> dDocent.runs
 echo "Trimming" >> dDocent.runs
 echo $TRIM >> dDocent.runs
 echo "Assembly?" >> dDocent.runs
