@@ -486,6 +486,7 @@ if [ "$SNP" != "no" ]; then
 	call_genos(){
 		#samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
 		#samtools index split.$1.bam
+		echo "Starting Freebayes instance " $1 >> freebayes.log
 		freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 -F 0.1 &> fb.$1.error.log
 		if [ $? -eq 0 ]; then
     			echo "freebayes instance $1 completed successfully." >> freebayes.log
@@ -503,6 +504,7 @@ if [ "$SNP" != "no" ]; then
       	call_genos2(){
                 #samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
                 #samtools index split.$1.bam
+		echo "Starting Freebayes instance " $1 >> freebayes.log
                 freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10 -F 0.1
                 if [ $? -eq 0 ]; then
                         rm mapped.$1.bed
