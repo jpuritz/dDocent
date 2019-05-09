@@ -459,7 +459,7 @@ if [ "$SNP" != "no" ]; then
 	cat temp.cov.stats cov.low.stats > cov.split.stats
 	rm cov.high.stats cov.low.stats temp1.bed temp.cov.stats
 	
-	TT=$(( $MaxLen * 5 / 6 * 1000000 ))
+	TT=$(( $MaxLen2 * 1000000 ))
 	
 	mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
 	{len=$3-$2;lc=len*$4;cov = cov + lc
@@ -577,7 +577,7 @@ if [ "$SNP" != "no" ]; then
                 	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$LIM'"}')
         	fi
         	
-		TT=$(( $MaxLen * 1000000 ))
+		TT=$(( $MaxLen2 * 1000000 ))
 	
 		mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
 		{len=$3-$2;lc=len*$4;cov = cov + lc
@@ -619,7 +619,7 @@ if [ "$SNP" != "no" ]; then
                 	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$LIM'"}')
         	fi
         	
-		TT=$(( $MaxLen * 1000000 ))
+		TT=$(( $MaxLen2 * 1000000 ))
 	
 		mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
 		{len=$3-$2;lc=len*$4;cov = cov + lc
