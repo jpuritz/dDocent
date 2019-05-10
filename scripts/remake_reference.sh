@@ -2,7 +2,7 @@
 
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
-v="2.8.0"
+v="2.8.6"
 
 if [[ -z "$5" ]]; then
 echo "Usage is sh remake_reference.sh K1 K2 similarity% Assembly_Type Number_of_Processors"
@@ -298,10 +298,10 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
         paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
 
         cat other.FR overlap.fasta rainbow.n.fasta > totalover.fasta
-
+	paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed 's/	/\n/g' > totalover.s.fasta
+	mv totalover.s.fasta totalover.fasta
         rm *.F *.R
 fi
-
 
 if [[ "$ATYPE" == "HYB" ]];then
 	parallel --no-notice mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.ua.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.ua.seqs
@@ -315,7 +315,7 @@ if [[ "$ATYPE" == "HYB" ]];then
 		if [ "$NUMProc" -gt 8 ]; then
 			NP=8
 		else
-			NP=$NumProc
+			NP=$NUMProc
 		fi
 		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &>/dev/null
 		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
@@ -354,12 +354,15 @@ if [[ "$ATYPE" == "HYB" ]];then
 		mv rainbow.RC.fasta rainbow.ua.fasta
 	
 		cat rainbow.ua.fasta uniq.fasta > totalover.fasta
-
+		paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed 's/	/\n/g' > totalover.s.fasta
+		mv totalover.s.fasta totalover.fasta
 	fi
 fi
 
 if [[ "$ATYPE" != "PE" && "$ATYPE" != "RPE" && "$ATYPE" != "HYB" ]]; then
 	cp uniq.fasta totalover.fasta
+	paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed 's/	/\n/g' > totalover.s.fasta
+	mv totalover.s.fasta totalover.fasta
 fi
 cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $simC &>cdhit2.log
 
