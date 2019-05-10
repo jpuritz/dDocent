@@ -508,7 +508,7 @@ else
 RANDNAMES=( `cat "$8" `)
 fi
 
-echo -e "Cov\tNon0Cov\tContigs\tMeanContigsMapped\tK1\tK2\tSUM Mapped\tSUM Properly\tMean Mapped\tMean Properly\tMisMatched" > mapping.results
+echo -e "Cov\tNon0Cov\tContigs\tMeanContigsMapped\tK1\tK2\tSUM_Mapped\tSUM_Properly\tMean_Mapped\tMean_Properly\tMisMatched" > mapping.results
 
 for ((r = $1; r <= $2; r++));
 do
