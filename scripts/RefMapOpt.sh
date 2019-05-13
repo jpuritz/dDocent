@@ -142,7 +142,7 @@ echo -e "\ndDocent RefMapOpt version $v"
 #This code checks for trimmed sequence files
 TEST=$(ls *.R1.fq.gz 2> /dev/null | wc -l )
 if [ "$TEST" -gt 0 ]; then
-	echo "Trimmed sequences found, proceeding with optimization."
+	echo -e "\nTrimmed sequences found, proceeding with optimization."
 else
 	echo -e "\nRefMapOpt.sh requires that you have trimmed sequence files.\nPlease include trimmed sequence files with the .R1.fq.gz and .R2.fq.gz naming convention."
 	echo "dDocent will create these for you"
@@ -335,18 +335,6 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
         cat rbasm.out.[0-9]* > rbasm.out
         rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
 
-	#CD-hit output is converted to rainbow format
-	$sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/	/g' > rcluster
-	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
-        CLUST=(`tail -1 rbdiv.out | cut -f5`)
-	CLUST1=$(( $CLUST / 100 + 1))
-	CLUST2=$(( $CLUST1 + 100 ))
-	
-	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
-	
-        cat rbasm.out.[0-9]* > rbasm.out
-        rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
-
 	#This AWK code replaces rainbow's contig selection perl script
 	LENGTH=$(cut -f3 rbdiv.out |mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 
@@ -503,10 +491,26 @@ echo "5" >randlist
 		fi
 	done
 
-RANDNAMES=( `mawk '!/^5$/' "randlist" | head -20 `)
+RANDNAMES=( `mawk '!/^5$/' "randlist" | head -21 `)
 else
 RANDNAMES=( `cat "$8" `)
 fi
+
+rm lengths.txt &> /dev/null
+for k in "${RANDNAMES[@]}";
+	do
+	if [ -f "$k.R.fq.gz" ]; then
+		gunzip -c $k.R.fq.gz | head -2 | tail -1 >> lengths.txt
+	fi
+	done	
+
+
+rm rand.proc 2>/dev/null
+
+for k in "${RANDNAMES[@]}"
+do
+	echo $k >> rand.proc
+done
 
 echo -e "Cov\tNon0Cov\tContigs\tMeanContigsMapped\tK1\tK2\tSUM_Mapped\tSUM_Properly\tMean_Mapped\tMean_Properly\tMisMatched" > mapping.results
 
@@ -516,49 +520,43 @@ do
 	do
 	PP=$(($r + $j))
 	if [ "$PP" != "2" ]; then
-	Reference $r $j $simC
-	samtools faidx reference.fasta &> index.log
-	bwa index reference.fasta >> index.log 2>&1
-    	rm lengths.txt &> /dev/null
-    		for k in "${RANDNAMES[@]}";
-    		do
-    		if [ -f "$k.R.fq.gz" ]; then
-    		gunzip -c $k.R.fq.gz | head -2 | tail -1 >> lengths.txt
-    		fi
-    		done	
-    	if [ -f "lengths.txt" ]; then
-    	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-    	INSERT=$(($MaxLen * 2 ))
-    	INSERTH=$(($INSERT + 100 ))
-    	INSERTL=$(($INSERT - 100 ))
-    	SD=$(($INSERT / 10))
-		fi
+		Reference $r $j $simC
     	#BWA for mapping for all samples
     	rm $r.$j.results 2>/dev/null
-    		for k in "${RANDNAMES[@]}"
-    		do
+    	
+    	map_reads(){	
+    	r=$2;j=$3
 		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" || "$ATYPE" == "RPE" ]]; then
-			if [ -f "$k.R2.fq.gz" ]; then
-				bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			if [ -f "$1.R2.fq.gz" ]; then
+				bwa mem reference.fasta $1.R1.fq.gz $1.R2.fq.gz -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
 			else
-				bwa mem reference.fasta $k.R1.fq.gz -L 20,5 -t 32 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+				bwa mem reference.fasta $1.R1.fq.gz -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
 			fi
 		else
-			if [ -f "$k.R2.fq.gz" ]; then
-    			bwa mem reference.fasta $k.R1.fq.gz $k.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+			if [ -f "$1.R2.fq.gz" ]; then
+				if [ -f "lengths.txt" ]; then
+    				MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+    				INSERT=$(($MaxLen * 2 ))
+    				INSERTH=$(($INSERT + 100 ))
+    				INSERTL=$(($INSERT - 100 ))
+    				SD=$(($INSERT / 10))
+				fi
+    			bwa mem reference.fasta $1.R1.fq.gz $1.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
     		else
-    			bwa mem reference.fasta $k.R1.fq.gz -L 20,5 -t 32 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$k\tSM:$k\tPL:Illumina" 2> bwa.$k.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@32 -q 1 -SbT reference.fasta - > $k.bam
+    			bwa mem reference.fasta $1.R1.fq.gz -L 20,5 -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
     		fi
     	fi
-		samtools sort -@$NUMProc $k.bam -o $k.bam 
-		samtools index $k.bam
-    		MM=$(samtools flagstat $k.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
-    		CM=$(samtools idxstats $k.bam | mawk '$3 > 0' | wc -l)
-    		CC=$(samtools idxstats $k.bam | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
-		DD=$(samtools idxstats $k.bam | mawk '$3 >0' | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
-		BM=$(samtools flagstat $k.bam | grep mapQ | cut -f1 -d ' ')
+		samtools sort -@4 $1.bam -o $1.bam 2> /dev/null
+		samtools index $1.bam
+    	MM=$(samtools flagstat $1.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
+    	CM=$(samtools idxstats $1.bam | mawk '$3 > 0' | wc -l)
+    	CC=$(samtools idxstats $1.bam | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
+		DD=$(samtools idxstats $1.bam | mawk '$3 >0' | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
+		BM=$(samtools flagstat $1.bam | grep mapQ | cut -f1 -d ' ')
 		echo -e "$MM\t$CM\t$CC\t$DD\t$BM" >> $r.$j.results
-    		done
+    	}
+    	export -f map_reads
+    	cat rand.proc | parallel --no-notice -j $NUMProc --env map_reads map_reads {} $r $j
     	SUMM=$(mawk '{ sum+=$1} END {print sum}' $r.$j.results)
     	SUMPM=$(mawk '{ sum+=$2} END {print sum}' $r.$j.results)
     	AVEM=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
