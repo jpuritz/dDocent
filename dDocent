@@ -155,7 +155,7 @@ fi
 
 #Create list of sample names
 ls *.F.fq.gz > namelist 2> /dev/null
-sed -i'' -e 's/.F.fq.gz//g' namelist
+sed -i'' 's/.F.fq.gz//g' namelist
 #Create an array of sample names
 NUMNAMES=$(mawk '/_/' namelist | wc -l)
 
