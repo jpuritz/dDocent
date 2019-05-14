@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
-v="2.8.6"
+v="2.8.7"
 
 if [[ -z "$6" ]]; then
 echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors"
@@ -108,10 +108,10 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 			cat namelist | parallel --no-notice -j $NUMProc "paste {}.forward {}.reverse | $sort -k1 -S 200M > {}.fr"
 			cat namelist | parallel --no-notice -j $NUMProc "cut -f1 {}.fr | uniq -c > {}.f.uniq && cut -f2 {}.fr > {}.r"
 			cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK4' {}.f.uniq > {}.f.uniq.e" 
-			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.f.uniq.e {}.r | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | sed -e '$SED1' | sed -e '$SED2'> {}.uniq.seqs"
+			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.f.uniq.e {}.r | mawk '$AWK3'| sed -e 's/-/NNNNNNNNNN/' | sed -e '$SED1' | sed -e '$SED2'> {}.uniq.seqs"
 			rm *.f.uniq.e *.f.uniq *.r *.fr
 		else
-			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
+			cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed -e 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
 		fi
 		rm *.forward
 		rm *.reverse
@@ -152,7 +152,7 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 		
 		cat namelist | parallel --no-notice -j $NUMProc "cat {}.unassembled.forward.fastq | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
 		cat namelist | parallel --no-notice -j $NUMProc "cat {}.unassembled.reverse.fastq | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
-		cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.ua.seqs"
+		cat namelist | parallel --no-notice -j $NUMProc "paste -d '-' {}.forward {}.reverse | mawk '$AWK3'| sed -e 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.ua.seqs"
 		rm *.forward
 		rm *.reverse
 	fi	
@@ -185,7 +185,7 @@ fi
 #and remove reads with substantial amounts of adapters
 
 if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
-  parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | sed 's/NNNNNNNNNN/-/' >  total.uniqs
+  parallel --no-notice -j $NUMProc mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | sed -e 's/NNNNNNNNNN/-/' >  total.uniqs
   cut -f 1 -d "-" total.uniqs > total.u.F
   cut -f 2 -d "-" total.uniqs > total.u.R
   paste total.u.F total.u.R | $sort -k1 --parallel=$NUMProc -S 2G > total.fr
@@ -215,7 +215,7 @@ rm uniq.fq*
 
 if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	pmerge(){
-		num=$( echo $1 | sed 's/^0*//g')
+		num=$( echo $1 | sed -e 's/^0*//g')
 		if [ "$num" -le 100 ]; then
 			j=$num
 			k=$(($num -1))
@@ -238,14 +238,14 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 		sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
 	  	CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
 	  	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
-	  	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
+	  	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed -e 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
 	  	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
           
      	else
         	sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | cut -f1 | $sort --parallel=$NUMProc -S 2G| uniq | mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' > uniq.F.fasta
 		CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
 		cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
-  		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
+  		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed -e 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
   		paste sort.contig.cluster.ids <(mawk '!/>/' uniq.F.fasta) > contig.cluster.Funiq
   		sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | $sort --parallel=$NUMProc -k1 -S 2G | mawk '{print $0 "\t" NR}'  > totaluniqseq.CN
   		join -t $'\t' -1 3 -2 1 contig.cluster.Funiq totaluniqseq.CN -o 2.3,1.2,2.1,2.2 > contig.cluster.totaluniqseq
@@ -268,7 +268,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 
 	LENGTH=$(( $LENGTH * 11 / 10 ))
 
-	cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk -v mlen=$LENGTH  '{
+	cat rbasm.out <(echo "E") |sed -e 's/[0-9]*:[0-9]*://g' | mawk -v mlen=$LENGTH  '{
                 if (NR == 1) e=$2;
                 else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_A_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
                 else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
@@ -308,10 +308,10 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
         mawk '/>/' overlap.fasta > overlap.loci.names
         mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
         mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
-        paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed 's/	/NNNNNNNNNN/g' > other.FR
+        paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed -e 's/	/NNNNNNNNNN/g' > other.FR
 
         cat other.FR overlap.fasta rainbow.n.fasta > totalover.fasta
-	paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed 's/	/\n/g' > totalover.s.fasta
+	paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed -e 's/	/\'$'\n/g' > totalover.s.fasta
 	mv totalover.s.fasta totalover.fasta
         rm *.F *.R
 fi
@@ -338,7 +338,7 @@ if [[ "$ATYPE" == "HYB" ]];then
 		sed -e 's/NNNNNNNNNN/	/g' uniq.ua.fasta | cut -f1 > uniq.F.ua.fasta
 		CDHIT=$(python -c "print(max("$simC" - 0.1,0.8))")
 		cd-hit-est -i uniq.F.ua.fasta -o xxx -c $CDHIT -T 0 -M 0 -g 1 -d 100 &>cdhit.log
-		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids.ua
+		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed -e 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids.ua
 		paste sort.contig.cluster.ids.ua totaluniqseq.ua > contig.cluster.totaluniqseq.ua
 		$sort -k2,2 -g -S 2G --parallel=$NUMProc contig.cluster.totaluniqseq.ua | sed -e 's/NNNNNNNNNN/	/g' > rcluster.ua
 		#CD-hit output is converted to rainbow format
@@ -350,7 +350,7 @@ if [[ "$ATYPE" == "HYB" ]];then
 		fi
 		
 		#This AWK code replaces rainbow's contig selection perl script
-		cat rbasm.ua.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
+		cat rbasm.ua.out <(echo "E") |sed -e 's/[0-9]*:[0-9]*://g' | mawk ' {
 			if (NR == 1) e=$2;
 			else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_UA_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
 			else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_UA_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
@@ -367,14 +367,14 @@ if [[ "$ATYPE" == "HYB" ]];then
 		mv rainbow.RC.fasta rainbow.ua.fasta
 	
 		cat rainbow.ua.fasta uniq.fasta > totalover.fasta
-		paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed 's/	/\n/g' > totalover.s.fasta
+		paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed -e 's/	/\'$'\n/g' > totalover.s.fasta
 		mv totalover.s.fasta totalover.fasta
 	fi
 fi
 
 if [[ "$ATYPE" != "PE" && "$ATYPE" != "RPE" && "$ATYPE" != "HYB" ]]; then
 	cp uniq.fasta totalover.fasta
-	paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed 's/	/\n/g' > totalover.s.fasta
+	paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed -e 's/	/\'$'\n/g' > totalover.s.fasta
 	mv totalover.s.fasta totalover.fasta
 fi
 cd-hit-est -i totalover.fasta -o reference.fasta.original -M 0 -T 0 -c $simC &>cdhit2.log
