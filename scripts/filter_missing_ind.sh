@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export LC_ALL=en_US.UTF-8
 
 #check for vcftools version
 VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
@@ -12,16 +13,20 @@ VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed 's/[a-z)]//')
                 VCFMISSINGFLAG="--missing-indv"
         fi
 
+if [[ -z "$2" ]]; then
+echo "Usuage is filter_missing_ind.sh vcf_file name_prefix_for_new_vcf_file"
+exit 1
+fi
+
 vcftools --vcf $1 $VCFMISSINGFLAG --out $2
 
 CUTOFF=$(mawk '!/IN/' $2.imiss | cut -f5 | sort -rn | perl -e '$d=.14;@l=<>;print $l[int($d*$#l)]')
-#echo $CUTOFF
 
 mawk '!/IN/' $2.imiss | cut -f5 > totalmissing
 
-gnuplot << \EOF 
+gnuplot << \EOF
 set terminal dumb size 120, 30
-set autoscale 
+set autoscale
 unset label
 set title "Histogram of % missing data per individual"
 set ylabel "Number of Occurrences"
@@ -29,28 +34,37 @@ set xlabel "% of missing data"
 #set yr [0:100000]
 binwidth=0.01
 bin(x,width)=width*floor(x/width) + binwidth/2.0
+set lmargin 10
 plot 'totalmissing' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 pause -1
 EOF
 
-echo "The 85% cutoff would be" $CUTOFF
-echo "Would you like to set a different cutoff, yes or no"
+if [[ -z "$3" ]]; then
+	echo "The 85% cutoff would be" $CUTOFF
+	echo "Would you like to set a different cutoff, yes or no"
 
-read NEWCUTOFF
+	read NEWCUTOFF
+else
+	NEWCUTOFF=$3
+fi
 
 if [ "$NEWCUTOFF" != "yes" ]; then
 
-mawk -v x=$CUTOFF '$5 > x' $2.imiss | cut -f1 > lowDP.indv
+	mawk -v x=$CUTOFF '$5 > x' $2.imiss | cut -f1 > lowDP.indv
 
-vcftools --vcf $1 --remove lowDP.indv --recode --recode-INFO-all --out $2
+	vcftools --vcf $1 --remove lowDP.indv --recode --recode-INFO-all --out $2
 
 else
+	if [[ -z "$4" ]]; then
+		echo "Please enter new cutoff"
+		read CUTOFF2
 
-echo "Please enter new cutoff"
-
-read CUTOFF2
-
-mawk -v x=$CUTOFF2 '$5 > x' $2.imiss | cut -f1 > lowDP.indv
+	else
+		CUTOFF2=$4
+	fi
+	CUTPRINT=$(python -c "print($CUTOFF2 * 100)")
+	echo "All individuals with more than" $CUTPRINT"% missing data will be removed."
+	mawk -v x=$CUTOFF2 '$5 > x' $2.imiss | cut -f1 > lowDP.indv
 
 vcftools --vcf $1 --remove lowDP.indv --recode --recode-INFO-all --out $2
 fi

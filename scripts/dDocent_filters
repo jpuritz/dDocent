@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export LC_ALL=en_US.UTF-8
 
 echo "This script will automatically filter a FreeBayes generated VCF file using criteria related to site depth," 
 echo "quality versus depth, strand representation, allelic balance at heterzygous individuals, and paired read representation."
@@ -8,35 +9,48 @@ echo -e "Contact Jon Puritz (jpuritz@gmail.com) for questions and see script com
 #Checks for correct ususage
 
 if [[ -z "$2" ]]; then
-echo "Usage is sh dDocent_filters.sh VCF_file Output_prefix"
+echo "Usage is bash dDocent_filters.sh VCF_file Output_prefix"
 exit 1
 fi
 
 #Filteres out sites with that on average have heterzygotes with less than a 0.28 allele balance between reads from each allele and Quality / Depth < 0.5 and ratio of mapping quality for reference and alternate alleles
 
-vcffilter -s -f "AB > 0.2 & AB < 0.8 | AB < 0.01 | AB > 0.99" -s -g "QR > 0 | QA > 0 " $1 | vcffilter -s -f "QUAL / DP > 0.2" | vcffilter -s -f "MQM / MQMR > 0.25 & MQM / MQMR < 1.75" > $2
+vcffilter -s -f "AB > 0.2 & AB < 0.8 | AB < 0.01 | AB > 0.99" -s -g "QR > 0 | QA > 0 " $1 | vcffilter -s -f "QUAL / DP > 0.1" | vcffilter -s -f "MQM / MQMR > 0.25 & MQM / MQMR < 1.75" > $2
 FILTERED=$(mawk '!/#/' $2 | wc -l)
 OLD=$(mawk '!/#/' $1 | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on allele balance at heterozygous loci, locus quality, and mapping quality / Depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on allele balance at heterozygous loci, locus quality, and mapping quality / Depth\n" $NUMFIL "of" $OLD "\n" > $2.filterstats
 
-#Filters out loci that have reads from both strands, with some leeway for a bad individual or two
 
+#Asks about filting SNPs with reads from both strands filters out loci that have reads from both strands, with some leeway for a bad individual or two
+
+
+if [[ -z "$3" ]]; then
+echo -e "Are reads expected to overlap?  In other words, is fragment size less than 2X the read length?  Enter yes or no."
+read OL
+else
+OL=$3
+fi
+
+if [ "$OL" != "yes" ]; then
 vcffilter -f "SAF / SAR > 100 & SRF / SRR > 100 | SAR / SAF > 100 & SRR / SRF > 50" -s $2 > $2.filAB.vcf
 FILTERED=$(mawk '!/#/' $2.filAB.vcf | wc -l)
 OLD=$(mawk '!/#/' $2 | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of additional sites filtered based on overlapping forward and reverse reads\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of additional sites filtered based on overlapping forward and reverse reads\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
+else
+cp $2 $2.filAB.vcf
+fi
 
 #Filters out loci that have reads from both paired and unpaired reads
 
-if [[ -z "$3" ]]; then
+if [[ -z "$4" ]]; then
 echo -e "Is this from a mixture of SE and PE libraries? Enter yes or no."
 read PE
 else
-PE=$3
+PE=$4
 fi
 
 if [ "$PE" != "yes" ]; then
@@ -69,8 +83,8 @@ mawk '!/#/' $1 | cut -f1,2,6 > $1.loci.qual
 #Calculates the average depth and standard deviation
 DEPTH=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $1.DEPTH)
 SD=$(mawk '{delta = $1 - avg; avg += delta / NR; mean2 += delta * ($1 - avg); } END { print sqrt(mean2 / NR); }' $1.DEPTH)
-DEPTH=$(python -c "print int("$DEPTH") + int("$SD")")
-#DEPTH=$(python -c "print int("$DEPTH"+100*("$DEPTH"**0.5))")
+DEPTH=$(perl -e "print int("$DEPTH") + int("$SD")")
+#DEPTH=$(perl -e "print int("$DEPTH"+100*("$DEPTH"**0.5))")
 
 #Filters loci above the mean depth + 1 standard deviation that have quality scores that are less than 2*DEPTH
 paste $1.loci.qual $1.DEPTH | mawk -v x=$DEPTH '$4 > x'| mawk '$3 < 2 * $4' > $1.lowQDloci
@@ -93,10 +107,18 @@ IND=$(($IND - 9))
 
 mawk '!/D/' $1.site.depth | mawk -v x=$IND '{print $1/x}' > meandepthpersite
 
+#Calculates a mean depth cutoff to use for filtering
+DP=$(perl -e "print ($DP+ 1.645*$SD) / $IND")
+PP=$(mawk '!/SUM/' $1.site.depth | sort -rn | perl -e '$d=.05;@l=<>;print $l[int($d*$#l)]' )
+PP=$(perl -e "print int($PP / $IND)")
+GP=$(perl -e "print int($PP * 1.10)")
+export GP
+
 gnuplot << \EOF >> $2.filterstats
 set terminal dumb size 120, 30
 set autoscale
-set xrange [10:150] 
+high=system("echo $GP")
+set xrange [10:high] 
 unset label
 set title "Histogram of mean depth per site"
 set ylabel "Number of Occurrences"
@@ -104,7 +126,8 @@ set xlabel "Mean Depth"
 #set yr [0:100000]
 binwidth=1
 bin(x,width)=width*floor(x/width) + binwidth/2.0
-set xtics 5
+set xtics floor(high/20)
+set lmargin 10
 plot 'meandepthpersite' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 pause -1
 EOF
@@ -112,7 +135,8 @@ EOF
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale
-set xrange [10:150] 
+high=system("echo $GP")
+set xrange [10:high] 
 unset label
 set title "Histogram of mean depth per site"
 set ylabel "Number of Occurrences"
@@ -120,25 +144,21 @@ set xlabel "Mean Depth"
 #set yr [0:100000]
 binwidth=1
 bin(x,width)=width*floor(x/width) + binwidth/2.0
-set xtics 5
+set xtics floor(high/20)
+set lmargin 10
 plot 'meandepthpersite' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 pause -1
 EOF
 
 
-#Calculates a mean depth cutoff to use for filtering
-DP=$(python -c "print ($DP+ 1.645*$SD) / $IND")
-PP=$(mawk '!/SUM/' $1.site.depth | sort -rn | perl -e '$d=.05;@l=<>;print $l[int($d*$#l)]' )
-PP=$(python -c "print int($PP / $IND)")
-
-if [[ -z "$4" ]]; then
+if [[ -z "$5" ]]; then
 echo "If distrubtion looks normal, a 1.645 sigma cutoff (~90% of the data) would be" $DP
 echo "The 95% cutoff would be" $PP
 echo "Would you like to use a different maximum mean depth cutoff than "$PP", yes or no"
 
 read NEWCUTOFF
 else
-NEWCUTOFF=$4
+NEWCUTOFF=$5
 fi
 
 if [ "$NEWCUTOFF" != "yes" ]; then
@@ -152,27 +172,12 @@ NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
 
-vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL --max-meanDP $PP --exclude-positions $1.lowQDloci --recode 2> /dev/null
-
-OLD=$(mawk '!/#/' $1 | wc -l)
-FILTERED=$(mawk '!/#/' $2.FIL.recode.vcf  | wc -l)
-NUMFIL=$(($OLD - $FILTERED))
-
-echo -e "Total number of sites filtered\n" $NUMFIL "of" $OLD "\n"
-echo -e "Total number of sites filtered\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
-
-echo -e "Remaining sites\n" $FILTERED "\n"
-echo -e "Remaining sites\n" $FILTERED "\n" >> $2.filterstats
-
-echo -e "Filtered VCF file is called Output_prefix.FIL.recode.vcf\n"
-echo "Filter stats stored in $2.filterstats"
-
 else
-	if [[ -z "$5" ]]; then
+	if [[ -z "$6" ]]; then
 	echo "Please enter new cutoff"
 	read PP
 	else
-	PP=$5
+	PP=$6
 	fi
 echo -e "Maximum mean depth cutoff is" $PP >> $2.filterstats
 #Combines all filters to create a final filtered VCF file
@@ -182,6 +187,7 @@ OLD=$(mawk '!/#/' $2.fil.vcf | wc -l)
 NUMFIL=$(($OLD - $FILTERED))
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n"
 echo -e "Number of sites filtered based on maximum mean depth\n" $NUMFIL "of" $OLD "\n" >> $2.filterstats
+fi
 
 vcftools --vcf $2.fil.vcf --remove-filtered NP --recode-INFO-all --out $2.FIL1 --max-meanDP $PP --exclude-positions $1.lowQDloci --recode 2> /dev/null
 vcftools --vcf $2.FIL1.recode.vcf --site-depth --out $2.FIL1 2> /dev/null
@@ -211,4 +217,3 @@ echo -e "Remaining sites\n" $FILTERED "\n" >> $2.filterstats
 echo -e "Filtered VCF file is called Output_prefix.FIL.recode.vcf\n"
 echo "Filter stats stored in $2.filterstats"
 
-fi

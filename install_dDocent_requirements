@@ -123,9 +123,10 @@ if which samtools &>/dev/null; then
     echo "samtools is already installed"
 else
 	echo "Downloading and installing samtools"
-	curl -L -o samtools-0.x.tar.bz2 http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2/download
-	tar xvjf samtools-0.x.tar.bz2
-	cd samtools-0.1*
+	curl -L -o samtools-1.3.1.tar.bz2 "https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2"
+	tar xvjf samtools-1.3.1.tar.bz2 
+	cd samtools-1.3.1/
+	./configure
 	make
 	chmod +x samtools
 	cp -f samtools $INSTALL_PATH
@@ -140,9 +141,10 @@ else
 	curl -L -o vcftools_x.tar.gz "https://github.com/vcftools/vcftools/releases/download/v0.1.14/vcftools-0.1.14.tar.gz"	
 	tar xvzf vcftools_x.tar.gz
 	cd vcftools-*
+	./configure
 	make
-	chmod +x ./bin/vcftools
-	cp -f ./bin/vcftools $INSTALL_PATH
+	chmod +x ./src/cpp/vcftools
+	cp -f ./src/cpp/vcftools $INSTALL_PATH
 	cd ..
 fi
 
@@ -153,7 +155,7 @@ if which rainbow &>/dev/null; then
         	echo "Rainbow is already installed"
 	else
 		echo "Downloading and installing Rainbow"
-        	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+        	curl -L -o rainbow.x.tar.gz "http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files"
         	tar xvzf rainbow.x.tar.gz
         	cd rainbow_*
         	make
@@ -163,7 +165,7 @@ if which rainbow &>/dev/null; then
 	fi
 else
 	echo "Downloading and installing Rainbow"
-	curl -L -o rainbow.x.tar.gz http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files
+	curl -L -o rainbow.x.tar.gz "http://sourceforge.net/projects/bio-rainbow/files/latest/download?source=files"
 	tar xvzf rainbow.x.tar.gz
 	cd rainbow_*
 	make
@@ -177,7 +179,7 @@ if which gnuplot &>/dev/null; then
 	echo "gnuplot is already installed"
 else
 	echo "Downliading and installing gnuplot"
-	curl -L -o gnuplot.x.tar.gz http://sourceforge.net/projects/gnuplot/files/latest/download?source=files
+	curl -L -o gnuplot.x.tar.gz "http://sourceforge.net/projects/gnuplot/files/latest/download?source=files"
 	tar xvzf gnuplot.x.tar.gz 
 	cd gnuplot-* 
 	current=`pwd` 
@@ -206,9 +208,9 @@ if which cd-hit-est &>/dev/null; then
     echo "cd-hit is already installed"
 else
 	echo "Downloading and installing cd-hit"
-	curl -L -O https://cdhit.googlecode.com/files/cd-hit-v4.6.1-2012-08-27.tgz
-	tar xvzf cd-hit-v4.6.1-2012-08-27.tgz 
-	cd cd-hit-v4.6.1-2012-08-27
+	curl -L -O https://github.com/weizhongli/cdhit/releases/download/V4.6.6/cd-hit-v4.6.6-2016-0711.tar.gz
+	tar xvzf cd-hit-v4.6.6-2016-0711.tar.gz
+	cd cd-hit-v4.6.6-2016-0711
 	make openmp=yes
 	chmod +x cd-hit-est cd-hit-est-2d
 	cp -f cd-hit-est cd-hit-est-2d $INSTALL_PATH
@@ -219,8 +221,8 @@ echo "Checking for bedtools"
 if which bamToBed &>/dev/null; then
     	echo "bedtools is already installed"
 else
-	 curl -L -O https://github.com/arq5x/bedtools2/releases/download/v2.23.0/bedtools-2.23.0.tar.gz
-	tar xvzf bedtools-2.23.0.tar.gz
+	curl -L -O https://github.com/arq5x/bedtools2/releases/download/v2.26.0/bedtools-2.26.0.tar.gz
+	tar xvzf bedtools-2.26.0.tar.gz 
 	cd bedtools2
 	make 
 	cd bin

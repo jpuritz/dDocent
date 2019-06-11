@@ -3,22 +3,14 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 v="2.8.7"
 
-if [[ -z "$6" ]]; then
-echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors"
-echo -e "\n\n"
-echo "Optionally, a new range of similarities can be entered as well:"
-echo "ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors minSim maxSim increment"
-echo -e "\nFor example, to scale between 0.95 and 0.99 using 0.005 increments:\nReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors 0.95 0.99 0.005"
-exit
+
+if [[ -z "$7" ]]; then
+echo "Usage is RefMapOpt minK1 maxK1 minK2 maxK2 cluster_similarity Assembly_Type Num_of_Processors optional_list_of_individuals"
+exit 1
 fi
 
-if ! sort --version | fgrep GNU &>/dev/null; then
-	sort=gsort
-else
-	sort=sort
-fi
-
-DEP=(mawk samtools rainbow gnuplot seqtk cd-hit-est parallel pearRM fastp)
+echo "Checking for required software"
+DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools parallel vcfcombine pearRM fastp)
 NUMDEP=0
 for i in "${DEP[@]}"
 do
@@ -30,7 +22,79 @@ do
 	fi
 done
 
+SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
+SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
+	if [ "$SAMV1"  -ge "1" ]; then
+		if [ "$SAMV2"  -lt "3" ]; then
+        	echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.3.0"
+			echo -en "\007"
+			echo -en "\007"
+			exit 1
+		fi
+	
+	else
+		    echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.3.0"
+			echo -en "\007"
+			echo -en "\007"
+			exit 1
+	fi
 
+RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
+	if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
+        	echo "The version of Rainbow installed in your" '$PATH' "is not optimized for dDocent."
+        	echo -en "\007"
+			echo -en "\007"
+			echo -en "\007"
+        	echo "Is the version of rainbow installed newer than 2.0.2?  Enter yes or no."
+			read TEST
+			if [ "$TEST" != "yes" ]; then 
+        		echo "Please install a version newer than 2.0.2"
+        		exit 1
+        	fi
+        fi
+FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed -e 's/v//' `)	
+	if [ "$FREEB" != "1" ]; then
+        	echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.0.0"
+        	exit 1
+        fi  
+SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed -e 's/1.[0-9]-r//g' | sed -e 's/-dirty//g' `)
+	if [ "$SEQTK" -lt "102" ]; then
+		echo "The version of seqtk installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 1.2-r102-dirty"
+        	exit 1
+	fi
+	
+VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed -e 's/[a-z)]//')
+	if [ "$VCFTV" -lt "10" ]; then
+        	echo "The version of VCFtools installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 0.1.11"
+        	exit 1
+        elif [ "$VCFTV" == "11" ]; then
+                VCFGTFLAG="--geno" 
+        elif [ "$VCFTV" -ge "12" ]; then
+                VCFGTFLAG="--max-missing"
+	fi
+BWAV=$(bwa 2>&1 | mawk '/Versi/' | sed -e 's/Version: //g' | sed -e 's/0.7.//g' | sed -e 's/-.*//g' | cut -c 1-2)
+	if [ "$BWAV" -lt "13" ]; then
+        	echo "The version of bwa installed in your" '$PATH' "is not optimized for dDocent."
+        	echo "Please install at least version 0.7.13"
+        	exit 1
+	fi
+
+BTC=$( bedtools --version | mawk '{print $2}' | sed -e 's/v//g' | cut -f1,2 -d"." | sed -e 's/2\.//g' )
+	if [ "$BTC" -ge "26" ]; then
+		BEDTOOLSFLAG="NEW"
+		elif [ "$BTC" == "23" ]; then
+		BEDTOOLSFLAG="OLD"
+		elif [ "$BTC" != "23" ]; then
+		echo "The version of bedtools installed in your" '$PATH' "is not optimized for dDocent."
+		echo "Please install version 2.23.0 or version 2.26.0 and above"
+		exit 1	
+	fi
+	
 FASTP=$(fastp -v 2>&1 | cut -f2 -d " ")
 FASTP1=$(echo $FASTP | cut -f1 -d ".")
 FASTP2=$(echo $FASTP | cut -f2 -d ".")
@@ -44,39 +108,47 @@ FASTP3=$(echo $FASTP | cut -f3 -d ".")
 			fi
 		fi
 	fi
-
-
-ATYPE=$5
-NUMProc=$6
-
-if [[ -z "$7" ]]; then
-
-	minSim=0.8
-	maxSim=0.98
-	incSim=0.02
+	
+if ! sort --version | fgrep GNU &>/dev/null; then
+	sort=gsort
 else
-
-	minSim=$7 
-	maxSim=$8
-	incSim=$9
+	sort=sort
 fi
 
 if [ $NUMDEP -gt 0 ]; then
-	echo -e "\nPlease install all required software before running ReferenceOpt again."
+	echo -e "\nPlease install all required software before running RefMapOpt again."
 	exit 1
 else
 	echo -e "\nAll required software is installed!"
 fi
 
-echo -e "\ndDocent ReferenceOpt version $v"
+simC=$5
 
+ATYPE=$6
+
+if [[ $ATYPE != "SE" && $ATYPE != "PE" && $ATYPE != "OL" && $ATYPE != "HYB" && $ATYPE != "ROL" && $ATYPE != "RPE" ]]; then
+echo "Usage is RefMapOpt minK1 maxK1 minK2 maxK2 cluster_similarity Assembly_Type Num_of_Processors optional_list_of_individuals"
+echo "Please make sure to choose assembly type."
+exit 1
+fi
+
+NUMProc=$7
 ls *.F.fq.gz > namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
 NAMES=( `cat "namelist" `)
 
-getAssemblyInfo(){
-echo "nope!"
-}
+echo -e "\ndDocent RefMapOpt version $v"
+
+#This code checks for trimmed sequence files
+TEST=$(ls *.R1.fq.gz 2> /dev/null | wc -l )
+if [ "$TEST" -gt 0 ]; then
+	echo -e "\nTrimmed sequences found, proceeding with optimization."
+else
+	echo -e "\nRefMapOpt.sh requires that you have trimmed sequence files.\nPlease include trimmed sequence files with the .R1.fq.gz and .R2.fq.gz naming convention."
+	echo "dDocent will create these for you"
+	echo "Please rerun RefMapOpt.sh after trimming sequence files"
+exit 1
+fi
 
 
 Reference(){
@@ -197,8 +269,8 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 else
 	parallel --no-notice mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$CUTOFF2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
 fi
-$sort -k1 -r -n --parallel=$NUMProc -S 2G uniq.k.$CUTOFF.c.$CUTOFF2.seqs |cut -f2 > totaluniqseq
 #$sort -k1 -r -n uniq.k.$CUTOFF.c.$CUTOFF2.seqs | cut -f 2 > totaluniqseq
+$sort -k1 -r -n --parallel=$NUMProc -S 2G uniq.k.$CUTOFF.c.$CUTOFF2.seqs |cut -f2 > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
 LENGTH=$(($LENGTH * 3 / 4))
@@ -392,48 +464,110 @@ SEQS=$(mawk 'END {print NR}' uniq.k.$CUTOFF.c.$CUTOFF2.seqs)
 TIGS=$(grep ">" -c reference.fasta)
 
 #echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
-echo $TIGS
+#echo $TIGS
 }
 
-rm kopt.data &>/dev/null
 
-for ((P = $1; P <= $2; P++))
+ls -S *.F.fq.gz > namelist
+sed -i'' -e 's/.F.fq.gz//g' namelist
+
+if [[ -z "$8" ]]; then
+NUMIND=$(cat namelist | wc -l)
+NUM1=$(($NUMIND / 10))
+NUM2=$(($NUMIND - $NUM1))
+NUM3=$(($NUM2 - $NUM1))
+cat namelist | head -$NUM2 | tail -$NUM3 > newlist
+NAMESR=( `cat "newlist" `)
+LEN=${#NAMESR[@]}
+LEN=$(($LEN - 1))
+echo "5" >randlist
+	for ((rr = 1; rr<=50; rr++));
 	do
-	for ((i = $3; i <= $4; i++))
-	do
-	X=$(($P + $i))
-	if [ "$X" != "2" ]; then
-		for j in $(seq $minSim $incSim $maxSim)
-		do
-		echo "K1 is $P" "K2 is $i" "c is $j"
-		SEQS=$(Reference $P $i $j)
-		echo $P $i $j $SEQS >> kopt.data
-		done
-	fi	
+	INDEX=$[ 1 + $[ RANDOM % $LEN ]]
+		if grep -q ${NAMESR[$INDEX]} randlist;
+		then x=x
+		else
+	echo ${NAMESR[$INDEX]} >> randlist
+		fi
 	done
+
+RANDNAMES=( `mawk '!/^5$/' "randlist" | head -21 `)
+else
+RANDNAMES=( `cat "$8" `)
+fi
+
+rm lengths.txt &> /dev/null
+for k in "${RANDNAMES[@]}";
+	do
+	if [ -f "$k.R.fq.gz" ]; then
+		gunzip -c $k.R.fq.gz | head -2 | tail -1 >> lengths.txt
+	fi
+	done	
+
+
+rm rand.proc 2>/dev/null
+
+for k in "${RANDNAMES[@]}"
+do
+	echo $k >> rand.proc
 done
 
-cut -f4 -d " " kopt.data > plot.kopt.data
-gnuplot << \EOF
-set terminal dumb size 120, 30
-set autoscale
-unset label
-set title "Histogram of number of reference contigs"
-set ylabel "Number of Occurrences"
-set xlabel "Number of reference contigs"
-max = `sort -g plot.kopt.data | tail -1`
-binwidth = max/250.0
-bin(x,width)=width*floor(x/width) + binwidth/2.0
-#set xtics 10
-plot 'plot.kopt.data' using (bin($1,binwidth)):(1.0) smooth freq with boxes
-pause -1
-EOF
+echo -e "Cov\tNon0Cov\tContigs\tMeanContigsMapped\tK1\tK2\tSUM_Mapped\tSUM_Properly\tMean_Mapped\tMean_Properly\tMisMatched" > mapping.results
 
-AF=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' plot.kopt.data)
-echo "Average contig number = $AF"
-echo "The top three most common number of contigs"
-echo -e "X\tContig number"
-perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' plot.kopt.data | sort -k1 -g -r | head -3
-echo "The top three most common number of contigs (with values rounded)"
-echo -e "X\tContig number"
-while read NAME; do python -c "print(round($NAME,-2))"; done < plot.kopt.data | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | sort -g -r | head -3 | sed "s/^[ \t]*//"
+for ((r = $1; r <= $2; r++));
+do
+	for ((j = $3; j <= $4; j++));
+	do
+	PP=$(($r + $j))
+	if [ "$PP" != "2" ]; then
+		Reference $r $j $simC
+    	#BWA for mapping for all samples
+    	rm $r.$j.results 2>/dev/null
+    	
+    	map_reads(){	
+    	r=$2;j=$3
+		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" || "$ATYPE" == "RPE" ]]; then
+			if [ -f "$1.R2.fq.gz" ]; then
+				bwa mem reference.fasta $1.R1.fq.gz $1.R2.fq.gz -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+			else
+				bwa mem reference.fasta $1.R1.fq.gz -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+			fi
+		else
+			if [ -f "$1.R2.fq.gz" ]; then
+				if [ -f "lengths.txt" ]; then
+    				MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+    				INSERT=$(($MaxLen * 2 ))
+    				INSERTH=$(($INSERT + 100 ))
+    				INSERTL=$(($INSERT - 100 ))
+    				SD=$(($INSERT / 10))
+				fi
+    			bwa mem reference.fasta $1.R1.fq.gz $1.R2.fq.gz -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+    		else
+    			bwa mem reference.fasta $1.R1.fq.gz -L 20,5 -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+    		fi
+    	fi
+		samtools sort -@4 $1.bam -o $1.bam 2> /dev/null
+		samtools index $1.bam
+    	MM=$(samtools flagstat $1.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
+    	CM=$(samtools idxstats $1.bam | mawk '$3 > 0' | wc -l)
+    	CC=$(samtools idxstats $1.bam | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
+		DD=$(samtools idxstats $1.bam | mawk '$3 >0' | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
+		BM=$(samtools flagstat $1.bam | grep mapQ | cut -f1 -d ' ')
+		echo -e "$MM\t$CM\t$CC\t$DD\t$BM" >> $r.$j.results
+    	}
+    	export -f map_reads
+    	cat rand.proc | parallel --no-notice -j $NUMProc --env map_reads map_reads {} $r $j
+    	SUMM=$(mawk '{ sum+=$1} END {print sum}' $r.$j.results)
+    	SUMPM=$(mawk '{ sum+=$2} END {print sum}' $r.$j.results)
+    	AVEM=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	AVEP=$(mawk '{ sum += $2; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	AC=$(mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	CON=$(mawk '/>/' reference.fasta | wc -l)
+	CCC=$(mawk '{ sum += $4; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+	DDD=$(mawk '{ sum += $5; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+	BBM=$(mawk '{ sum += $6; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	echo -e "$CCC\t$DDD\t$CON\t$AC\t$r\t$j\t$SUMM\t$SUMPM\t$AVEM\t$AVEP\t$BBM" >> mapping.results
+	fi
+	done
+    		
+done

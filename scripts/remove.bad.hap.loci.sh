@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export LC_ALL=en_US.UTF-8
 
 if [ -z "$2" ]; then
 echo "Correct usage is sh remove.bad.hap.loci.sh file_with_bad_Loci vcf_file"
