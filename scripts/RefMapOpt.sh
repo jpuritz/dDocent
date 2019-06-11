@@ -528,9 +528,9 @@ do
     	r=$2;j=$3
 		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" || "$ATYPE" == "RPE" ]]; then
 			if [ -f "$1.R2.fq.gz" ]; then
-				bwa mem -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" $1.R1.fq.gz $1.R2.fq.gz reference.fasta2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+				bwa mem -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz $1.R2.fq.gz  2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
 			else
-				bwa mem -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" $1.R1.fq.gz reference.fasta 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+				bwa mem -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
 			fi
 		else
 			if [ -f "$1.R2.fq.gz" ]; then
@@ -541,9 +541,9 @@ do
     				INSERTL=$(($INSERT - 100 ))
     				SD=$(($INSERT / 10))
 				fi
-    			bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" $1.R1.fq.gz $1.R2.fq.gz reference.fasta 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+    			bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz $1.R2.fq.gz 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
     		else
-    			bwa mem -L 20,5 -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" $1.R1.fq.gz reference.fasta 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+    			bwa mem -L 20,5 -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
     		fi
     	fi
 		samtools sort -@4 $1.bam -o $1.bam 2> /dev/null
