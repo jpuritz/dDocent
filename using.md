@@ -10,6 +10,8 @@ Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803
 
 ### Selected Citations
 
+**Raszick, T.J., Suh, C.P.C., Dickens, C.M. and Sword, G.A., 2019. Genome‐wide markers reveal temporal instability of local population genetic structure in the cotton fleahopper, Pseudatomoscelis seriatus (Hemiptera: Miridae). Pest management science.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1002/ps.5518)
+
 **Barker, A.M., Adams, D.H., Driggers III, W.B., Frazier, B.S. and Portnoy, D.S., 2019. Hybridization between sympatric hammerhead sharks in the western North Atlantic Ocean. Biology letters, 15(4), p.20190004.** [LINK](https://royalsocietypublishing.org/doi/abs/10.1098/rsbl.2019.0004)
 
 **Hollenbeck, C.M., Portnoy, D.S. and Gold, J.R., 2019. Evolution of population structure in an estuarine‐dependent marine fish. Ecology and Evolution.** [LINK](https://onlinelibrary.wiley.com/doi/abs/10.1002/ece3.4936)
