@@ -4,7 +4,7 @@ title: Papers using dDocent
 subtitle: Results can happen!
 ---
 
-### Total Citations = 95
+### Total Citations = 110
 
 Find them all at [Google Scholar](https://scholar.google.com/scholar?cites=14803244071106482641&as_sdt=5,40&sciodt=0,40&hl=en)!
 
