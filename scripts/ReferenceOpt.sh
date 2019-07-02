@@ -45,12 +45,6 @@ FASTP3=$(echo $FASTP | cut -f3 -d ".")
 		fi
 	fi
 
-if [ $NUMDEP -gt 0 ]; then
-	echo -e "\nPlease install all required software before running dDocent again."
-	exit 1
-else
-	echo -e "\nAll required software is installed!"
-fi
 
 ATYPE=$5
 NUMProc=$6
