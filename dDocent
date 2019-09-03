@@ -1088,7 +1088,7 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
         LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
         LENGTH=$(( $LENGTH * 5 / 4))
 
-        pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j 20 -n $LENGTH &>kopt.log
+        pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j $NUMProc -n $LENGTH &>kopt.log
 
         rm ref.F.fq ref.R.fq
 
