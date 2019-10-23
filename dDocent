@@ -716,7 +716,7 @@ trim_reads(){
 	
 	if [ -f $1.R.fq.gz ]; then	
 		# paired
-		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 --correction $TW -q 15 -u 50 -j $1.json -h $1.html --detect_adapter_for_pe &> $1.trim.log
+		fastp --in1 $1.F.fq.gz --in2 $1.R.fq.gz --out1 $1.R1.fq.gz --out2 $1.R2.fq.gz --cut_front --cut_tail --cut_window_size 5 --cut_mean_quality 15 --correction $TW -q 15 -u 50 -j $1.json -h $1.html --detect_adapter_for_pe &> $1.trim.log
 	else 
 		#single
 		fastp -i $1.F.fq.gz -o $1.R1.fq.gz --cut_by_quality5 20 --cut_by_quality3 20 --cut_window_size 5 --cut_mean_quality 15 -q 15 -u 50  $TW -j $1.json -h $1.html &> $1.trim.log
@@ -1339,11 +1339,28 @@ echo "At this point, all configuration information has been entered and dDocent 
 echo "It is recommended that you move this script to a background operation and disable terminal input and output."
 echo "All data and logfiles will still be recorded."
 echo "To do this:"
-echo "Press control and Z simultaneously"
-echo "Type 'bg' without the quotes and press enter"
-echo "Type 'disown -h' again without the quotes and press enter"
-echo ""
-echo "Now sit back, relax, and wait for your analysis to finish"
+printf "Press "
+printf "\033[01;33m"
+printf "control"
+printf "\033[0m" 
+printf " and " 
+printf "\033[01;33m"
+printf "Z" 
+printf "\033[0m" 
+printf " simultaneously"
+
+printf "\nType "
+printf "\033[01;33m"
+printf "bg"
+printf "\033[0m"
+printf " and press enter"
+printf "\nType "
+printf "\033[01;33m"
+printf "disown -h"
+printf "\033[0m"
+printf " and press enter"
+
+echo -e "\nNow sit back, relax, and wait for your analysis to finish"
 fi
 
 if [ "$ASSEMBLY" == "yes" ]; then
