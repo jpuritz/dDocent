@@ -534,18 +534,20 @@ do
 			fi
 		else
 			if [ -f "$1.R2.fq.gz" ]; then
-				if [ -f "lengths.txt" ]; then
-    				MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-    				INSERT=$(($MaxLen * 2 ))
-    				INSERTH=$(($INSERT + 100 ))
-    				INSERTL=$(($INSERT - 100 ))
-    				SD=$(($INSERT / 10))
-				fi
+			
+    			INSERT=$(mawk '!/^>/' reference.fasta | mawk '{ print length() }' | mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }')
+    			INSERTH=$(($INSERT + 100 ))
+    			INSERTL=$(($INSERT - 100 ))
+    			SD=$(($INSERT / 5))
+			
     			bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz $1.R2.fq.gz 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
-    		else
-    			bwa mem -L 20,5 -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+    			
+			else
+    			
+			bwa mem -L 20,5 -t 8 -a -M -T 10 -A 1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz 2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
+    			fi
     		fi
-    	fi
+		
 		samtools sort -@4 $1.bam -o $1.bam 2> /dev/null
 		samtools index $1.bam
     	MM=$(samtools flagstat $1.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
