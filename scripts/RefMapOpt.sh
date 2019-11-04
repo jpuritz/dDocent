@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
-v="2.8.7"
+v="2.8.8"
 
 
 if [[ -z "$7" ]]; then
