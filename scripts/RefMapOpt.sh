@@ -526,7 +526,7 @@ do
     	
     	map_reads(){	
     	r=$2;j=$3
-		if [[ "$ATYPE" == "OL" || "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" || "$ATYPE" == "RPE" ]]; then
+		if [[ "$ATYPE" == "HYB"  || "$ATYPE" == "ROL" || "$ATYPE" == "RPE" ]]; then
 			if [ -f "$1.R2.fq.gz" ]; then
 				bwa mem -L 20,5 -t 8 -a -M -T 10 -A1 -B 3 -O 5 -R "@RG\tID:$1\tSM:$1\tPL:Illumina" reference.fasta $1.R1.fq.gz $1.R2.fq.gz  2> bwa.$1.log | mawk '!/\t[2-9].[SH].*/' | mawk '!/[2-9].[SH]\t/' | samtools view -@4 -q 1 -SbT reference.fasta - > $1.bam
 			else
