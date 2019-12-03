@@ -8,13 +8,13 @@ subtitle:
 
 Be sure to check the github [page](https://github.com/jpuritz/dDocent/releases) for the latest stable release as sometimes this page is out of date!
 
-Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/v2.7.6.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.7.6</a>
+Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/v2.7.8.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.7.8</a>
 
 Alternatively:
 
 ```
-curl -L -O https://github.com/jpuritz/dDocent/archive/v2.7.6.tar.gz
-tar xvzf v2.7.6.tar.gz
+curl -L -O https://github.com/jpuritz/dDocent/archive/v2.7.8.tar.gz
+tar xvzf v2.7.8.tar.gz
 ```
  
 # Requirements
