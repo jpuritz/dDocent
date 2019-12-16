@@ -535,7 +535,7 @@ do
 		else
 			if [ -f "$1.R2.fq.gz" ]; then
 			
-    			INSERT=$(mawk '!/^>/' reference.fasta | mawk '{ print length() }' | mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }')
+    			INSERT=$(mawk '!/^>/' reference.fasta | mawk '{ print length() }' | mawk '{ sum += $1; n++ } END { if (n > 0) print int(sum / n); }')
     			INSERTH=$(($INSERT + 100 ))
     			INSERTL=$(($INSERT - 100 ))
     			SD=$(($INSERT / 5))
