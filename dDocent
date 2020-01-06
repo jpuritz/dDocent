@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.8.9'; export VERSION
+VERSION='2.8.10'; export VERSION
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -775,18 +775,18 @@ getAssemblyInfo(){
 
 
 		#Plot graph of above data
-		gnuplot << \EOF 
-		set terminal dumb size 120, 30
-		set autoscale
-		set xrange [2:20] 
-		unset label
-		set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
-		set xlabel "Coverage"
-		set ylabel "Number of Unique Sequences"
-		set lmargin 10
-		plot 'uniqseq.data' with lines notitle
-		pause -1
-	EOF
+gnuplot << \EOF
+set terminal dumb size 120, 30
+set autoscale
+set xrange [2:20] 
+unset label
+set title "Number of Unique Sequences with More than X Coverage (Counted within individuals)"
+set xlabel "Coverage"
+set ylabel "Number of Unique Sequences"
+set lmargin 10
+plot 'uniqseq.data' with lines notitle
+pause -1
+EOF
 
 
 		echo -en "\007"
@@ -830,17 +830,17 @@ getAssemblyInfo(){
 
 		#Plot graph of above data
 
-		gnuplot << \EOF 
-		set terminal dumb size 120, 30
-		set autoscale 
-		unset label
-		set title "Number of Unique Sequences present in more than X Individuals"
-		set xlabel "Number of Individuals"
-		set ylabel "Number of Unique Sequences"
-		set lmargin 10
-		plot 'uniqseq.peri.data' with lines notitle
-		pause -1
-	EOF
+gnuplot << \EOF
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Number of Unique Sequences present in more than X Individuals"
+set xlabel "Number of Individuals"
+set ylabel "Number of Unique Sequences"
+set lmargin 10
+plot 'uniqseq.peri.data' with lines notitle
+pause -1
+EOF
 
 		echo -en "\007"
 		echo -en "\007"
