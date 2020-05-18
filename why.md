@@ -9,7 +9,7 @@ subtitle:
 
 
 
-## *de nono* assembly
+## *de novo* assembly
 
 dDocent employs a series of data reduction techniques, aligment based clustering (using [CD-hit](https://github.com/weizhongli/cdhit)), and, for PE assembly, a specialized RAD assembly software ([rainbow](https://sourceforge.net/projects/bio-rainbow/files/).  This combination allows for accurate and effecient *de novo* assembly.  
 
