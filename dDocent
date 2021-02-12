@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.8.12'; export VERSION
+VERSION='2.8.13'; export VERSION
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -338,7 +338,7 @@ echo -e "\nUsing BWA to map reads"
         fi
 #This next section of code checks to see if the reference was assembled by dDocent 
 #and if so, modifies the expected insert length distribution for BWA's metric for proper pairing
-        if head -1 reference.fasta | grep -e 'dDocent_' reference.fasta 1>/dev/null; then
+        if head -1 reference.fasta | grep -e 'dDocent' 1>/dev/null; then
         	rm lengths.txt &> /dev/null
         	for i in "${NAMES[@]}";
         		do
@@ -421,7 +421,7 @@ if [ "$SNP" != "no" ]; then
 	
 	SNPNUMProc=$(( $NUMProc * 2 )) 
 	
-	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
+	if head -1 reference.fasta | grep -e 'dDocent' 1>/dev/null; then
 	
 		DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
 		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
@@ -569,7 +569,7 @@ if [ "$SNP" != "no" ]; then
 			rm mapped.*.bed
 			rm freebayes.error
 			LIM=$(( $SNPNUMProc * 4 ))
-        	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
+        	if head -1 reference.fasta | grep -e 'dDocent' 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
                 	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$LIM'"}')
@@ -611,7 +611,7 @@ if [ "$SNP" != "no" ]; then
 			echo -e "\nA previous freebayes instance failed again.  dDocent will now recalibrate run parameters to use even less memory.\n"
         		rm freebayes.error
 			LIM=$(( $LIM * 4 ))
-        	if head -1 reference.fasta | grep -e 'dDocent' reference.fasta 1>/dev/null; then
+        	if head -1 reference.fasta | grep -e 'dDocent' 1>/dev/null; then
 
                 	DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
                 	CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$LIM'"}')
