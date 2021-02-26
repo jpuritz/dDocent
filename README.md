@@ -1,10 +1,10 @@
-dDocent
-=======
+![logo](logo.png)
+_RADSeq Bioinformatics and Beyond_
 
-This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from almost any kind of RAD data.  It is designed to run on Linux based machines with large memory capacity and multiple processing cores
+[![alt text](https://anaconda.org/bioconda/ddocent/badges/downloads.svg)](https://anaconda.org/bioconda/ddocent) 
+[![dDocent documentation](https://img.shields.io/badge/documentation-website-informational?logo=Read%20The%20Docs&logoColor=white)](https://www.ddocent.com)
 
-![alt text](https://anaconda.org/bioconda/ddocent/badges/downloads.svg)
+dDocent is simple bash wrapper to QC, assemble, map, and call SNPs from almost any kind of RAD sequencing. If you have a reference already, dDocent can be used to call SNPs from almost any type of NGS data set. It is designed to run on Linux based machines with large memory capacity and multiple processing cores, and it can be modified for use on HPC. With Bioconda, dDocent can also be installed and run on machines running OS X.
 
-# [dDocent.com](https://ddocent.com)
 
-Please find all documentation, including a user guide and tutorials at [dDocent.com](https://ddocent.com)
+> The "d" is silent 🤫
