@@ -29,6 +29,9 @@ dDocent is simple bash wrapper to QC, assemble, map, and call SNPs from almost a
 
 ![ngs comparison](https://github.com/jpuritz/dDocent/blob/master/Sample%20Comparsion.png)
 
+## Citing dDocent
+Puritz JB, Hollenbeck CM, Gold JR. 2014. dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms. PeerJ 2:e431 https://doi.org/10.7717/peerj.431
+
 -----
 
 _The "d" is silent_ 🤫
