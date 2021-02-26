@@ -214,6 +214,6 @@ echo -e "Total number of sites filtered\n" $NUMFIL "of" $OLD "\n" >> $2.filterst
 echo -e "Remaining sites\n" $FILTERED "\n"
 echo -e "Remaining sites\n" $FILTERED "\n" >> $2.filterstats
 
-echo -e "Filtered VCF file is called Output_prefix.FIL.recode.vcf\n"
+echo -e "Filtered VCF file is called $2.FIL.recode.vcf\n"
 echo "Filter stats stored in $2.filterstats"
 
