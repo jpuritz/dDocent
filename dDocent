@@ -61,15 +61,15 @@ if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
 fi
 FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed -e 's/v//' `)	
 if [ "$FREEB" != "1" ]; then
-		echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
-		echo "Please install at least version 1.0.0"
-		exit 1
+    echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
+    echo "Please install at least version 1.0.0"
+    exit 1
 	fi  
 SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed -e 's/1.[0-9]-r//g' | sed -e 's/-dirty//g' `)
 if [ "$SEQTK" -lt "102" ]; then
 	echo "The version of seqtk installed in your" '$PATH' "is not optimized for dDocent."
-		echo "Please install at least version 1.2-r102-dirty"
-		exit 1
+    echo "Please install at least version 1.2-r102-dirty"
+    exit 1
 fi
 
 VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed -e 's/[a-z)]//')
@@ -186,6 +186,37 @@ STARTTIME=$(date)
 
 echo -e "\ndDocent version $VERSION started" $STARTTIME "\n"
 
+endtext(){
+	echo ""
+    echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
+	echo "It is recommended that you move this script to a background operation and disable terminal input and output."
+	echo "All data and logfiles will still be recorded."
+	echo "To do this:"
+	printf "Press "
+	printf "\033[01;33m"
+	printf "control"
+	printf "\033[0m" 
+	printf " and " 
+	printf "\033[01;33m"
+	printf "Z" 
+	printf "\033[0m" 
+	printf " simultaneously"
+
+	printf "\nType "
+	printf "\033[01;33m"
+	printf "bg"
+	printf "\033[0m"
+	printf " and press enter"
+	printf "\nType "
+	printf "\033[01;33m"
+	printf "disown -h"
+	printf "\033[0m"
+	printf " and press enter"
+
+	echo -e "\nNow sit back, relax, and wait for your analysis to finish"
+}
+export -f endtext
+
 
 #dDocent can now accept a configuration file instead of running interactively
 #Checks if a configuration file is being used, if not asks for user input
@@ -230,36 +261,10 @@ if [ -n "$1" ]; then
 	MAIL=$(grep -A1 Email $CONFIG | tail -1)
 	
 	if [ "$ASSEMBLY" == "yes" ] && [[ -z $CUTOFF || -z $CUTOFF2 ]]; then
-		
 		echo "dDocent will require input during the assembly stage.  Please wait until prompt says it is safe to move program to the background."	
 	else	
 		#Prints instructions on how to move analysis to background and disown process
-		echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
-		echo "It is recommended that you move this script to a background operation and disable terminal input and output."
-		echo "All data and logfiles will still be recorded."
-		echo "To do this:"
-		printf "Press "
-		printf "\033[01;33m"
-		printf "control"
-		printf "\033[0m" 
-		printf " and " 
-		printf "\033[01;33m"
-		printf "Z" 
-		printf "\033[0m" 
-		printf " simultaneously"
-
-		printf "\nType "
-		printf "\033[01;33m"
-		printf "bg"
-		printf "\033[0m"
-		printf " and press enter"
-		printf "\nType "
-		printf "\033[01;33m"
-		printf "disown -h"
-		printf "\033[0m"
-		printf " and press enter"
-
-		echo -e "\nNow sit back, relax, and wait for your analysis to finish"
+		endtext
 	fi
 
 else
@@ -323,7 +328,6 @@ if [[ "$TRIM" == "yes" && "$ASSEMBLY" == "yes" ]]; then
 	echo -e "\nTrimming reads and simultaneously assembling reference sequences"        
 	TrimReads & 2> trim.log
 	Assemble
-	#setupRainbow 2> rainbow.log
 	wait
 fi
 
@@ -334,7 +338,6 @@ fi
                 
 if [[ "$TRIM" != "yes" && "$ASSEMBLY" == "yes" ]]; then                
 	Assemble
-	#setupRainbow 2> rainbow.log
 fi
 
 #Checks to see if reads will be mapped.
@@ -366,7 +369,7 @@ echo -e "\nUsing BWA to map reads"
 			INSERTL=$(($INSERT - 100 ))
 			SD=$(($INSERT / 5))
 		fi
-	#BWA for mapping for all samples.  As of version 2.0 can handle SE or PE reads by checking for PE read files
+	    #BWA for mapping for all samples.  As of version 2.0 can handle SE or PE reads by checking for PE read files
 		for i in "${NAMES[@]}"; do
 			if [ -f "$i.R2.fq.gz" ]; then
 				bwa mem -L 20,5 -I $INSERT,$SD,$INSERTH,$INSERTL -t $NUMProc -a -M -T 10 -A $optA -B $optB -O $optO -R "@RG\tID:$i\tSM:$i\tPL:Illumina" reference.fasta $i.R1.fq.gz $i.R2.fq.gz  2> bwa.$i.log | mawk '$6 !~/[2-9].[SH]/ && $6 !~ /[1-9][0-9].[SH]/' | samtools view -@$SAMProc -q 1 -SbT reference.fasta - > $i.bam 2>$i.bam.log
@@ -386,9 +389,9 @@ echo -e "\nUsing BWA to map reads"
 fi
 
 # sort
-find ./ -name "*.bam" | parallel --jobs $NUMProc samtools sort -@$SAMProc {} -o {} 2>> {}.log
-# rename to -RG.bam
-find . -name "*.bam" | sed "s/.*\///; s/\.bam//" | xargs -I {} mv {}.bam {}-RG.bam 
+find ./ -name "*.bam" | parallel --jobs $(( $NUMProc / $SAMProc )) samtools sort -@$SAMProc {} -o {} "2>>" {}.log
+# rename to -RG.bam. This parallele {.} trick removes the last extension from the input filename 
+find . -name "*.bam" | parallel --jobs 1 mv {} {.}-RG.bam 
 # index output bam files
 find ./ -name "*-RG.bam" | parallel --jobs $NUMProc samtools index {}
 
@@ -417,7 +420,8 @@ if [ "$SNP" != "no" ]; then
 	fi
 	#Check to make sure interval files have been created
 	if [[ "$MAP" == "no" && ! -f "mapped.bed" ]]; then
-		bedtools merge -i cat-RRG.bam -bed >  mapped.bed
+        bedtools bamtobed -i cat-RRG.bam > cat-RRG.bed
+		bedops --merge cat-RRG.bed > mapped.bed
 	fi
 	#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
 	#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
@@ -493,8 +497,6 @@ if [ "$SNP" != "no" ]; then
 
 	###New implementation of SNP calling here to save on memory	
 	call_genos(){
-		#samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam cat-RRG.bam
-		#samtools index split.$1.bam
 		echo "Starting Freebayes instance " $1 >> freebayes.log
 		freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations popmap -n 10 -F 0.1 &> fb.$1.error.log
 		if [ $? -eq 0 ]; then
@@ -511,8 +513,6 @@ if [ "$SNP" != "no" ]; then
 	
 	export -f call_genos
       	call_genos2(){
-		#samtools view -@$SAMProc -b -1 -L mapped.$1.bed -o split.$1.bam split.bam
-		#samtools index split.$1.bam
 		echo "Starting Freebayes instance " $1 >> freebayes.log
 		freebayes -b cat-RRG.bam -t mapped.$1.bed -v raw.$1.vcf -f ../reference.fasta -m 5 -q 5 -E 3 --min-repeat-entropy 1 -V --populations ../popmap -n 10 -F 0.1
 		if [ $? -eq 0 ]; then
@@ -563,7 +563,6 @@ if [ "$SNP" != "no" ]; then
 	rm freebayes.error freebayes.log &> /dev/null
 	
 	ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel --bar --halt now,fail=10 --env call_genos -j $NUMProc --no-notice --joblog ./par.log "call_genos {} "
-
 
 	if [ -f "freebayes.error" ]; then
 		FAILS=$( cat freebayes.error | wc -l )
@@ -857,32 +856,7 @@ EOF
 	sed -i 's/CUTOFF1_NOTSET/'$CUTOFF'/g' dDocent.runs
 	sed -i 's/CUTOFF2_NOTSET/'$CUTOFF2'/g' dDocent.runs
 
-	echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
-	echo "It is recommended that you move this script to a background operation and disable terminal input and output."
-	echo "All data and logfiles will still be recorded."
-	echo "To do this:"
-	printf "Press "
-	printf "\033[01;33m"
-	printf "control"
-	printf "\033[0m" 
-	printf " and " 
-	printf "\033[01;33m"
-	printf "Z" 
-	printf "\033[0m" 
-	printf " simultaneously"
-
-	printf "\nType "
-	printf "\033[01;33m"
-	printf "bg"
-	printf "\033[0m"
-	printf " and press enter"
-	printf "\nType "
-	printf "\033[01;33m"
-	printf "disown -h"
-	printf "\033[0m"
-	printf " and press enter"
-
-	echo -e "\nNow sit back, relax, and wait for your analysis to finish"
+	endtext
 }
 
 #Main function for assembly
@@ -995,7 +969,6 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 else
 	parallel --no-notice mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$CUTOFF2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
 fi
-#$sort -k1 -r -n uniq.k.$CUTOFF.c.$CUTOFF2.seqs | cut -f 2 > totaluniqseq
 $sort -k1 -r -n --parallel=$NUMProc -S 2G uniq.k.$CUTOFF.c.$CUTOFF2.seqs |cut -f2 > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
@@ -1195,12 +1168,12 @@ echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
 ##This takes advantage of the fact that RAD loci are very discrete.  Instead of calculating intervals for every BAM file,
 ##this function merges all BAM files together.  This overall BAM file 
 ##is used to create a single list of intervals, saving a large amount of computational time.
-
 CreateIntervals(){
 	samtools merge -@$NUMProc -b bamlist.list -f cat-RRG.bam &>/dev/null
 	samtools index cat-RRG.bam 
 wait
-	bedtools merge -i cat-RRG.bam -bed >  mapped.bed
+    bedtools bamtobed -i cat-RRG.bam > cat-RRG.bed
+    bedops --merge cat-RRG.bed > mapped.bed
 }
 
 #This checks that dDocent has detected the proper number of individuals and exits if incorrect
@@ -1340,32 +1313,7 @@ GetInfo(){
 
 	if [ "$ASSEMBLY" == "no" ]; then
 		#Prints instructions on how to move analysis to background and disown process
-		echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
-		echo "It is recommended that you move this script to a background operation and disable terminal input and output."
-		echo "All data and logfiles will still be recorded."
-		echo "To do this:"
-		printf "Press "
-		printf "\033[01;33m"
-		printf "control"
-		printf "\033[0m" 
-		printf " and " 
-		printf "\033[01;33m"
-		printf "Z" 
-		printf "\033[0m" 
-		printf " simultaneously"
-
-		printf "\nType "
-		printf "\033[01;33m"
-		printf "bg"
-		printf "\033[0m"
-		printf " and press enter"
-		printf "\nType "
-		printf "\033[01;33m"
-		printf "disown -h"
-		printf "\033[0m"
-		printf " and press enter"
-
-		echo -e "\nNow sit back, relax, and wait for your analysis to finish"
+		endtext
 	fi
 
 	if [ "$ASSEMBLY" == "yes" ]; then
@@ -1385,4 +1333,3 @@ rm temp.LOG
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
-
