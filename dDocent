@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.8.13'; export VERSION
+VERSION='2.9.0'; export VERSION
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -16,7 +16,7 @@ echo -e "Contact jpuritz@uri.edu with any problems \n\n "
 ###Code to check for the required software for dDocent
 
 echo "Checking for required software"
-DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools parallel vcfcombine pearRM fastp)
+DEP=(freebayes mawk bwa samtools vcftools rainbow gnuplot seqtk cd-hit-est bamToBed bedtools bedops parallel vcfcombine pearRM fastp)
 NUMDEP=0
 for i in "${DEP[@]}"; do
 	if which $i &> /dev/null; then
@@ -31,13 +31,13 @@ SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d
 SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -f2 -d ".")
 if [ "$SAMV1"  -ge "1" ]; then
 	if [ "$SAMV2"  -lt "3" ]; then
+		SAMV=$(amtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//')
 		echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
-		echo "Please install at least version 1.3.0"
+		echo "Please install at least version 1.3.0 [current version: $SAMV]"
 		echo -en "\007"
 		echo -en "\007"
 		exit 1
 	fi
-
 else
 	echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
 	echo "Please install at least version 1.3.0"
@@ -55,37 +55,44 @@ if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
 	echo "Is the version of rainbow installed newer than 2.0.2?  Enter yes or no."
 	read TEST
 	if [ "$TEST" != "yes" ]; then 
-		echo "Please install a version newer than 2.0.2"
+		echo "Please install a version newer than 2.0.2 [current version: $RAINV]"
 		exit 1
 	fi
 fi
+
 FREEB=(`freebayes | grep -oh 'v[0-9].*' | cut -f1 -d "." | sed -e 's/v//' `)	
 if [ "$FREEB" != "1" ]; then
+	FREEB=$(freebayes | grep -oh 'v[0-9].*')
     echo "The version of FreeBayes installed in your" '$PATH' "is not optimized for dDocent."
-    echo "Please install at least version 1.0.0"
+    echo "Please install at least version 1.0.0 [current version: $FREEB]"
     exit 1
-	fi  
+fi
+
 SEQTK=( `seqtk 2>&1  | grep Version | cut -f2 -d ":" |  sed -e 's/1.[0-9]-r//g' | sed -e 's/-dirty//g' `)
 if [ "$SEQTK" -lt "102" ]; then
+	SEQTK=$(seqtk 2>&1  | grep Version | cut -f2 -d ":")
 	echo "The version of seqtk installed in your" '$PATH' "is not optimized for dDocent."
-    echo "Please install at least version 1.2-r102-dirty"
+    echo "Please install at least version 1.2-r102-dirty [current version: $SEQTK]"
     exit 1
 fi
 
 VCFTV=$(vcftools | grep VCF | grep -oh '[0-9]*[a-z]*)$' | sed -e 's/[a-z)]//')
 if [ "$VCFTV" -lt "10" ]; then
+	VCFTV=$(vcftools | grep VCF | cut -d" " -f2 | tr -d '()')
 	echo "The version of VCFtools installed in your" '$PATH' "is not optimized for dDocent."
-	echo "Please install at least version 0.1.11"
+	echo "Please install at least version 0.1.11 [current version: $VCFTV]"
 	exit 1
 elif [ "$VCFTV" == "11" ]; then
 	VCFGTFLAG="--geno" 
 elif [ "$VCFTV" -ge "12" ]; then
 	VCFGTFLAG="--max-missing"
 fi
+
 BWAV=$(bwa 2>&1 | mawk '/Versi/' | sed -e 's/Version: //g' | sed -e 's/0.7.//g' | sed -e 's/-.*//g' | cut -c 1-2)
 if [ "$BWAV" -lt "13" ]; then
+	BWAV=$(bwa 2>&1 | mawk '/Versi/' | sed -e 's/Version: //g' | sed -e 's/-.*//g')
 	echo "The version of bwa installed in your" '$PATH' "is not optimized for dDocent."
-	echo "Please install at least version 0.7.13"
+	echo "Please install at least version 0.7.13. [current version: $BWAV]"
 	exit 1
 fi
 
@@ -95,20 +102,28 @@ if [ "$BTC" -ge "26" ]; then
 elif [ "$BTC" == "23" ]; then
 	BEDTOOLSFLAG="OLD"
 elif [ "$BTC" != "23" ]; then
+	BTC=$(bedtools --version | mawk '{print $2}' | sed -e 's/v//g' )
 	echo "The version of bedtools installed in your" '$PATH' "is not optimized for dDocent."
-	echo "Please install version 2.23.0 or version 2.26.0 and above"
+	echo "Please install version 2.23.0 or version 2.26.0 and above [current version: $BTC]"
 	exit 1	
 fi
-	
+
+BOV=$(bedops --version | grep "version:" | mawk '{print $2}')
+if awk 'BEGIN {exit !('$(echo $BOV | cut -d"." -f1,2)' < '2.4')}'; then
+	echo "The version of bedops installed in your" '$PATH' "is not optimized for dDocent."
+	echo "Please install version 2.4.0 or above. [current version: $BOV]"
+	exit 1
+fi
+
 FASTP=$(fastp -v 2>&1 | cut -f2 -d " ")
 FASTP1=$(echo $FASTP | cut -f1 -d ".")
 FASTP2=$(echo $FASTP | cut -f2 -d ".")
-FASTP3=$(echo $FASTP | cut -f3 -d ".")
+FASTP3=$(ech o $FASTP | cut -f3 -d ".")
 if [ "$FASTP1" -lt "2" ]; then
 	if [ "$FASTP2" -lt "20" ]; then
 		if [ "$FASTP2" -lt "5" ]; then
 			echo "The version of fastp installed in your" '$PATH' "is not optimized for dDocent."
-			echo "Please install version 0.19.5 or above"
+			echo "Please install version 0.19.5 or above [current version: $FASTP]"
 			exit 1
 		fi
 	fi
