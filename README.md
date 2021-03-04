@@ -15,7 +15,6 @@ dDocent is simple bash wrapper to QC, assemble, map, and call SNPs from almost a
 # or into a fresh environment #
 
 > conda create -n environmentname -c bioconda dDocent
-
 ```
 
 ### manually
