@@ -232,6 +232,18 @@ else
 	cd ..
 fi
 
+echo "Checking for bedops"
+if which bedops &>/dev/null; then
+	echo "bedops is already installed"
+else
+	git clone https://github.com/bedops/bedops.git
+	cd bedops
+	make all
+	make install
+	cp -f bin/* $INSTALL_PATH
+	cd ..
+fi
+
 echo "Checking for bamtools"
 if which bamtools &>/dev/null; then
 	echo "bamtools is already installed"
