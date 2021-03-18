@@ -594,7 +594,7 @@ paste DP3g95p5maf05.fil5.vcf.loci.qual DP3g95p5maf05.fil5.DEPTH | mawk -v x=2084
 Now we can remove those sites and recalculate the depth across loci with VCFtools
 
 ```bash
-vcftools --vcf DP3g95p5maf05.fil5.vcf --site-depth --exclude-positions DP3g95p5maf05.fil5.lowQDloci --out DP3g95p5maf05.fil5
+vcftools --vcf DP3g95p5maf05.fil5.vcf --site-depth --exclude-positions DP3g95p5maf05.fil5.lowQDloci --out DP3g95p5maf05.fil5.ldepth
 ```
 Now let's take VCFtools output and cut it to only the depth scores
 
