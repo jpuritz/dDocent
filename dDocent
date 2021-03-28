@@ -118,7 +118,7 @@ fi
 FASTP=$(fastp -v 2>&1 | cut -f2 -d " ")
 FASTP1=$(echo $FASTP | cut -f1 -d ".")
 FASTP2=$(echo $FASTP | cut -f2 -d ".")
-FASTP3=$(ech o $FASTP | cut -f3 -d ".")
+FASTP3=$(echo $FASTP | cut -f3 -d ".")
 if [ "$FASTP1" -lt "2" ]; then
 	if [ "$FASTP2" -lt "20" ]; then
 		if [ "$FASTP2" -lt "5" ]; then
@@ -401,15 +401,13 @@ echo -e "\nUsing BWA to map reads"
 			fi
 		done
 	fi
+	# sort
+	find ./ -name "*.bam" | parallel --jobs $(( $NUMProc / $SAMProc )) samtools sort -@$SAMProc {} -o {} "2>>" {}.log
+	# rename to -RG.bam. This parallele {.} trick removes the last extension from the input filename 
+	find . -name "*.bam" | parallel --jobs 1 mv {} {.}-RG.bam 
+	# index output bam files
+	find ./ -name "*-RG.bam" | parallel --jobs $NUMProc samtools index {}
 fi
-
-# sort
-find ./ -name "*.bam" | parallel --jobs $(( $NUMProc / $SAMProc )) samtools sort -@$SAMProc {} -o {} "2>>" {}.log
-# rename to -RG.bam. This parallele {.} trick removes the last extension from the input filename 
-find . -name "*.bam" | parallel --jobs 1 mv {} {.}-RG.bam 
-# index output bam files
-find ./ -name "*-RG.bam" | parallel --jobs $NUMProc samtools index {}
-
 
 ##Creating mapping intervals if needed, CreateIntervals function is defined later in script
 #If mapping is being performed, intervals are created automatically
