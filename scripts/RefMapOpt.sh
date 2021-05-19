@@ -22,8 +22,8 @@ do
 	fi
 done
 
-SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c1)
-SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -c3)
+SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -f1 -d ".")
+SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -f2 -d ".")
 	if [ "$SAMV1"  -ge "1" ]; then
 		if [ "$SAMV2"  -lt "3" ]; then
         	echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
@@ -40,7 +40,7 @@ SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d
 			echo -en "\007"
 			exit 1
 	fi
-
+	
 RAINV=(`rainbow | head -1 | cut -f2 -d' ' `)	
 	if [[ "$RAINV" != "2.0.2" && "$RAINV" != "2.0.3" && "$RAINV" != "2.0.4" ]]; then
         	echo "The version of Rainbow installed in your" '$PATH' "is not optimized for dDocent."
