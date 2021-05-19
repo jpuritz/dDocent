@@ -14,7 +14,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 | ------------- |------------------------------------|
 |FreeBayes      | https://github.com/ekg/freebayes   |
 |STACKS         | http://creskolab.uoregon.edu/stacks|
-|Trimmomatic	  | http://www.usadellab.org/cms/?page=trimmomatic |
+|fastp	  | https://github.com/OpenGene/fastp |
 |Mawk			      | http://invisible-island.net/mawk/ |
 |BWA		  	    | http://bio-bwa.sourceforge.net |
 |SAMtools		    | http://samtools.sourceforge.net |
