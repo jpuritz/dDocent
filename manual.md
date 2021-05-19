@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Manual Installation Instructions
-subtitle: THESE HAVE CHANGED AS OF VERSION 2.0
+subtitle: THESE HAVE CHANGED AS OF VERSION 2.9.0
 ---
 
 # Requirements
@@ -29,6 +29,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |bamtools|https://github.com/pezmaster31/bamtools|
 |java| http://www.oracle.com/technetwork/java/javase/downloads/index.html|
 |PEAR read merger| http://sco.h-its.org/exelixis/web/software/pear/ |
+|BedOps| https://bedops.readthedocs.io/en/latest/ |
 
 
 Also, FreeBayes requires cmake for compiling.  Make sure it is installed on your system. http://www.cmake.org/cmake/resources/software.html
