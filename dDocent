@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.9.0'; export VERSION
+VERSION='2.9.1'; export VERSION
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -433,8 +433,13 @@ if [ "$SNP" != "no" ]; then
 	fi
 	#Check to make sure interval files have been created
 	if [[ "$MAP" == "no" && ! -f "mapped.bed" ]]; then
-        bedtools bamtobed -i cat-RRG.bam > cat-RRG.bed
-		bedops --merge cat-RRG.bed > mapped.bed
+		FB2=$(( $NUMProc / 2 ))
+        	#bedtools bamtobed -i cat-RRG.bam > cat-RRG.bed
+		#bedops --merge cat-RRG.bed > mapped.bed
+		cat namelist | parallel -j $FB2 "bedtools bamtobed -i {}-RG.bam | sort-bed - | bedops --merge - > {}-RG.bed"
+		bedops --merge *-RG.bed | bedtools sort -i - -faidx reference.fasta.fai > mapped.bed
+		rm *-RG.bed
+		
 	fi
 	#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
 	#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
@@ -1185,8 +1190,11 @@ CreateIntervals(){
 	samtools merge -@$NUMProc -b bamlist.list -f cat-RRG.bam &>/dev/null
 	samtools index cat-RRG.bam 
 wait
-    bedtools bamtobed -i cat-RRG.bam > cat-RRG.bed
-    bedops --merge cat-RRG.bed > mapped.bed
+    	#bedtools bamtobed -i cat-RRG.bam > cat-RRG.bed
+    	#bedops --merge cat-RRG.bed > mapped.bed
+    	cat namelist | parallel -j $FB2 "bedtools bamtobed -i {}-RG.bam | sort-bed - | bedops --merge - > {}-RG.bed"
+	bedops --merge *-RG.bed | bedtools sort -i - -faidx reference.fasta.fai > mapped.bed
+	rm *-RG.bed
 }
 
 #This checks that dDocent has detected the proper number of individuals and exits if incorrect
