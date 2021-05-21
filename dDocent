@@ -425,7 +425,6 @@ fi
 if [ "$SNP" != "no" ]; then
 	#Create list of BAM files
 	ls *-RG.bam >bamlist.list
-	FB2=$(( $NUMProc / 2 ))
 	#If mapping is not being performed, but intervals do not exist they are created
 	if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
 		CreateIntervals 
