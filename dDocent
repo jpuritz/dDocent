@@ -423,6 +423,7 @@ fi
 if [ "$SNP" != "no" ]; then
 	#Create list of BAM files
 	ls *-RG.bam >bamlist.list
+	FB2=$(( $NUMProc / 2 ))
 	#If mapping is not being performed, but intervals do not exist they are created
 	if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
 		CreateIntervals 
@@ -433,7 +434,6 @@ if [ "$SNP" != "no" ]; then
 	fi
 	#Check to make sure interval files have been created
 	if [[ "$MAP" == "no" && ! -f "mapped.bed" ]]; then
-		FB2=$(( $NUMProc / 2 ))
         	#bedtools bamtobed -i cat-RRG.bam > cat-RRG.bed
 		#bedops --merge cat-RRG.bed > mapped.bed
 		cat namelist | parallel -j $FB2 "bedtools bamtobed -i {}-RG.bam | sort-bed - | bedops --merge - > {}-RG.bed"
@@ -444,7 +444,6 @@ if [ "$SNP" != "no" ]; then
 	#This code estimates the coverage of reference intervals and removes intervals in 0.01% of depth
 	#This allows genotyping to be more effecient and eliminates extreme copy number loci from the data
 	if [ "cat-RRG.bam" -nt "cov.stats" ]; then
-		FB2=$(( $NUMProc / 2 ))
 		if [ "$BEDTOOLSFLAG" == "OLD" ]; then
 			cat namelist | parallel -j $FB2 "coverageBed -abam {}-RG.bam -b mapped.bed -counts > {}.cov.stats"
 		else
