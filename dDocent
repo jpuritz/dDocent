@@ -296,6 +296,8 @@ fi
 
 export SAMProc
 
+export FB2=$(( $NUMProc / 2 ))
+
 #Creates (or appends to) a dDcoent run file recording variables
 echo "Variables used in dDocent (version $VERSION) run at" $STARTTIME >> dDocent.runs
 echo "Number of Processors" >> dDocent.runs
