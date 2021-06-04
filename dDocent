@@ -120,7 +120,7 @@ FASTP1=$(echo $FASTP | cut -f1 -d ".")
 FASTP2=$(echo $FASTP | cut -f2 -d ".")
 FASTP3=$(echo $FASTP | cut -f3 -d ".")
 if [ "$FASTP1" -lt "2" ]; then
-	if [ "$FASTP2" -lt "20" ]; then
+	if [ "$FASTP2" -lt "21" ]; then
 		if [ "$FASTP3" -lt "0" ]; then
 			echo "The version of fastp installed in your" '$PATH' "is not optimized for dDocent."
 			echo "Please install version 0.20.0 or above [current version: $FASTP]"
