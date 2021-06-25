@@ -514,12 +514,11 @@ if [ "$SNP" != "no" ]; then
 	export FB2
 	echo -e "\nUsing FreeBayes to call SNPs"
 
-	#Creates a population file to use for more accurate genotype calling
+	# Creates a population file to use for more accurate genotype calling if one doesn't exist
+	if [ -f popmap ]; then
+		cut -f1 -d "_" namelist | paste namelist - > popmap
+	fi
 	
-	cut -f1 -d "_" namelist > p
-	paste namelist p > popmap
-	rm p
-
 	###New implementation of SNP calling here to save on memory	
 	call_genos(){
 		echo "Starting Freebayes instance " $1 >> freebayes.log
