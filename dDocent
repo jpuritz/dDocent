@@ -515,7 +515,7 @@ if [ "$SNP" != "no" ]; then
 	echo -e "\nUsing FreeBayes to call SNPs"
 
 	# Creates a population file to use for more accurate genotype calling if one doesn't exist
-	if [ -f popmap ]; then
+	if [ ! -f popmap ]; then
 		cut -f1 -d "_" namelist | paste namelist - > popmap
 	fi
 	
