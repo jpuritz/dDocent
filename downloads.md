@@ -8,13 +8,13 @@ subtitle:
 
 Be sure to check the github [page](https://github.com/jpuritz/dDocent/releases) for the latest stable release as sometimes this page is out of date!
 
-Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/v2.7.8.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.7.8</a>
+Click here to download: <a class="btn btn-success" href="https://github.com/jpuritz/dDocent/archive/v2.9.4.tar.gz"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> dDocent-2.9.4</a>
 
 Alternatively:
 
 ```
-curl -L -O https://github.com/jpuritz/dDocent/archive/v2.7.8.tar.gz
-tar xvzf v2.7.8.tar.gz
+curl -L -O https://github.com/jpuritz/dDocent/archive/v2.9.4.tar.gz
+tar xvzf v2.9.4.tar.gz
 ```
  
 # Requirements
@@ -36,6 +36,7 @@ BWA, FreeBayes, GATK, and VCFtools.  Below is a list of all the dependencies of 
 |seqtk			    | https://github.com/lh3/seqtk |
 |CD-HIT		      | http://weizhong-lab.ucsd.edu/cd-hit/ |
 |bedtools| http://bedtools.readthedocs.io/en/latest/ |
+|BEDOPS| https://bedops.readthedocs.io/en/latest/|
 |vcflib| https://github.com/ekg/vcflib |
 |gnuplot| http://www.gnuplot.info |
 |gnu-parallel| http://www.gnu.org/software/parallel/ |
