@@ -397,7 +397,7 @@ if [[ "$ATYPE" == "HYB" ]];then
 			NP=$NUMProc
 		fi
 		MaxLen=$(mawk '!/>/' uniq.full.ua.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
-		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q -l $MaxLen&>/dev/null
+		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q -l $MaxLen &>/dev/null
 		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
 		mawk '!/>/' uniq.ua.fasta > totaluniqseq.ua
 		rm uniq.ua.fq*

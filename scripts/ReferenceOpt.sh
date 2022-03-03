@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
-v="2.8.8"
+v="2.9.5"
 
 if [[ -z "$6" ]]; then
 echo "Usage is sh ReferenceOpt.sh minK1 maxK1 minK2 maxK2 Assembly_Type Number_of_Processors"
@@ -208,7 +208,8 @@ if [ "$NUMProc" -gt 8 ]; then
 else
 	NP=$NUMProc
 fi
-fastp -i uniq.fq -o uniq.fq1 -w $NP -Q &> assemble.trim.log
+MaxLen=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+fastp -i uniq.fq -o uniq.fq1 -w $NP -Q -l $MaxLen &>/dev/null
 mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.fq1 | paste - - | sort -k1,1 -V | tr "\t" "\n" > uniq.fasta
 mawk '!/>/' uniq.fasta > totaluniqseq
 rm uniq.fq*
@@ -330,7 +331,8 @@ if [[ "$ATYPE" == "HYB" ]];then
 		else
 			NP=$NUMProc
 		fi
-		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q &>/dev/null
+		MaxLen=$(mawk '!/>/' uniq.full.ua.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+		fastp -i uniq.ua.fq -o uniq.ua.fq1 -w $NP -Q -l $MaxLen &>/dev/null
 		mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' uniq.ua.fq1 > uniq.ua.fasta
 		mawk '!/>/' uniq.ua.fasta > totaluniqseq.ua
 		rm uniq.ua.fq*
