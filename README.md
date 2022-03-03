@@ -19,6 +19,10 @@ dDocent is simple bash wrapper to QC, assemble, map, and call SNPs from almost a
 
 ### manually
 ```bash
+> git clone https://github.com/jpuritz/dDocent.git
+
+> cd dDocent
+
 > chmod +x ./install_dDocent_requirements
 
 > sh ./install_dDocent_requirements
