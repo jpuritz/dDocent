@@ -171,7 +171,7 @@ special_uniq(){
 }
 export -f special_uniq
 
-if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
+if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ]; then
 	if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	#If PE assembly, creates a concatenated file of every unique for each individual in parallel
 		cat namelist | parallel --no-notice -j $NUMProc "gunzip -c {}.F.fq.gz | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
@@ -196,30 +196,26 @@ if [ ${NAMES[@]:(-1)}.F.fq.gz -nt ${NAMES[@]:(-1)}.uniq.seqs ];then
 	
 	if [ "$ATYPE" == "OL" ]; then
 	#If OL assembly, dDocent assumes that the marjority of PE reads will overlap, so the software PEAR is used to merge paired reads into single reads
-		for i in "${NAMES[@]}";
-        		do
-        		gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
-        		done	
-        	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+		for i in "${NAMES[@]}"; do
+			gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
+		done	
+		MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 		LENGTH=$(( $MaxLen / 3))
-		for i in "${NAMES[@]}"
-			do
+		for i in "${NAMES[@]}";	do
 			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH 
-			done
+		done
 		cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 	fi
 	if [ "$ATYPE" == "HYB" ]; then
 	#If HYB assembly, dDocent assumes some PE reads will overlap but that some will not, so the OL method performed and remaining reads are then put through PE method
-		for i in "${NAMES[@]}";
-      		do
+		for i in "${NAMES[@]}"; do
       		gunzip -c $i.R.fq.gz | head -2 | tail -1 >> lengths.txt
-      		done	
-    		MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
-    		LENGTH=$(( $MaxLen / 3))
-		for i in "${NAMES[@]}"
-			do
+		done	
+		MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+		LENGTH=$(( $MaxLen / 3))
+		for i in "${NAMES[@]}";	do
 			pearRM -f $i.F.fq.gz -r $i.R.fq.gz -o $i -j $NUMProc -n $LENGTH &>kopt.log
-			done
+		done
 		cat namelist | parallel --no-notice -j $NUMProc "mawk '$AWK1' {}.assembled.fastq | mawk '$AWK2' | perl -e '$PERLT' > {}.uniq.seqs"
 		
 		cat namelist | parallel --no-notice -j $NUMProc "cat {}.unassembled.forward.fastq | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
@@ -235,7 +231,7 @@ fi
 
 if [ -f "uniq.seqs.gz" ]; then
 	if [ uniq.seqs.gz -nt uniq.seqs ]; then
-	gunzip uniq.seqs.gz 2>/dev/null
+		gunzip uniq.seqs.gz 2>/dev/null
 	fi
 fi
 
@@ -244,7 +240,7 @@ if [ ! -f "uniq.seqs" ]; then
 fi
 	
 if [[ -z $CUTOFF || -z $CUTOFF2 ]]; then
-getAssemblyInfo
+	getAssemblyInfo
 fi
 
 if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
@@ -269,7 +265,6 @@ if [[ "$ATYPE" == "RPE" || "$ATYPE" == "ROL" ]]; then
 else
 	parallel --no-notice mawk -v x=$CUTOFF \''$1 >= x'\' ::: *.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' | mawk -v x=$CUTOFF2 '$1 >= x' > uniq.k.$CUTOFF.c.$CUTOFF2.seqs
 fi
-#$sort -k1 -r -n uniq.k.$CUTOFF.c.$CUTOFF2.seqs | cut -f 2 > totaluniqseq
 $sort -k1 -r -n --parallel=$NUMProc -S 2G uniq.k.$CUTOFF.c.$CUTOFF2.seqs |cut -f2 > totaluniqseq
 mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' totaluniqseq > uniq.full.fasta
 LENGTH=$(mawk '!/>/' uniq.full.fasta  | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
@@ -296,44 +291,42 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
            		j=$(python -c "print ("$num" * 100)")
                 	k=$(python -c "print ("$j" - 100)")
 		fi
-                mawk -v x="$j" -v y="$k" '$5 <= x && $5 > y'  rbdiv.out > rbdiv.out.$1
+		mawk -v x="$j" -v y="$k" '$5 <= x && $5 > y'  rbdiv.out > rbdiv.out.$1
 	   
 	   	if [ -s "rbdiv.out.$1" ]; then
-           		rainbow merge -o rbasm.out.$1 -a -i rbdiv.out.$1 -r 2 -N10000 -R10000 -l 20 -f 0.75
-           	fi
-        }
-	
+			rainbow merge -o rbasm.out.$1 -a -i rbdiv.out.$1 -r 2 -N10000 -R10000 -l 20 -f 0.75
+		fi
+	}
 	export -f pmerge
-	
-        #Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
-        if [ "$ATYPE" == "PE" ]; then
+
+	#Reads are first clustered using only the Forward reads using CD-hit instead of rainbow
+	if [ "$ATYPE" == "PE" ]; then
 		sed -e 's/NNNNNNNNNN/	/g' uniq.fasta | cut -f1 > uniq.F.fasta
-	  	CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
-	  	cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
-	  	mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed -e 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
-	  	paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
-          
-     	else
-        	sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | cut -f1 | $sort --parallel=$NUMProc -S 2G| uniq | mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' > uniq.F.fasta
 		CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
 		cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
-  		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed -e 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
-  		paste sort.contig.cluster.ids <(mawk '!/>/' uniq.F.fasta) > contig.cluster.Funiq
-  		sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | $sort --parallel=$NUMProc -k1 -S 2G | mawk '{print $0 "\t" NR}'  > totaluniqseq.CN
-  		join -t $'\t' -1 3 -2 1 contig.cluster.Funiq totaluniqseq.CN -o 2.3,1.2,2.1,2.2 > contig.cluster.totaluniqseq
+		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed -e 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
+		paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
+	else
+		sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | cut -f1 | $sort --parallel=$NUMProc -S 2G| uniq | mawk '{c= c + 1; print ">dDocent_Contig_" c "\n" $1}' > uniq.F.fasta
+		CDHIT=$(python -c "print (max("$simC" - 0.1,0.8))")
+		cd-hit-est -i uniq.F.fasta -o xxx -c $CDHIT -T $NUMProc -M 0 -g 1 -d 100 &>cdhit.log
+		mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed -e 's/[>dDocent_Contig_,...]//g' | $sort -g -k1 -S 2G --parallel=$NUMProc > sort.contig.cluster.ids
+		paste sort.contig.cluster.ids <(mawk '!/>/' uniq.F.fasta) > contig.cluster.Funiq
+		sed -e 's/NNNNNNNNNN/	/g' totaluniqseq | $sort --parallel=$NUMProc -k1 -S 2G | mawk '{print $0 "\t" NR}'  > totaluniqseq.CN
+		join -t $'\t' -1 3 -2 1 contig.cluster.Funiq totaluniqseq.CN -o 2.3,1.2,2.1,2.2 > contig.cluster.totaluniqseq
 	fi	
 	
 	#CD-hit output is converted to rainbow format
 	$sort -k2,2 -g contig.cluster.totaluniqseq -S 2G --parallel=$NUMProc | sed -e 's/NNNNNNNNNN/	/g' > rcluster
 	rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
-        CLUST=(`tail -1 rbdiv.out | cut -f5`)
+	CLUST=(`tail -1 rbdiv.out | cut -f5`)
 	CLUST1=$(( $CLUST / 100 + 1))
 	CLUST2=$(( $CLUST1 + 100 ))
 	
 	seq -w 1 $CLUST2 | parallel --no-notice -j $NUMProc --env pmerge pmerge {}
 	
-        cat rbasm.out.[0-9]* > rbasm.out
-        rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
+	cat rbasm.out.[0-9]* > rbasm.out
+	rm rbasm.out.[0-9]* rbdiv.out.[0-9]*
 
 	#This AWK code replaces rainbow's contig selection perl script
 	LENGTH=$(cut -f3 rbdiv.out |mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
@@ -341,51 +334,51 @@ if [[ "$ATYPE" == "PE" || "$ATYPE" == "RPE" ]]; then
 	LENGTH=$(( $LENGTH * 11 / 10 ))
 
 	cat rbasm.out <(echo "E") |sed -e 's/[0-9]*:[0-9]*://g' | mawk -v mlen=$LENGTH  '{
-                if (NR == 1) e=$2;
-                else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_A_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-                else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
-                else if ($1 ~/C/) clus=$2;
-                else if ($1 ~/L/) len=$2;
-                else if ($1 ~/S/) seq=$2;
-                else if ($1 ~/N/) freq=$2;
-                else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
-                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus;lenf=len}
-                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len > mlen) {seq1 = seq; fclus=clus; len1=len}
-                else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus; lenf=len}
-                else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
-                }' > rainbow.fasta
+		if (NR == 1) e=$2;
+		else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_A_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+		else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+		else if ($1 ~/C/) clus=$2;
+		else if ($1 ~/L/) len=$2;
+		else if ($1 ~/S/) seq=$2;
+		else if ($1 ~/N/) freq=$2;
+		else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
+		else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus;lenf=len}
+		else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len > mlen) {seq1 = seq; fclus=clus; len1=len}
+		else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/ && $0 ~!/^R 0/ && len <= mlen) {seq1 = seq; fclus=clus; lenf=len}
+		else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
+		}' > rainbow.fasta
 
 
-        seqtk seq -r rainbow.fasta > rainbow.RC.fasta
-        mv rainbow.RC.fasta rainbow.fasta
+	seqtk seq -r rainbow.fasta > rainbow.RC.fasta
+	mv rainbow.RC.fasta rainbow.fasta
 
-        #The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
+	#The rainbow assembly is checked for overlap between newly assembled Forward and Reverse reads using the software PEAR
 
-        grep -A1 "dDocent_A_Contig_" rainbow.fasta | mawk '!/^--/' | sed -e 's/dDocent_A_Contig_/dDocent_Contig_/g' > rainbow.asm.fasta
-        grep -A1 "dDocent_Contig_" rainbow.fasta | mawk '!/^--/' > rainbow.n.fasta
+	grep -A1 "dDocent_A_Contig_" rainbow.fasta | mawk '!/^--/' | sed -e 's/dDocent_A_Contig_/dDocent_Contig_/g' > rainbow.asm.fasta
+	grep -A1 "dDocent_Contig_" rainbow.fasta | mawk '!/^--/' > rainbow.n.fasta
 
-        sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f1 | seqtk seq -F I - > ref.F.fq
-        sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f2 | seqtk seq -F I - > ref.R.fq
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f1 | seqtk seq -F I - > ref.F.fq
+	sed -e 's/NNNNNNNNNN/	/g' rainbow.asm.fasta | cut -f2 | seqtk seq -F I - > ref.R.fq
 
-        seqtk seq -r ref.R.fq > ref.RC.fq
-        mv ref.RC.fq ref.R.fq
-        LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
-        LENGTH=$(( $LENGTH * 5 / 4))
+	seqtk seq -r ref.R.fq > ref.RC.fq
+	mv ref.RC.fq ref.R.fq
+	LENGTH=$(mawk '!/>/' rainbow.fasta | mawk '(NR==1||length<shortest){shortest=length} END {print shortest}')
+	LENGTH=$(( $LENGTH * 5 / 4))
 
-        pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j 20 -n $LENGTH &>kopt.log
+	pearRM -f ref.F.fq -r ref.R.fq -o overlap -p 0.001 -j $NUMProc -n $LENGTH &>kopt.log
 
-        rm ref.F.fq ref.R.fq
+	rm ref.F.fq ref.R.fq
 
-        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
-        mawk '/>/' overlap.fasta > overlap.loci.names
-        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
-        mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
-        paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed -e 's/	/NNNNNNNNNN/g' > other.FR
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.assembled.fastq > overlap.fasta
+	mawk '/>/' overlap.fasta > overlap.loci.names
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.forward.fastq > other.F
+	mawk 'BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}' overlap.unassembled.reverse.fastq > other.R
+	paste other.F other.R | mawk '{if ($1 ~ />/) print $1; else print $0}' | sed -e 's/	/NNNNNNNNNN/g' > other.FR
 
-        cat other.FR overlap.fasta rainbow.n.fasta > totalover.fasta
+	cat other.FR overlap.fasta rainbow.n.fasta > totalover.fasta
 	paste <(mawk '{if (NR % 2) print $0}' totalover.fasta) <(mawk '{if (NR % 2 == 0) print $0}' totalover.fasta) | sort -V | sed -e 's/	/\'$'\n/g' > totalover.s.fasta
 	mv totalover.s.fasta totalover.fasta
-        rm *.F *.R
+	rm *.F *.R
 fi
 
 if [[ "$ATYPE" == "HYB" ]];then
@@ -463,8 +456,8 @@ bwa index reference.fasta >> index.log 2>&1
 SEQS=$(mawk 'END {print NR}' uniq.k.$CUTOFF.c.$CUTOFF2.seqs)
 TIGS=$(grep ">" -c reference.fasta)
 
-#echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
-#echo $TIGS
+echo -e "\ndDocent assembled $SEQS sequences (after cutoffs) into $TIGS contigs"
+
 }
 
 
