@@ -17,7 +17,7 @@ dDocent is simple bash wrapper to QC, assemble, map, and call SNPs from almost a
 > conda create -n environmentname -c bioconda ddocent
 ```
 
-#### If you are getting samtools errors
+#### If you are getting samtools errors:
 ```bash
 > conda install -c bioconda ddocent 'samtools>=1.10'
 
@@ -27,7 +27,7 @@ dDocent is simple bash wrapper to QC, assemble, map, and call SNPs from almost a
 ```
 Alternatively, it's recommended to use [mamba](https://github.com/mamba-org/mamba) as your conda solver.
 
-### manually
+### manually (no longer directly supported)
 ```bash
 > git clone https://github.com/jpuritz/dDocent.git
 
