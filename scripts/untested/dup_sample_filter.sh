@@ -27,7 +27,7 @@ echo "${NAM[$i]}" > keep.${NAM[$i]}
 vcftools --vcf $1 --keep keep.${NAMES[$i]} --recode --recode-INFO-all --minDP 5 --out ${NAMES[$i]}
 vcftools --vcf $1 --keep keep.${NAM[$i]} --recode --recode-INFO-all --minDP 5 --out ${NAM[$i]}
 
-paste <(mawk '!/#/' ${NAMES[$i]}.recode.vcf | cut -f1,2,10 | cut -f1 -d ":") <(mawk '!/#/' ${NAM[$i]}.recode.vcf | cut -f1,2,10 | cut -f1 -d ":") | mawk '$3 != $6' | mawk '!/\./' | cut -f1,2 > bad.loci.${NAMES[$i]}.${NAM[$i]}
+paste <(mawk '!/#/' ${NAMES[$i]}.recode.vcf | cut -f1,2,10 | cut -f1 -d ":") <(mawk '!/#/' ${NAM[$i]}.recode.vcf | cut -f1,2,10 | cut -f1 -d ":") | mawk '$3 != $6' | mawk '!/\.\//' | cut -f1,2 > bad.loci.${NAMES[$i]}.${NAM[$i]}
 
 done
 
