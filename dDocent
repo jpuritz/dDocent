@@ -3,7 +3,7 @@ export LC_ALL=en_US.UTF-8
 export SHELL=bash
 
 ##########dDocent##########
-VERSION='2.9.6'; export VERSION
+VERSION='2.9.7'; export VERSION
 #This script serves as an interactive bash wrapper to QC, assemble, map, and call SNPs from double digest RAD (SE or PE), ezRAD (SE or PE) data, or SE RAD data.
 #It requires that your raw data are split up by tagged individual and follow the naming convention of:
 
@@ -455,56 +455,63 @@ if [ "$SNP" != "no" ]; then
 	fi
 	
 	SNPNUMProc=$(( $NUMProc * 2 )) 
-	
-	if head -1 reference.fasta | grep -e 'dDocent' 1>/dev/null; then
-		DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
-		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
+	COVSTATSLN=$(($(cat cov.stats | wc -l)))
+
+
+	if [[ "$COVSTATSLN" -lt 2 ]]; then
+		cp mapped.bed mapped.1.bed
 	else
-		DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.00005;@l=<>;print $l[int($d*@l)]')
-		CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
-	fi
 	
-	#calculate read length
-	rm lengths.txt &> /dev/null
-	read_length(){
-        if [ -f "$1.R.fq.gz" ]; then
-        	gunzip -c $1.R.fq.gz | head -2 | tail -1 >> lengths.txt
+		if head -1 reference.fasta | grep -e 'dDocent' 1>/dev/null; then
+			DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.001;@l=<>;print $l[int($d*@l)]')
+			CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
 		else
-			gunzip -c $1.F.fq.gz | head -2 | tail -1 >> lengths.txt
-        fi
-	}
-	export -f read_length
+			DP=$(mawk '{print $4}' cov.stats | $sort -rn | perl -e '$d=.00005;@l=<>;print $l[int($d*@l)]')
+			CC=$( mawk -v x=$DP '$4 < x' cov.stats | mawk '{len=$3-$2;lc=len*$4;tl=tl+lc} END {OFMT = "%.0f";print tl/"'$SNPNUMProc'"}')
+		fi
 	
-	cat namelist| parallel --env read_length -j $NUMProc --no-notice "read_length {}"
+		#calculate read length
+		rm lengths.txt &> /dev/null
+		read_length(){
+        	if [ -f "$1.R.fq.gz" ]; then
+        		gunzip -c $1.R.fq.gz | head -2 | tail -1 >> lengths.txt
+			else
+				gunzip -c $1.F.fq.gz | head -2 | tail -1 >> lengths.txt
+        	fi
+		}
+		export -f read_length
 	
-	MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
+		cat namelist| parallel --env read_length -j $NUMProc --no-notice "read_length {}"
 	
-	#split cov.stats file into high and low coverage intervals
-	mawk '$4 > 500000' cov.stats > cov.high.stats
-	mawk '$4 <= 500000' cov.stats > cov.low.stats
+		MaxLen=$(mawk '{ print length() | "sort -rn" }' lengths.txt| head -1)
 	
-	#split high coverage intervals into smaller, 1/2 read-length sized intervals
-	MaxLen2=$(( $MaxLen / 2 ))
-	ML1=$(( $MaxLen2 + 1 ))
-	bedtools makewindows -b cov.high.stats -w $MaxLen2 -s $ML1 > temp1.bed
-	bedtools intersect -a cov.stats -b temp1.bed > temp.cov.stats
+		#split cov.stats file into high and low coverage intervals
+		mawk '$4 > 500000' cov.stats > cov.high.stats
+		mawk '$4 <= 500000' cov.stats > cov.low.stats
 	
-	cat temp.cov.stats cov.low.stats > cov.split.stats
-	rm cov.high.stats cov.low.stats temp1.bed temp.cov.stats
+		#split high coverage intervals into smaller, 1/2 read-length sized intervals
+		MaxLen2=$(( $MaxLen / 2 ))
+		ML1=$(( $MaxLen2 + 1 ))
+		bedtools makewindows -b cov.high.stats -w $MaxLen2 -s $ML1 > temp1.bed
+		bedtools intersect -a cov.stats -b temp1.bed > temp.cov.stats
 	
-	TT=$(( $MaxLen2 * 1000000 ))
+		cat temp.cov.stats cov.low.stats > cov.split.stats
+		rm cov.high.stats cov.low.stats temp1.bed temp.cov.stats
 	
-	mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
-	{len=$3-$2;lc=len*$4;cov = cov + lc
-	if (NR == 1 && lc > tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; i=i+1; e=1}
-	else if ( cov < cutoff && lc < tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; e=0}
-	else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=1}
-	else if (lc > tt && e < 1 ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1;e=1}
-	else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc;e=0}
-	}'
-		
+		TT=$(( $MaxLen2 * 1000000 ))
+	
+		mawk -v x=$DP '$4 < x' cov.split.stats |sort -V -k1,1 -k2,2 | mawk -v cutoff=$CC -v tt=$TT 'BEGIN{i=1}
+		{len=$3-$2;lc=len*$4;cov = cov + lc
+		if (NR == 1 && lc > tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; i=i+1; e=1}
+		else if ( cov < cutoff && lc < tt) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x; e=0}
+		else if (lc > tt && e > 0 ) {x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1; e=1}
+		else if (lc > tt && e < 1 ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0;i=i+1;e=1}
+		else if (cov > cutoff && lc < tt ) {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=lc;e=0}
+		}'
+	fi
+
 	if [ $? -eq 0 ]; then 
-		echo "Genomic interval creation completed successfully."
+	echo "Genomic interval creation completed successfully."
 	else
 		echo "Genomic interval creation failed.  This may be related to the maximum number of open files."
 		exit 1
