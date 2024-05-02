@@ -507,7 +507,7 @@ do
 	echo $k >> rand.proc
 done
 
-echo -e "Mean_Coverage_PerContig\tMeanCoverage_PerContig_NoZero\tContigs\tMean_NumberOfContigs_Mapped\tK1\tK2\tSUM_Mapped\tSUM_Properly\tMean_Mapped\tMean_Properly\tMisMatched" > mapping.results
+echo -e "Mean_Coverage_PerContig\tMeanCoverage_PerContig_NoZero\tContigs\tMean_NumberOfContigs_Mapped\tK1\tK2\tSUM_Mapped\tSUM_Properly\tMean_Mapped\tMean_Properly\tMean_MisMatched" > mapping.results
 
 for ((r = $1; r <= $2; r++));
 do
