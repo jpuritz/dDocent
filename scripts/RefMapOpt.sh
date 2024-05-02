@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
-v="2.9.5"
+v="2.9.6"
 
 
 if [[ -z "$7" ]]; then
@@ -507,7 +507,7 @@ do
 	echo $k >> rand.proc
 done
 
-echo -e "Cov\tNon0Cov\tContigs\tMeanContigsMapped\tK1\tK2\tSUM_Mapped\tSUM_Properly\tMean_Mapped\tMean_Properly\tMisMatched" > mapping.results
+echo -e "Mean_Coverage_PerContig\tMeanCoverage_PerContig_NoZero\tContigs\tMean_NumberOfContigs_Mapped\tK1\tK2\tSUM_Mapped\tSUM_Properly\tMean_Mapped\tMean_Properly\tMisMatched" > mapping.results
 
 for ((r = $1; r <= $2; r++));
 do
@@ -545,25 +545,26 @@ do
 		
 		samtools sort -@4 $1.bam -o $1.bam 2> /dev/null
 		samtools index $1.bam
-    	MM=$(samtools flagstat $1.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
-    	CM=$(samtools idxstats $1.bam | mawk '$3 > 0' | wc -l)
-    	CC=$(samtools idxstats $1.bam | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
-		DD=$(samtools idxstats $1.bam | mawk '$3 >0' | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
-		BM=$(samtools flagstat $1.bam | grep mapQ | cut -f1 -d ' ')
-		echo -e "$MM\t$CM\t$CC\t$DD\t$BM" >> $r.$j.results
+    	Mappings=$(samtools flagstat $1.bam | grep -E 'mapped \(|properly' | cut -f1 -d '+' | tr -d '\n')
+    	Contigs_Mapped=$(samtools idxstats $1.bam | mawk '$3 > 0' | wc -l)
+    	Mean_Mapped_PerContig=$(samtools idxstats $1.bam | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
+	Mean_Mapped_PerContig_NoZero=$(samtools idxstats $1.bam | mawk '$3 >0' | mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }')
+	Discordant=$(samtools flagstat $1.bam | grep mapQ | cut -f1 -d ' ')
+	echo -e "$Mappings\t$Contigs_Mapped\t$Mean_Mapped_PerContig\t$Mean_Mapped_PerContig_NoZero\t$Discordant" >> $r.$j.results
     	}
     	export -f map_reads
     	cat rand.proc | parallel --no-notice -j $NUMProc --env map_reads map_reads {} $r $j
-    	SUMM=$(mawk '{ sum+=$1} END {print sum}' $r.$j.results)
-    	SUMPM=$(mawk '{ sum+=$2} END {print sum}' $r.$j.results)
-    	AVEM=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
-    	AVEP=$(mawk '{ sum += $2; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
-    	AC=$(mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
-    	CON=$(mawk '/>/' reference.fasta | wc -l)
-	CCC=$(mawk '{ sum += $4; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
-	DDD=$(mawk '{ sum += $5; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
-	BBM=$(mawk '{ sum += $6; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
-    	echo -e "$CCC\t$DDD\t$CON\t$AC\t$r\t$j\t$SUMM\t$SUMPM\t$AVEM\t$AVEP\t$BBM" >> mapping.results
+    	SUM_Mappings=$(mawk '{ sum+=$1} END {print sum}' $r.$j.results)
+    	SUM_Properly_Paired=$(mawk '{ sum+=$2} END {print sum}' $r.$j.results)
+    	Mean_Mapping=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	Mean_Properly_Paired=$(mawk '{ sum += $2; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	Meta_Mean_Mapped_PerContig=$(mawk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+    	Contigs=$(mawk '/>/' reference.fasta | wc -l)
+	Mean_Contigs_Mapped=$(mawk '{ sum += $4; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+	Meta_Mean_Mapped_PerContig=$(mawk '{ sum += $5; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+	Meta_Mean_Mapped_PerContig_NoZero=$(mawk '{ sum += $6; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+ 	Mean_Discordant=$(mawk '{ sum += $7; n++ } END { if (n > 0) print sum / n; }' $r.$j.results)
+	echo -e "$Meta_Mean_Mapped_PerContig\t$Meta_Mean_Mapped_PerContig_NoZero\t$Contigs\t$Mean_Contigs_Mapped\t$r\t$j\t$SUM_Mappings\t$SUM_Properly_Paired\t$Mean_Mapping\t$Mean_Properly_Paired\t$Mean_Discordant" >> mapping.results
 	fi
 	done
     		
