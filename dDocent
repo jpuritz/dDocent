@@ -31,7 +31,7 @@ SAMV1=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d
 SAMV2=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//' | cut -f2 -d ".")
 if [ "$SAMV1"  -ge "1" ]; then
 	if [ "$SAMV2"  -lt "3" ]; then
-		SAMV=$(amtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//')
+		SAMV=$(samtools 2>&1 >/dev/null | grep Ver | sed -e 's/Version://' | cut -f2 -d " " | sed -e 's/-.*//')
 		echo "The version of Samtools installed in your" '$PATH' "is not optimized for dDocent."
 		echo "Please install at least version 1.3.0 [current version: $SAMV]"
 		echo -en "\007"
