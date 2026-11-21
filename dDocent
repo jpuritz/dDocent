@@ -403,12 +403,42 @@ echo -e "\nUsing BWA to map reads"
 			fi
 		done
 	fi
+
+	#a failed bwa or samtools leaves an empty BAM behind
+	EMPTYBAM=0
+	for i in "${NAMES[@]}"; do
+		if [ ! -s "$i.bam" ]; then
+			echo -e "\n\nERROR: no reads of $i were mapped, see bwa.$i.log and $i.bam.log"
+			EMPTYBAM=$((EMPTYBAM + 1))
+		fi
+	done
+	if [ $EMPTYBAM -gt 0 ]; then
+		echo -e "\ndDocent cannot continue without alignments for every individual"
+		exit 1
+	fi
+
 	# sort
 	find ./ -name "*.bam" | parallel --jobs $(( $NUMProc / $SAMProc )) samtools sort -@$SAMProc {} -o {} "2>>" {}.log
 	# rename to -RG.bam. This parallele {.} trick removes the last extension from the input filename 
 	find . -name "*.bam" | parallel --jobs 1 mv {} {.}-RG.bam 
 	# index output bam files
 	find ./ -name "*-RG.bam" | parallel --jobs $NUMProc samtools index {}
+
+	#BAM files without a single alignment are useless for the rest of the analysis
+	#(the individual would disappear from the VCF without a warning), idxstats
+	#only reads the index, so this check is cheap even for large BAM files
+	NOALIGN=0
+	for i in "${NAMES[@]}"; do
+		ALIGNED=$(samtools idxstats $i-RG.bam 2>/dev/null | mawk '$1 != "*" {sum += $3} END {print sum + 0}')
+		if [ "${ALIGNED:-0}" -lt 1 ]; then
+			echo -e "\n\nERROR: none of the reads of $i could be mapped, see bwa.$i.log and $i.bam.log"
+			NOALIGN=$((NOALIGN + 1))
+		fi
+	done
+	if [ $NOALIGN -gt 0 ]; then
+		echo -e "\ndDocent cannot continue without alignments for every individual"
+		exit 1
+	fi
 fi
 
 ##Creating mapping intervals if needed, CreateIntervals function is defined later in script
