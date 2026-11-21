@@ -2,7 +2,7 @@
 
 export LC_ALL=en_US.UTF-8
 export SHELL=bash
-v="2.8.7"
+v="2.9.8"
 
 if [[ -z "$5" ]]; then
 echo "Usage is sh remake_reference.sh K1 K2 similarity% Assembly_Type Number_of_Processors"
