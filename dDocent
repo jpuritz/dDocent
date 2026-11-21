@@ -699,6 +699,7 @@ if [ "$SNP" != "no" ]; then
 	mv raw.9.vcf raw.09.vcf 2>/dev/null
 
 	vcfcombine raw.*.vcf | sed -e 's/	\.\:/	\.\/\.\:/g' > TotalRawSNPs.vcf
+	fix_info_header TotalRawSNPs.vcf
 
 	if [ ! -d "raw.vcf" ]; then
 		mkdir raw.vcf
@@ -765,6 +766,15 @@ trim_reads(){
 }
 	
 	export -f trim_reads
+
+fix_info_header(){
+	#vcflib >= 1.0.4 does not keep the INFO and FORMAT header lines of the input
+	#files when VCFs are combined, so the definitions of the raw files are added
+	#back (vcffilter and vcftools need them)
+	if ! grep -q '^##FORMAT=<ID=QR,' $1; then
+		DEFS=$(cat raw.*.vcf | grep -e '^##INFO' -e '^##FORMAT' | sort -u) mawk 'BEGIN{n = split(ENVIRON["DEFS"], a, "\n")} !done && /^#CHROM/ {for (i = 1; i <= n; i++) print a[i]; done = 1} {print}' $1 > $1.DEFS && mv $1.DEFS $1
+	fi
+}
 
 TrimReads () { 
 	#STACKS adds a strange _1 or _2 character to the end of processed reads, this looks for checks for errant characters and replaces them.
