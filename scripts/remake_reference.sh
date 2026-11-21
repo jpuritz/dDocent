@@ -29,18 +29,21 @@ done
 
 
 FASTP=$(fastp -v 2>&1 | cut -f2 -d " ")
+#fastp -v prints "fastp <version>", but its output may contain other lines
+#(a warning from the C library, for example), so the version is extracted
+#with a pattern
+FASTP=$(fastp -v 2>&1 | mawk 'match($0, /[0-9]+\.[0-9]+(\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH); exit}')
 FASTP1=$(echo $FASTP | cut -f1 -d ".")
 FASTP2=$(echo $FASTP | cut -f2 -d ".")
 FASTP3=$(echo $FASTP | cut -f3 -d ".")
-	if [ "$FASTP1" -lt "2" ]; then
-		if [ "$FASTP2" -lt "20" ]; then
-			if [ "$FASTP2" -lt "5" ]; then
-				echo "The version of fastp installed in your" '$PATH' "is not optimized for dDocent."
-				echo "Please install version 0.19.5 or above"
-				exit 1
-			fi
-		fi
-	fi
+#compare the version as a whole (major * 1000000 + minor * 1000 + patch),
+#so that a major version bump is handled as well
+FASTPV=$(( ${FASTP1:-0} * 1000000 + ${FASTP2:-0} * 1000 + ${FASTP3:-0} ))
+if [ "$FASTPV" -lt "19005" ]; then
+	echo "The version of fastp installed in your" '$PATH' "is not optimized for dDocent."
+	echo "Please install version 0.19.5 or above [current version: $FASTP]"
+	exit 1
+fi
 	
 if [ $NUMDEP -gt 0 ]; then
 	echo -e "\nPlease install all required software before running ReferenceOpt again."
