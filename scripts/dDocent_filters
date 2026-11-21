@@ -13,6 +13,17 @@ echo "Usage is bash dDocent_filters.sh VCF_file Output_prefix"
 exit 1
 fi
 
+#vcffilter drops every site that uses a field without a definition in the header,
+#without a warning
+
+for field in AB QR QA DP MQM MQMR SAF SAR SRF SRR PAIRED PAIREDR; do
+	if ! grep -q "^##INFO=<ID=$field," $1; then
+		echo -e "\n$1 does not define the INFO field $field, which this script needs."
+		echo -e "The file was probably created by a dDocent version that used vcflib 1.0.4 or newer, which drops the INFO header lines.\n"
+		exit 1
+	fi
+done
+
 #Filteres out sites with that on average have heterzygotes with less than a 0.28 allele balance between reads from each allele and Quality / Depth < 0.5 and ratio of mapping quality for reference and alternate alleles
 
 vcffilter -s -f "AB > 0.2 & AB < 0.8 | AB < 0.01 | AB > 0.99" -s -g "QR > 0 | QA > 0 " $1 | vcffilter -s -f "QUAL / DP > 0.1" | vcffilter -s -f "MQM / MQMR > 0.25 & MQM / MQMR < 1.75" > $2
