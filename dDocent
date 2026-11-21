@@ -249,11 +249,19 @@ if [ -n "$1" ]; then
 		echo -e "\nConfiguration file is not properly configured.  Please see example on dDocent.com or the dDocent GitHub page."
 		exit 1
 	fi
-	MAXMemory=0
-	#MAXMemory=$(( $MAXMemory1 / $NUMProc ))G
+	#Maximum Memory is the memory available on the machine in GB, every concurrently
+	#running freebayes instance gets its share of it (see --memfree below)
+	MAXMemory=$(( ${MAXMemory1:-0} / $NUMProc ))G
 	if [[ "$OSTYPE" == "darwin"* ]]; then
 		MAXMemory=0
 		MAXMemory1=0
+	fi
+	#Only pass --memfree to GNU parallel if a maximum memory was set (in the
+	#configuration file or interactively), "Maximum Memory 0" disables it
+	if [ "${MAXMemory%G}" -gt 0 ]; then
+		MEMFREE="--memfree $MAXMemory"
+	else
+		MEMFREE=""
 	fi
 	TRIM=$(grep -A1 Trim $CONFIG | tail -1)
 	ASSEMBLY=$(grep -A1 '^Assembly' $CONFIG | tail -1)
@@ -571,7 +579,7 @@ if [ "$SNP" != "no" ]; then
 					if ( cov < cutoff) {x="mapped."i".bed";print $1"\t"$2"\t"$3 > x}
 					else {i=i+1; x="mapped."i".bed"; print $1"\t"$2"\t"$3 > x; cov=0}
 				}'                
-			ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel --bar --halt now,fail=1 --env call_genos2 -j 4 --no-notice "call_genos2 {} "
+			ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel $MEMFREE --bar --halt now,fail=1 --env call_genos2 -j 4 --no-notice "call_genos2 {} "
 					
 			if [ -f "freebayes.error" ]; then
 				echo -e "\n\n\nFreeBayes has failed when trying to finish a previously failed instance.  Memory and processor settings need to be drastically reconfigured"
@@ -596,7 +604,7 @@ if [ "$SNP" != "no" ]; then
 	
 	rm freebayes.error freebayes.log &> /dev/null
 	
-	ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel --bar --halt now,fail=10 --env call_genos -j $NUMProc --no-notice --joblog ./par.log "call_genos {} "
+	ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel $MEMFREE --bar --halt now,fail=10 --env call_genos -j $NUMProc --no-notice --joblog ./par.log "call_genos {} "
 
 	if [ -f "freebayes.error" ]; then
 		FAILS=$( cat freebayes.error | wc -l )
@@ -635,7 +643,7 @@ if [ "$SNP" != "no" ]; then
 			echo "Using FreeBayes to call SNPs again"
 			NumP=$(( $NUMProc / 4 ))
 			NumP=$(( $NumP * 3 ))
-			ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel --bar --halt now,fail=10 --env call_genos -j $NumP --no-notice --joblog ./par2.log "call_genos {} " 
+			ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel $MEMFREE --bar --halt now,fail=10 --env call_genos -j $NumP --no-notice --joblog ./par2.log "call_genos {} " 
         fi
     fi
 
@@ -673,7 +681,7 @@ if [ "$SNP" != "no" ]; then
 			NumP=$(( $NumP / 4 ))
 			NumP=$(( $NumP * 3 ))
 			echo "Using FreeBayes to call SNPs again"
-			ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel --bar --halt now,fail=10 --env call_genos -j $NumP --joblog ./par3.log --no-notice "call_genos {}"
+			ls mapped.*.bed | sed -e 's/mapped.//g' | sed -e 's/.bed//g' | shuf | parallel $MEMFREE --bar --halt now,fail=10 --env call_genos -j $NumP --joblog ./par3.log --no-notice "call_genos {}"
         fi
 	fi
 
