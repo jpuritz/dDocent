@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-export LC_ALL=en_US.UTF-8
+#dDocent needs an UTF-8 locale (gnuplot needs a point as the decimal
+#separator), but exporting a locale that is not installed makes every
+#program print setlocale warnings to stderr
+if locale -a 2>/dev/null | grep -qiE '^en_us\.utf-?8$'; then
+	export LC_ALL=en_US.UTF-8
+fi
 
 echo "This script counts the number of potential genotyping errors due to low read depth"
 echo "It report a low range, based on a 50% binomial probability of observing the second allele in a heterozygote and a high range based on a 25% probability."
