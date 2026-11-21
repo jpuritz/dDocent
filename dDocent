@@ -201,6 +201,9 @@ STARTTIME=$(date)
 
 echo -e "\ndDocent version $VERSION started" $STARTTIME "\n"
 
+#number of failed stages, main exits with a non-zero status if it is not 0
+ERRORS=0
+
 endtext(){
 	echo ""
     echo "At this point, all configuration information has been entered and dDocent may take several hours to run." 
@@ -344,17 +347,31 @@ echo $MAIL >> dDocent.runs
 if [[ "$TRIM" == "yes" && "$ASSEMBLY" == "yes" ]]; then
 	echo -e "\nTrimming reads and simultaneously assembling reference sequences"        
 	TrimReads & 2> trim.log
+	TRIMPID=$!
 	Assemble
-	wait
+	#wait for the trimming and get its exit status
+	if ! wait $TRIMPID; then
+		echo -e "\n\nERROR: trimming of the reads failed, see trim.log and the *.trim.log files"
+		ERRORS=$((ERRORS + 1))
+	fi
 fi
 
 if [[ "$TRIM" == "yes" && "$ASSEMBLY" != "yes" ]]; then
 	echo -e "\nTrimming reads"
-	TrimReads 2> trim.log
+	if ! TrimReads 2> trim.log; then
+		echo -e "\n\nERROR: trimming of the reads failed, see trim.log and the *.trim.log files"
+		ERRORS=$((ERRORS + 1))
+	fi
 fi                
                 
 if [[ "$TRIM" != "yes" && "$ASSEMBLY" == "yes" ]]; then                
 	Assemble
+fi
+
+#a failed assembly cannot be used for mapping and SNP calling
+if [[ "$ASSEMBLY" == "yes" && ! -s reference.fasta ]]; then
+	echo -e "\n\nERROR: the read assembly did not produce a reference.fasta"
+	ERRORS=$((ERRORS + 1))
 fi
 
 #Checks to see if reads will be mapped.
@@ -405,10 +422,18 @@ echo -e "\nUsing BWA to map reads"
 	fi
 	# sort
 	find ./ -name "*.bam" | parallel --jobs $(( $NUMProc / $SAMProc )) samtools sort -@$SAMProc {} -o {} "2>>" {}.log
+	if [ $? -ne 0 ]; then
+		echo -e "\n\nERROR: samtools sort failed, see the *.bam.log files"
+		ERRORS=$((ERRORS + 1))
+	fi
 	# rename to -RG.bam. This parallele {.} trick removes the last extension from the input filename 
 	find . -name "*.bam" | parallel --jobs 1 mv {} {.}-RG.bam 
 	# index output bam files
 	find ./ -name "*-RG.bam" | parallel --jobs $NUMProc samtools index {}
+	if [ $? -ne 0 ]; then
+		echo -e "\n\nERROR: samtools index failed, see the *.bam.log files"
+		ERRORS=$((ERRORS + 1))
+	fi
 fi
 
 ##Creating mapping intervals if needed, CreateIntervals function is defined later in script
@@ -417,7 +442,10 @@ fi
 if [ "$MAP" != "no" ]; then
 	echo -e "\nCreating alignment intervals"
 	ls *-RG.bam >bamlist.list
-	CreateIntervals 
+	if ! CreateIntervals; then
+		echo -e "\n\nERROR: the mapping intervals could not be created"
+		ERRORS=$((ERRORS + 1))
+	fi
 fi
 
 ##SNP Calling Section of code
@@ -427,7 +455,10 @@ if [ "$SNP" != "no" ]; then
 	ls *-RG.bam >bamlist.list
 	#If mapping is not being performed, but intervals do not exist they are created
 	if [[ "$MAP" == "no" && ! -f "cat-RRG.bam" ]]; then
-		CreateIntervals 
+		if ! CreateIntervals; then
+			echo -e "\n\nERROR: the mapping intervals could not be created"
+			ERRORS=$((ERRORS + 1))
+		fi
 	fi
 	#Check for runs from older versions to ensure the recreation of cat-RRG.bam
 	if [[ "$MAP" == "no" && -f "map.bed" ]]; then
@@ -700,6 +731,12 @@ if [ "$SNP" != "no" ]; then
 
 	vcfcombine raw.*.vcf | sed -e 's/	\.\:/	\.\/\.\:/g' > TotalRawSNPs.vcf
 
+	#a failed vcfcombine silently propagates into an empty Final.recode.vcf
+	if [ ! -s TotalRawSNPs.vcf ]; then
+		echo -e "\n\nERROR: vcfcombine did not produce any variants, see the freebayes logs"
+		ERRORS=$((ERRORS + 1))
+	fi
+
 	if [ ! -d "raw.vcf" ]; then
 		mkdir raw.vcf
 	fi
@@ -708,6 +745,10 @@ if [ "$SNP" != "no" ]; then
 
 	echo -e "\nUsing VCFtools to parse TotalRawSNPS.vcf for SNPs that are called in at least 90% of individuals"
 	vcftools --vcf TotalRawSNPs.vcf $VCFGTFLAG 0.9 --out Final --recode --non-ref-af 0.001 --max-non-ref-af 0.9999 --mac 1 --minQ 30 --recode-INFO-all &>VCFtools.log
+	if [ $? -ne 0 ] || [ ! -s Final.recode.vcf ]; then
+		echo -e "\n\nERROR: VCFtools did not produce Final.recode.vcf, see VCFtools.log"
+		ERRORS=$((ERRORS + 1))
+	fi
 fi
 
 ##Checking for possible errors
@@ -719,7 +760,13 @@ ERROR2=$(mawk '/error/' *.bam.log 2>/dev/null | wc -l 2>/dev/null)
 if [ "$SNP" == "no" ]; then
 	ERROR3=0
 fi
-ERRORS=$(($ERROR1 + $ERROR2 + $ERROR3))
+if [ "$TRIM" == "yes" ]; then
+	#fastp reports truncated or mismatched read pairs as
+	#"WARNNIG: different read numbers" (sic) and continues with the pairs it
+	#could find, which is an error
+	ERROR4=$(mawk '/WARNNIG: different read numbers/' *.trim.log 2>/dev/null | wc -l 2>/dev/null)
+fi
+ERRORS=$(($ERRORS + ${ERROR1:-0} + ${ERROR2:-0} + ${ERROR3:-0} + ${ERROR4:-0}))
 
 #Move various log files to own directory
 if [ ! -d "logfiles" ]; then
@@ -746,6 +793,12 @@ else
 		echo -e "dDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." | mailx -s "dDocent has finished" $MAIL 2>/dev/null
 		echo -e "\ndDocent has finished with an analysis in" `pwd` "\n\ndDocent started" $STARTTIME "\n\ndDocent finished" `date` "\n\n" "\n\ndDocent" $VERSION "\nThe 'd' is silent, hillbilly." 
 	fi
+fi
+
+#do not report a run with failed stages as successful
+if [ "$ERRORS" -gt 0 ]; then
+	echo -e "\n\ndDocent finished with" $ERRORS "error(s), exiting with a non-zero status"
+	exit 1
 fi
 }
 
@@ -1361,10 +1414,13 @@ GetInfo(){
 }
 
 #Actually starts program
+#PIPESTATUS[0] is the exit status of main, $? would be that of tee
 if [ -n "$1" ]; then
 	main $1 2>&1 | tee temp.LOG #Log all output
+	STATUS=${PIPESTATUS[0]}
 else
 	main 2>&1 | tee temp.LOG #Log all output
+	STATUS=${PIPESTATUS[0]}
 fi
 
 mawk '!/#.*%/' temp.LOG >> dDocent_main.LOG
@@ -1372,3 +1428,13 @@ rm temp.LOG
 
 #Compress Large Leftover files
 gzip -f concat.fasta concat.seq rcluster rbdiv.out rbasm.out rainbow.fasta reference.fasta.original uniq.seqs uniq.fasta totaluniqseq uniq.F.fasta uniq.RC.fasta 2> /dev/null &
+
+#the compression above runs in the background, so the exit status of main has
+#to be returned explicitly
+if [ "$STATUS" -ne 0 ]; then
+	echo -e "\n\ndDocent did not complete successfully (exit status $STATUS)." >&2
+	echo -e "Please check dDocent_main.LOG and the files in logfiles/ for details." >&2
+	exit "$STATUS"
+fi
+
+exit 0
